@@ -1,0 +1,987 @@
+     1→"use client";
+     2→
+     3→import { useState } from "react";
+     4→import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+     5→import {
+     6→  ArrowRight,
+     7→  BarChart3,
+     8→  Brain,
+     9→  CheckCircle2,
+    10→  Code2,
+    11→  FileText,
+    12→  Mic,
+    13→  PlayCircle,
+    14→  Quote,
+    15→  Sparkles,
+    16→  Star,
+    17→  TrendingUp,
+    18→  Trophy,
+    19→  Upload,
+    20→  UserCheck,
+    21→  Video,
+    22→  Zap,
+    23→} from "lucide-react";
+    24→import {
+    25→  AuroraBackground,
+    26→  BorderBeam,
+    27→  GlowCard,
+    28→  MagneticButton,
+    29→  Marquee,
+    30→  PulseBadge,
+    31→  SectionHeading,
+    32→  Shimmer,
+    33→  StaggeredReveal,
+    34→  revealItem,
+    35→} from "@/components/shared/primitives";
+    36→import { Button } from "@/components/ui/button";
+    37→import { Badge } from "@/components/ui/badge";
+    38→import { useNav } from "@/lib/store";
+    39→import { cn } from "@/lib/utils";
+    40→
+    41→const LOGOS = [
+    42→  "Google", "Amazon", "Microsoft", "Meta", "Netflix", "Adobe",
+    43→  "Stripe", "Linear", "Vercel", "Notion", "Figma", "Airbnb",
+    44→];
+    45→
+    46→const FEATURES = [
+    47→  {
+    48→    icon: FileText,
+    49→    title: "AI Resume Analyzer",
+    50→    desc: "ATS score, missing skills, and a free improvement plan in 15 seconds.",
+    51→    span: "lg:col-span-2",
+    52→  },
+    53→  {
+    54→    icon: Brain,
+    55→    title: "1,500+ Aptitude Questions",
+    56→    desc: "Quant, Logical, Verbal, Analytical & DI banks, retake unlimited.",
+    57→    span: "",
+    58→  },
+    59→  {
+    60→    icon: Code2,
+    61→    title: "Coding Arena",
+    62→    desc: "Monaco editor + AI review with complexity & refactor suggestions.",
+    63→    span: "",
+    64→  },
+    65→  {
+    66→    icon: Video,
+    67→    title: "Live AI Interview",
+    68→    desc: "3D avatar asks dynamic follow-ups. Body language & emotion analysis.",
+    69→    span: "lg:col-span-2",
+    70→  },
+    71→  {
+    72→    icon: FileText,
+    73→    title: "17-Section Report",
+    74→    desc: "Strengths, gaps, 6-week roadmap — exported as PDF.",
+    75→    span: "",
+    76→  },
+    77→  {
+    78→    icon: TrendingUp,
+    79→    title: "Progress Tracking",
+    80→    desc: "Heatmaps, score trends, and skill radar across sessions.",
+    81→    span: "",
+    82→  },
+    83→];
+    84→
+    85→const STEPS = [
+    86→  { icon: Upload, label: "Upload Resume", note: "AI extracts skills" },
+    87→  { icon: Brain, label: "Practice Tests", note: "Aptitude + Coding" },
+    88→  { icon: Video, label: "AI Interview", note: "Live, adaptive" },
+    89→  { icon: FileText, label: "Get Report", note: "17-section PDF" },
+    90→];
+    91→
+    92→const TESTIMONIALS = [
+    93→  {
+    94→    name: "Priya Sharma",
+    95→    role: "Backend Engineer @ Atlassian",
+    96→    quote:
+    97→      "The AI interview felt real. Body language feedback caught my slouching — fixed it before my actual interview.",
+    98→    rating: 5,
+    99→    accent: "from-violet-500/20 to-fuchsia-500/20",
+   100→  },
+   101→  {
+   102→    name: "Amit Patel",
+   103→    role: "Full-stack @ Razorpay",
+   104→    quote:
+   105→      "Coding Arena's AI refactor suggestions are sharper than my senior dev's reviews. Cracked two hard loops in 3 days.",
+   106→    rating: 5,
+   107→    accent: "from-sky-500/20 to-emerald-500/20",
+   108→  },
+   109→  {
+   110→    name: "Sneha Iyer",
+   111→    role: "Data Analyst @ Cred",
+   112→    quote:
+   113→      "The 17-section report literally handed me a 6-week study plan. Went from 62 → 88 in interview score.",
+   114→    rating: 5,
+   115→    accent: "from-amber-500/20 to-rose-500/20",
+   116→  },
+   117→  {
+   118→    name: "Rahul Kumar",
+   119→    role: "SDE-1 @ Zomato",
+   120→    quote:
+   121→      "Used the platform for 3 weeks before campus placements. Got placed at 4 companies. Worth every minute.",
+   122→    rating: 5,
+   123→    accent: "from-emerald-500/20 to-violet-500/20",
+   124→  },
+   125→  {
+   126→    name: "Meera Krishnan",
+   127→    role: "Frontend @ Postman",
+   128→    quote:
+   129→      "Resume analyzer told me exactly which keywords I was missing. ATS score jumped from 67 to 91 in one edit.",
+   130→    rating: 5,
+   131→    accent: "from-fuchsia-500/20 to-sky-500/20",
+   132→  },
+   133→];
+   134→
+   135→const PRICING = [
+   136→  {
+   137→    name: "Free",
+   138→    monthly: 0,
+   139→    yearly: 0,
+   140→    desc: "Perfect for getting started.",
+   141→    features: ["3 AI interviews / month", "1 resume analysis", "100 aptitude questions", "Basic reports"],
+   142→    cta: "Start Free",
+   143→    popular: false,
+   144→  },
+   145→  {
+   146→    name: "Pro",
+   147→    monthly: 19,
+   148→    yearly: 15,
+   149→    desc: "For serious job seekers.",
+   150→    features: [
+   151→      "Unlimited AI interviews",
+   152→      "Unlimited resume analyses",
+   153→      "Full 1,500+ aptitude bank",
+   154→      "17-section PDF reports",
+   155→      "Coding Arena with AI review",
+   156→      "Priority email support",
+   157→    ],
+   158→    cta: "Go Pro",
+   159→    popular: true,
+   160→  },
+   161→  {
+   162→    name: "Teams",
+   163→    monthly: 49,
+   164→    yearly: 39,
+   165→    desc: "For cohorts & campus drives.",
+   166→    features: [
+   167→      "Everything in Pro",
+   168→      "Up to 50 seats",
+   169→      "Admin dashboard",
+   170→      "Bulk candidate upload",
+   171→      "Proctoring & integrity scores",
+   172→      "Dedicated success manager",
+   173→    ],
+   174→    cta: "Talk to Sales",
+   175→    popular: false,
+   176→  },
+   177→];
+   178→
+   179→export function LandingPage() {
+   180→  const { set } = useNav();
+   181→  const shouldReduce = useReducedMotion();
+   182→  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+   183→
+   184→  return (
+   185→    <AuroraBackground>
+   186→      {/* HERO */}
+   187→      <section className="relative px-4 pt-20 pb-32 sm:px-6 lg:px-8">
+   188→        <div className="mx-auto max-w-5xl text-center">
+   189→          <motion.div
+   190→            initial={{ opacity: 0, y: 12 }}
+   191→            animate={{ opacity: 1, y: 0 }}
+   192→            transition={{ duration: 0.5 }}
+   193→            className="flex justify-center"
+   194→          >
+   195→            <PulseBadge>AI-powered · Gemini 1.5 Flash · Whisper · MediaPipe</PulseBadge>
+   196→          </motion.div>
+   197→
+   198→          <motion.h1
+   199→            initial={{ opacity: 0, y: 16 }}
+   200→            animate={{ opacity: 1, y: 0 }}
+   201→            transition={{ duration: 0.6, delay: 0.08 }}
+   202→            className="mt-6 text-4xl font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl"
+   203→          >
+   204→            Master every interview
+   205→            <br className="hidden sm:block" />
+   206→            <span className="gradient-text text-glow"> with AI.</span>
+   207→          </motion.h1>
+   208→
+   209→          <motion.p
+   210→            initial={{ opacity: 0, y: 16 }}
+   211→            animate={{ opacity: 1, y: 0 }}
+   212→            transition={{ duration: 0.6, delay: 0.16 }}
+   213→            className="mx-auto mt-6 max-w-2xl text-base text-pretty text-muted-foreground sm:text-lg"
+   214→          >
+   215→            A complete AI interview assistant — resume analyzer, aptitude
+   216→            practice, coding arena, and a live AI interviewer that gives you
+   217→            real-time body-language feedback. Plus a full hiring pipeline for
+   218→            companies.
+   219→          </motion.p>
+   220→
+   221→          <motion.div
+   222→            initial={{ opacity: 0, y: 16 }}
+   223→            animate={{ opacity: 1, y: 0 }}
+   224→            transition={{ duration: 0.6, delay: 0.24 }}
+   225→            className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
+   226→          >
+   227→            <MagneticButton
+   228→              size="lg"
+   229→              className="h-12 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-7 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
+   230→              onClick={() => set("auth")}
+   231→            >
+   232→              <Sparkles className="mr-2 h-4 w-4" />
+   233→              Start Preparing Free
+   234→              <ArrowRight className="ml-2 h-4 w-4" />
+   235→            </MagneticButton>
+   236→            <MagneticButton
+   237→              size="lg"
+   238→              variant="outline"
+   239→              className="h-12 rounded-full px-7 border-white/15 bg-white/5 backdrop-blur hover:bg-white/10"
+   240→              onClick={() => set("company-register")}
+   241→            >
+   242→              For Companies
+   243→              <ArrowRight className="ml-2 h-4 w-4" />
+   244→            </MagneticButton>
+   245→          </motion.div>
+   246→
+   247→          <motion.div
+   248→            initial={{ opacity: 0 }}
+   249→            animate={{ opacity: 1 }}
+   250→            transition={{ duration: 0.6, delay: 0.4 }}
+   251→            className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
+   252→          >
+   253→            <div className="flex -space-x-2">
+   254→              {[0, 1, 2, 3, 4].map((i) => (
+   255→                <div
+   256→                  key={i}
+   257→                  className="h-8 w-8 rounded-full border-2 border-background bg-gradient-to-br from-violet-500 to-fuchsia-500"
+   258→                  style={{ opacity: 1 - i * 0.12 }}
+   259→                />
+   260→              ))}
+   261→            </div>
+   262→            <p className="text-sm text-muted-foreground">
+   263→              <span className="font-semibold text-white">5,000+</span> students
+   264→              preparing right now
+   265→            </p>
+   266→          </motion.div>
+   267→        </div>
+   268→
+   269→        {/* Product mockup */}
+   270→        <ProductMockup />
+   271→      </section>
+   272→
+   273→      {/* SOCIAL PROOF / LOGO CLOUD */}
+   274→      <section className="relative py-12 border-y border-white/5 bg-white/[0.01]">
+   275→        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+   276→          <p className="mb-6 text-center text-xs uppercase tracking-widest text-muted-foreground">
+   277→            Trusted by alumni at
+   278→          </p>
+   279→          <Marquee>
+   280→            {LOGOS.map((logo) => (
+   281→              <span
+   282→                key={logo}
+   283→                className="text-xl font-semibold tracking-tight text-white/40 transition-colors hover:text-white/80"
+   284→              >
+   285→                {logo}
+   286→              </span>
+   287→            ))}
+   288→          </Marquee>
+   289→        </div>
+   290→      </section>
+   291→
+   292→      {/* BENTO GRID FEATURES */}
+   293→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   294→        <div className="mx-auto max-w-7xl">
+   295→          <SectionHeading
+   296→            eyebrow="Everything in one place"
+   297→            title={<>One platform for the entire <span className="gradient-text">interview lifecycle</span></>}
+   298→            description="From the first resume upload to the final report — six pillars that take you from unsure to unstoppable."
+   299→          />
+   300→
+   301→          <StaggeredReveal className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+   302→            {FEATURES.map((f, i) => (
+   303→              <motion.div key={f.title} variants={revealItem} className={cn("relative", f.span)}>
+   304→                <GlowCard className="h-full p-6">
+   305→                  <div className="relative grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 text-violet-300 ring-1 ring-inset ring-white/10">
+   306→                    <f.icon className="h-5 w-5" />
+   307→                  </div>
+   308→                  <h3 className="mt-5 text-lg font-semibold tracking-tight">
+   309→                    {f.title}
+   310→                  </h3>
+   311→                  <p className="mt-1.5 text-sm text-muted-foreground">
+   312→                    {f.desc}
+   313→                  </p>
+   314→                  {i === 3 && <BorderBeam size={160} duration={10} />}
+   315→                </GlowCard>
+   316→              </motion.div>
+   317→            ))}
+   318→          </StaggeredReveal>
+   319→        </div>
+   320→      </section>
+   321→
+   322→      {/* HOW IT WORKS */}
+   323→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   324→        <div className="mx-auto max-w-7xl">
+   325→          <SectionHeading
+   326→            eyebrow="How it works"
+   327→            title="From upload to report in four steps"
+   328→            description="No setup. No fluff. Upload once, and the platform handles the rest — even generating your personalised 6-week learning roadmap."
+   329→          />
+   330→          <div className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-4">
+   331→            {STEPS.map((s, i) => (
+   332→              <motion.div
+   333→                key={s.label}
+   334→                initial={{ opacity: 0, y: 18 }}
+   335→                whileInView={{ opacity: 1, y: 0 }}
+   336→                viewport={{ once: true }}
+   337→                transition={{ delay: i * 0.08, duration: 0.5 }}
+   338→                className="relative"
+   339→              >
+   340→                <GlowCard className="h-full p-6">
+   341→                  <div className="flex items-center justify-between">
+   342→                    <span className="text-xs font-mono text-muted-foreground">
+   343→                      Step 0{i + 1}
+   344→                    </span>
+   345→                    <div className="grid h-10 w-10 place-items-center rounded-full bg-violet-500/15 text-violet-300 ring-1 ring-inset ring-white/10">
+   346→                      <s.icon className="h-4 w-4" />
+   347→                    </div>
+   348→                  </div>
+   349→                  <h3 className="mt-4 font-semibold">{s.label}</h3>
+   350→                  <p className="mt-1 text-sm text-muted-foreground">{s.note}</p>
+   351→                </GlowCard>
+   352→                {i < STEPS.length - 1 && (
+   353→                  <ArrowRight className="absolute -right-3 top-1/2 hidden h-5 w-5 -translate-y-1/2 text-muted-foreground/40 md:block" />
+   354→                )}
+   355→              </motion.div>
+   356→            ))}
+   357→          </div>
+   358→        </div>
+   359→      </section>
+   360→
+   361→      {/* INTERACTIVE SHOWCASE / STICKY-SCROLL DEMO */}
+   362→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   363→        <div className="mx-auto max-w-7xl">
+   364→          <SectionHeading
+   365→            eyebrow="See it in action"
+   366→            title={<>The live AI interview — <span className="gradient-text">like the real thing</span></>}
+   367→            description="A 3D avatar asks dynamic questions, listens to your answers, generates follow-ups, and analyses your eye contact, posture and emotion in real time."
+   368→          />
+   369→          <StickyWalkthrough />
+   370→        </div>
+   371→      </section>
+   372→
+   373→      {/* TESTIMONIALS */}
+   374→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   375→        <div className="mx-auto max-w-7xl">
+   376→          <SectionHeading
+   377→            eyebrow="Loved by 5,000+ candidates"
+   378→            title="From rejected to rounds cleared"
+   379→            description="Real stories from candidates who used the platform and cracked interviews at top companies."
+   380→          />
+   381→          <Marquee className="mt-14" pauseOnHover>
+   382→            {TESTIMONIALS.map((t) => (
+   383→              <article
+   384→                key={t.name}
+   385→                className="w-[340px] shrink-0"
+   386→              >
+   387→                <GlowCard className={cn("h-full p-6 bg-gradient-to-br", t.accent)}>
+   388→                  <div className="flex items-center gap-1 text-amber-300">
+   389→                    {Array.from({ length: t.rating }).map((_, i) => (
+   390→                      <Star key={i} className="h-3.5 w-3.5 fill-current" />
+   391→                    ))}
+   392→                  </div>
+   393→                  <Quote className="mt-4 h-6 w-6 text-white/30" />
+   394→                  <p className="mt-2 text-sm text-pretty text-foreground/90">
+   395→                    {t.quote}
+   396→                  </p>
+   397→                  <div className="mt-5 flex items-center gap-3">
+   398→                    <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-xs font-semibold text-white">
+   399→                      {t.name.charAt(0)}
+   400→                    </div>
+   401→                    <div>
+   402→                      <p className="text-xs font-semibold">{t.name}</p>
+   403→                      <p className="text-[11px] text-muted-foreground">{t.role}</p>
+   404→                    </div>
+   405→                  </div>
+   406→                </GlowCard>
+   407→              </article>
+   408→            ))}
+   409→          </Marquee>
+   410→        </div>
+   411→      </section>
+   412→
+   413→      {/* PRICING */}
+   414→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   415→        <div className="mx-auto max-w-7xl">
+   416→          <SectionHeading
+   417→            eyebrow="Pricing"
+   418→            title="Start free. Upgrade when you're ready."
+   419→            description="No credit card to start. Cancel anytime. Yearly saves you 20%."
+   420→          />
+   421→
+   422→          <div className="mt-10 flex justify-center">
+   423→            <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1">
+   424→              {(["monthly", "yearly"] as const).map((b) => (
+   425→                <button
+   426→                  key={b}
+   427→                  onClick={() => setBilling(b)}
+   428→                  className={cn(
+   429→                    "relative rounded-full px-4 py-1.5 text-xs font-medium capitalize transition-colors",
+   430→                    billing === b ? "text-white" : "text-muted-foreground hover:text-white",
+   431→                  )}
+   432→                >
+   433→                  {b}
+   434→                  {billing === b && (
+   435→                    <motion.span
+   436→                      layoutId="billing-pill"
+   437→                      className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+   438→                    />
+   439→                  )}
+   440→                </button>
+   441→              ))}
+   442→            </div>
+   443→          </div>
+   444→
+   445→          <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
+   446→            {PRICING.map((p) => (
+   447→              <div key={p.name} className={cn(p.popular && "md:-mt-3")}>
+   448→                <GlowCard
+   449→                  className={cn(
+   450→                    "relative h-full overflow-hidden p-6",
+   451→                    p.popular && "border-violet-400/40 bg-violet-500/[0.06]",
+   452→                  )}
+   453→                >
+   454→                  {p.popular && <BorderBeam size={220} duration={12} />}
+   455→                  {p.popular && (
+   456→                    <Badge className="mb-4 w-fit border-violet-400/30 bg-violet-500/15 text-violet-200">
+   457→                      <Sparkles className="mr-1 h-3 w-3" /> Popular
+   458→                    </Badge>
+   459→                  )}
+   460→                  <h3 className="text-lg font-semibold">{p.name}</h3>
+   461→                  <p className="mt-1 text-sm text-muted-foreground">{p.desc}</p>
+   462→                  <div className="mt-5 flex items-baseline gap-1">
+   463→                    <span className="text-4xl font-semibold tracking-tight">
+   464→                      ${billing === "monthly" ? p.monthly : p.yearly}
+   465→                    </span>
+   466→                    <span className="text-sm text-muted-foreground">/mo</span>
+   467→                  </div>
+   468→                  <ul className="mt-6 space-y-2.5">
+   469→                    {p.features.map((f) => (
+   470→                      <li key={f} className="flex items-start gap-2 text-sm text-foreground/80">
+   471→                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+   472→                        {f}
+   473→                      </li>
+   474→                    ))}
+   475→                  </ul>
+   476→                  <Button
+   477→                    className={cn(
+   478→                      "mt-7 w-full rounded-full",
+   479→                      p.popular
+   480→                        ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
+   481→                        : "bg-white/10 hover:bg-white/15 border border-white/10",
+   482→                    )}
+   483→                    onClick={() => set("auth")}
+   484→                  >
+   485→                    {p.cta}
+   486→                  </Button>
+   487→                </GlowCard>
+   488→              </div>
+   489→            ))}
+   490→          </div>
+   491→        </div>
+   492→      </section>
+   493→
+   494→      {/* FINAL CTA */}
+   495→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   496→        <div className="mx-auto max-w-5xl">
+   497→          <GlowCard className="relative overflow-hidden p-10 text-center md:p-16">
+   498→            <BorderBeam size={260} duration={14} />
+   499→            <div className="absolute inset-0 -z-10 bg-gradient-to-br from-violet-500/20 via-transparent to-fuchsia-500/20" />
+   500→            <Trophy className="mx-auto h-10 w-10 text-amber-300" />
+   501→            <h2 className="mt-5 text-3xl font-semibold tracking-tight text-balance md:text-5xl">
+   502→              Ready to ace your <span className="gradient-text">next interview?</span>
+   503→            </h2>
+   504→            <p className="mx-auto mt-4 max-w-xl text-pretty text-muted-foreground">
+   505→              Join 5,000+ students who cracked interviews at top companies with
+   506→              AI-guided practice. Free forever — no credit card required.
+   507→            </p>
+   508→            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+   509→              <MagneticButton
+   510→                size="lg"
+   511→                className="h-12 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-7 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
+   512→                onClick={() => set("auth")}
+   513→              >
+   514→                <Sparkles className="mr-2 h-4 w-4" />
+   515→                Start Free Today
+   516→              </MagneticButton>
+   517→              <Button
+   518→                size="lg"
+   519→                variant="ghost"
+   520→                className="h-12 rounded-full px-7 text-muted-foreground"
+   521→              >
+   522→                <PlayCircle className="mr-2 h-4 w-4" />
+   523→                Watch Demo
+   524→              </Button>
+   525→            </div>
+   526→          </GlowCard>
+   527→        </div>
+   528→      </section>
+   529→
+   530→      {/* FOOTER */}
+   531→      <footer className="relative border-t border-white/5 bg-white/[0.01]">
+   532→        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+   533→          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+   534→            <div className="col-span-2 md:col-span-1">
+   535→              <div className="flex items-center gap-2">
+   536→                <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+   537→                  <Sparkles className="h-4 w-4" />
+   538→                </div>
+   539→                <span className="font-semibold">
+   540→                  Interview<span className="gradient-text">AI</span>
+   541→                </span>
+   542→              </div>
+   543→              <p className="mt-3 text-xs text-muted-foreground">
+   544→                The complete AI interview assistant — for both candidates and
+   545→                companies.
+   546→              </p>
+   547→            </div>
+   548→            <FooterCol
+   549→              title="Prep Mode"
+   550→              links={["Resume Analyzer", "Aptitude", "Coding Arena", "AI Interview", "Reports"]}
+   551→              onClick={() => set("auth")}
+   552→            />
+   553→            <FooterCol
+   554→              title="Hiring Mode"
+   555→              links={["For Companies", "Pricing", "Proctoring", "Bulk Upload", "Leaderboard"]}
+   556→              onClick={() => set("company-register")}
+   557→            />
+   558→            <FooterCol
+   559→              title="Company"
+   560→              links={["About", "Blog", "Careers", "Privacy", "Terms"]}
+   561→              onClick={() => set("landing")}
+   562→            />
+   563→          </div>
+   564→
+   565→          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-6 sm:flex-row">
+   566→            <p className="text-xs text-muted-foreground">
+   567→              © 2025 InterviewAI. All rights reserved.
+   568→            </p>
+   569→            <div className="flex items-center gap-2">
+   570→              <input
+   571→                type="email"
+   572→                placeholder="you@email.com"
+   573→                className="h-9 w-full max-w-xs rounded-full border border-white/10 bg-white/5 px-4 text-xs outline-none focus:border-violet-400/40 focus:ring-2 focus:ring-violet-400/20"
+   574→              />
+   575→              <Button
+   576→                size="sm"
+   577→                className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0"
+   578→              >
+   579→                <Zap className="mr-1 h-3 w-3" />
+   580→                Subscribe
+   581→              </Button>
+   582→            </div>
+   583→          </div>
+   584→        </div>
+   585→      </footer>
+   586→    </AuroraBackground>
+   587→  );
+   588→}
+   589→
+   590→function FooterCol({
+   591→  title,
+   592→  links,
+   593→  onClick,
+   594→}: {
+   595→  title: string;
+   596→  links: string[];
+   597→  onClick: () => void;
+   598→}) {
+   599→  return (
+   600→    <div>
+   601→      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+   602→        {title}
+   603→      </p>
+   604→      <ul className="mt-3 space-y-2">
+   605→        {links.map((l) => (
+   606→          <li key={l}>
+   607→            <button
+   608→              onClick={onClick}
+   609→              className="text-sm text-foreground/70 transition-colors hover:text-white"
+   610→            >
+   611→              {l}
+   612→            </button>
+   613→          </li>
+   614→        ))}
+   615→      </ul>
+   616→    </div>
+   617→  );
+   618→}
+   619→
+   620→function ProductMockup() {
+   621→  return (
+   622→    <motion.div
+   623→      initial={{ opacity: 0, y: 40, scale: 0.96 }}
+   624→      animate={{ opacity: 1, y: 0, scale: 1 }}
+   625→      transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+   626→      className="relative mx-auto mt-20 max-w-5xl"
+   627→    >
+   628→      <GlowCard className="relative overflow-hidden p-2 md:p-3">
+   629→        <BorderBeam size={280} duration={14} />
+   630→        {/* Window chrome */}
+   631→        <div className="flex items-center gap-1.5 border-b border-white/5 px-4 py-2.5">
+   632→          <span className="h-2.5 w-2.5 rounded-full bg-rose-500/70" />
+   633→          <span className="h-2.5 w-2.5 rounded-full bg-amber-500/70" />
+   634→          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/70" />
+   635→          <div className="ml-3 flex-1">
+   636→            <div className="h-5 w-40 rounded-md bg-white/5" />
+   637→          </div>
+   638→        </div>
+   639→
+   640→        {/* Dashboard mockup */}
+   641→        <div className="grid grid-cols-12 gap-3 p-3 md:p-5">
+   642→          {/* Sidebar */}
+   643→          <div className="col-span-3 hidden md:block">
+   644→            <div className="space-y-2 rounded-xl bg-white/[0.02] p-3">
+   645→              {["Dashboard", "Resume", "Aptitude", "Coding", "Interview", "Reports"].map((l, i) => (
+   646→                <div
+   647→                  key={l}
+   648→                  className={cn(
+   649→                    "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs",
+   650→                    i === 0 ? "bg-violet-500/15 text-violet-200" : "text-muted-foreground",
+   651→                  )}
+   652→                >
+   653→                  <span className={cn("h-1.5 w-1.5 rounded-full", i === 0 ? "bg-violet-400" : "bg-white/20")} />
+   654→                  {l}
+   655→                </div>
+   656→              ))}
+   657→            </div>
+   658→          </div>
+   659→
+   660→          {/* Main content */}
+   661→          <div className="col-span-12 md:col-span-9 space-y-3">
+   662→            <div className="flex items-center justify-between">
+   663→              <div>
+   664→                <p className="text-sm font-semibold">Welcome back, Priya 👋</p>
+   665→                <p className="text-[11px] text-muted-foreground">Last interview: Jan 15 · Score 78%</p>
+   666→              </div>
+   667→              <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-200">
+   668→                <TrendingUp className="mr-1 h-3 w-3" /> +12 this week
+   669→              </Badge>
+   670→            </div>
+   671→
+   672→            <div className="grid grid-cols-3 gap-3">
+   673→              <MockStat label="Overall" value="78%" tone="violet" icon={<BarChart3 className="h-3.5 w-3.5" />} />
+   674→              <MockStat label="Resume ATS" value="87" tone="emerald" icon={<FileText className="h-3.5 w-3.5" />} />
+   675→              <MockStat label="Coding" value="7/10" tone="amber" icon={<Code2 className="h-3.5 w-3.5" />} />
+   676→            </div>
+   677→
+   678→            <div className="grid grid-cols-2 gap-3">
+   679→              <div className="rounded-xl bg-white/[0.02] p-3">
+   680→                <p className="text-xs text-muted-foreground">Score trend</p>
+   681→                <div className="mt-3 h-12 w-full">
+   682→                  <svg viewBox="0 0 200 50" className="h-12 w-full" preserveAspectRatio="none">
+   683→                    <defs>
+   684→                      <linearGradient id="trend" x1="0" y1="0" x2="0" y2="1">
+   685→                        <stop offset="0%" stopColor="#a855f7" stopOpacity="0.45" />
+   686→                        <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
+   687→                      </linearGradient>
+   688→                    </defs>
+   689→                    <path
+   690→                      d="M0,35 L25,30 L50,32 L75,22 L100,25 L125,15 L150,18 L175,8 L200,12"
+   691→                      fill="none"
+   692→                      stroke="#a855f7"
+   693→                      strokeWidth="1.5"
+   694→                    />
+   695→                    <path
+   696→                      d="M0,35 L25,30 L50,32 L75,22 L100,25 L125,15 L150,18 L175,8 L200,12 L200,50 L0,50 Z"
+   697→                      fill="url(#trend)"
+   698→                    />
+   699→                  </svg>
+   700→                </div>
+   701→              </div>
+   702→              <div className="rounded-xl bg-white/[0.02] p-3">
+   703→                <p className="text-xs text-muted-foreground">Recent interviews</p>
+   704→                <div className="mt-2 space-y-1.5">
+   705→                  {[
+   706→                    ["HR / Behavioral", "82%"],
+   707→                    ["Technical", "75%"],
+   708→                    ["Coding", "91%"],
+   709→                  ].map(([t, s]) => (
+   710→                    <div key={t} className="flex items-center justify-between text-[11px]">
+   711→                      <span className="text-muted-foreground">{t}</span>
+   712→                      <span className="font-mono text-white">{s}</span>
+   713→                    </div>
+   714→                  ))}
+   715→                </div>
+   716→              </div>
+   717→            </div>
+   718→          </div>
+   719→        </div>
+   720→
+   721→        {/* Floating UI elements */}
+   722→        <FloatingChip
+   723→          className="left-2 top-1/3"
+   724→          icon={<Mic className="h-3 w-3 text-violet-300" />}
+   725→          label="Listening…"
+   726→        />
+   727→        <FloatingChip
+   728→          className="right-2 top-1/4"
+   729→          icon={<UserCheck className="h-3 w-3 text-emerald-300" />}
+   730→          label="Eye contact 78%"
+   731→          delay={0.8}
+   732→        />
+   733→        <FloatingChip
+   734→          className="right-1/4 bottom-2"
+   735→          icon={<Sparkles className="h-3 w-3 text-amber-300" />}
+   736→          label="AI feedback ready"
+   737→          delay={1.4}
+   738→        />
+   739→      </GlowCard>
+   740→    </motion.div>
+   741→  );
+   742→}
+   743→
+   744→function MockStat({
+   745→  label,
+   746→  value,
+   747→  tone,
+   748→  icon,
+   749→}: {
+   750→  label: string;
+   751→  value: string;
+   752→  tone: "violet" | "emerald" | "amber";
+   753→  icon: React.ReactNode;
+   754→}) {
+   755→  const tones: Record<string, string> = {
+   756→    violet: "text-violet-300",
+   757→    emerald: "text-emerald-300",
+   758→    amber: "text-amber-300",
+   759→  };
+   760→  return (
+   761→    <div className="rounded-xl bg-white/[0.02] p-3">
+   762→      <div className="flex items-center justify-between text-muted-foreground">
+   763→        <span className="text-[11px]">{label}</span>
+   764→        <span className={tones[tone]}>{icon}</span>
+   765→      </div>
+   766→      <p className={cn("mt-1 text-lg font-semibold", tones[tone])}>{value}</p>
+   767→    </div>
+   768→  );
+   769→}
+   770→
+   771→function FloatingChip({
+   772→  className,
+   773→  icon,
+   774→  label,
+   775→  delay = 0,
+   776→}: {
+   777→  className?: string;
+   778→  icon: React.ReactNode;
+   779→  label: string;
+   780→  delay?: number;
+   781→}) {
+   782→  return (
+   783→    <motion.div
+   784→      initial={{ opacity: 0, scale: 0.6 }}
+   785→      animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
+   786→      transition={{
+   787→        opacity: { delay: delay + 1, duration: 0.4 },
+   788→        scale: { delay: delay + 1, duration: 0.4 },
+   789→        y: { repeat: Infinity, duration: 4, ease: "easeInOut", delay: delay + 1 },
+   790→      }}
+   791→      className={cn(
+   792→        "absolute hidden md:flex items-center gap-1.5 rounded-full border border-white/15 bg-card/90 px-2.5 py-1.5 text-[11px] backdrop-blur-xl shadow-2xl",
+   793→        className,
+   794→      )}
+   795→    >
+   796→      {icon}
+   797→      {label}
+   798→    </motion.div>
+   799→  );
+   800→}
+   801→
+   802→function StickyWalkthrough() {
+   803→  const [active, setActive] = useState(0);
+   804→  const steps = [
+   805→    {
+   806→      title: "AI avatar greets you",
+   807→      desc: "A 3D interviewer speaks your first question aloud with realistic lip-sync. Mic activates automatically when the avatar stops.",
+   808→      icon: Video,
+   809→      mock: (
+   810→        <div className="relative grid h-44 w-44 place-items-center">
+   811→          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 blur-2xl" />
+   812→          <motion.div
+   813→            animate={{ y: [0, -8, 0], scale: [1, 1.04, 1] }}
+   814→            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+   815→            className="relative grid h-32 w-32 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-2xl"
+   816→          >
+   817→            <Sparkles className="h-12 w-12 text-white" />
+   818→            {/* Waveform */}
+   819→            <div className="absolute -bottom-4 left-1/2 flex -translate-x-1/2 items-end gap-0.5">
+   820→              {Array.from({ length: 12 }).map((_, i) => (
+   821→                <motion.span
+   822→                  key={i}
+   823→                  className="w-1 rounded-full bg-violet-300"
+   824→                  animate={{ height: [4, 14, 4] }}
+   825→                  transition={{
+   826→                    duration: 0.8,
+   827→                    repeat: Infinity,
+   828→                    delay: i * 0.06,
+   829→                    ease: "easeInOut",
+   830→                  }}
+   831→                />
+   832→              ))}
+   833→            </div>
+   834→          </motion.div>
+   835→        </div>
+   836→      ),
+   837→    },
+   838→    {
+   839→      title: "You answer — transcript builds live",
+   840→      desc: "Whisper transcribes your speech on the fly. Your answer appears in real time so you always know what was captured.",
+   841→      icon: Mic,
+   842→      mock: (
+   843→        <div className="space-y-2.5 w-full">
+   844→          <div className="rounded-lg bg-violet-500/10 px-3 py-2 text-xs text-violet-100 border border-violet-400/20 w-fit">
+   845→            AI · Tell me about a tough bug you solved recently.
+   846→          </div>
+   847→          <div className="ml-auto max-w-[80%] rounded-lg bg-white/10 px-3 py-2 text-xs">
+   848→            Sure! Last month I was debugging a memory leak in our FastAPI
+   849→            service. Turns out a Redis connection wasn&rsquo;t being released
+   850→            back to the pool…
+   851→          </div>
+   852→          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+   853→            <span className="inline-flex gap-1">
+   854→              {[0, 1, 2].map((i) => (
+   855→                <motion.span
+   856→                  key={i}
+   857→                  className="h-1 w-1 rounded-full bg-violet-400"
+   858→                  animate={{ opacity: [0.2, 1, 0.2] }}
+   859→                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+   860→                />
+   861→              ))}
+   862→            </span>
+   863→            AI is thinking…
+   864→          </div>
+   865→        </div>
+   866→      ),
+   867→    },
+   868→    {
+   869→      title: "Real-time body-language analysis",
+   870→      desc: "MediaPipe tracks eye contact & posture. face-api.js detects emotion every 5 seconds. The indicators update live.",
+   871→      icon: UserCheck,
+   872→      mock: (
+   873→        <div className="grid w-full grid-cols-3 gap-2">
+   874→          {[
+   875→            { label: "Emotion", value: "Neutral", tone: "text-sky-300" },
+   876→            { label: "Eye Contact", value: "78%", tone: "text-emerald-300" },
+   877→            { label: "Posture", value: "Good", tone: "text-emerald-300" },
+   878→          ].map((s) => (
+   879→            <div key={s.label} className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+   880→              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+   881→                {s.label}
+   882→              </p>
+   883→              <p className={cn("mt-1 text-sm font-semibold", s.tone)}>{s.value}</p>
+   884→            </div>
+   885→          ))}
+   886→        </div>
+   887→      ),
+   888→    },
+   889→    {
+   890→      title: "Personalised 17-section report",
+   891→      desc: "After the interview, you get strengths, gaps, an emotion timeline chart, top 7 improvements and a 6-week learning roadmap.",
+   892→      icon: FileText,
+   893→      mock: (
+   894→        <div className="w-full space-y-2">
+   895→          {[
+   896→            "Overall Score: 82 / 100",
+   897→            "Recommendation: Recommend",
+   898→            "Top Strength: Strong conceptual clarity",
+   899→            "Improvement: Reduce filler words (23)",
+   900→            "6-Week Roadmap: Ready",
+   901→          ].map((l, i) => (
+   902→            <motion.div
+   903→              key={l}
+   904→              initial={{ opacity: 0, x: -10 }}
+   905→              animate={{ opacity: 1, x: 0 }}
+   906→              transition={{ delay: i * 0.1 }}
+   907→              className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs"
+   908→            >
+   909→              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+   910→              {l}
+   911→            </motion.div>
+   912→          ))}
+   913→        </div>
+   914→      ),
+   915→    },
+   916→  ];
+   917→
+   918→  return (
+   919→    <div className="mt-14 grid grid-cols-1 gap-6 lg:grid-cols-2">
+   920→      {/* Left sticky */}
+   921→      <div className="lg:sticky lg:top-24 lg:self-start">
+   922→        <div className="space-y-2">
+   923→          {steps.map((s, i) => (
+   924→            <button
+   925→              key={s.title}
+   926→              onMouseEnter={() => setActive(i)}
+   927→              onClick={() => setActive(i)}
+   928→              className={cn(
+   929→                "group flex w-full items-start gap-4 rounded-xl border p-4 text-left transition-colors",
+   930→                active === i
+   931→                  ? "border-violet-400/40 bg-violet-500/[0.07]"
+   932→                  : "border-white/10 bg-white/[0.02] hover:border-white/20",
+   933→              )}
+   934→            >
+   935→              <div
+   936→                className={cn(
+   937→                  "grid h-9 w-9 shrink-0 place-items-center rounded-lg ring-1 ring-inset transition-colors",
+   938→                  active === i
+   939→                    ? "bg-violet-500/15 text-violet-300 ring-violet-400/30"
+   940→                    : "bg-white/5 text-muted-foreground ring-white/10",
+   941→                )}
+   942→              >
+   943→                <s.icon className="h-4 w-4" />
+   944→              </div>
+   945→              <div>
+   946→                <p className="text-sm font-medium">{s.title}</p>
+   947→                <p
+   948→                  className={cn(
+   949→                    "mt-0.5 text-xs transition-all",
+   950→                    active === i
+   951→                      ? "text-muted-foreground max-h-24 opacity-100"
+   952→                      : "max-h-0 overflow-hidden opacity-0 lg:max-h-24 lg:opacity-60",
+   953→                  )}
+   954→                >
+   955→                  {s.desc}
+   956→                </p>
+   957→              </div>
+   958→            </button>
+   959→          ))}
+   960→        </div>
+   961→      </div>
+   962→
+   963→      {/* Right animated mockup */}
+   964→      <GlowCard className="min-h-[320px] overflow-hidden p-6">
+   965→        <div className="grid min-h-[280px] place-items-center">
+   966→          <AnimatePresence mode="wait">
+   967→            <motion.div
+   968→              key={active}
+   969→              initial={{ opacity: 0, scale: 0.94 }}
+   970→              animate={{ opacity: 1, scale: 1 }}
+   971→              exit={{ opacity: 0, scale: 0.96 }}
+   972→              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+   973→              className="flex flex-col items-center gap-4"
+   974→            >
+   975→              {steps[active].mock}
+   976→              <p className="text-xs font-medium text-muted-foreground">
+   977→                {steps[active].title}
+   978→              </p>
+   979→            </motion.div>
+   980→          </AnimatePresence>
+   981→        </div>
+   982→      </GlowCard>
+   983→    </div>
+   984→  );
+   985→}
+   986→
+   987→
