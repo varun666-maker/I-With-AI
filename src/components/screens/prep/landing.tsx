@@ -37,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 const LOGOS = [
   "Google", "Amazon", "Microsoft", "Meta", "Netflix", "Adobe",
@@ -526,6 +527,8 @@ export function LandingPage() {
           </GlowCard>
         </div>
       </section>
+
+      <FlowNav flowId="prep" />
 
       {/* FOOTER */}
       <footer className="relative border-t border-white/5 bg-white/[0.01]">

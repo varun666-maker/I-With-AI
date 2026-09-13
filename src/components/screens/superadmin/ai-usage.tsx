@@ -29,6 +29,7 @@ import {
   revealItem,
 } from "@/components/shared/primitives";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 const MODULE_USAGE = [
   { name: "Resume Analysis", value: 45, color: "#a855f7" },
@@ -339,6 +340,8 @@ export function AIUsageMonitor() {
             </GlowCard>
           </motion.div>
         </div>
+
+        <FlowNav flowId="superadmin" />
       </PageWrap>
     </AuroraBackground>
   );

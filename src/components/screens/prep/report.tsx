@@ -65,6 +65,7 @@ import {
 } from "@/components/ui/accordion";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 const SCORES = [
   { dim: "Technical", score: 82, color: "bg-violet-400" },
@@ -586,6 +587,8 @@ export function InterviewReport() {
             <Download className="mr-2 h-4 w-4" /> {downloading ? "Generating…" : "Download PDF"}
           </Button>
         </div>
+        <FlowNav flowId="prep" />
+
       </PageWrap>
     </AuroraBackground>
   );

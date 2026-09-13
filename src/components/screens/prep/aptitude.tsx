@@ -44,6 +44,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 type Phase = "rules" | "test" | "results";
 
@@ -569,6 +570,8 @@ export function AptitudePortal() {
             )}
           </AnimatePresence>
         </div>
+        <FlowNav flowId="prep" />
+
       </PageWrap>
     </AuroraBackground>
   );

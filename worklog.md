@@ -239,3 +239,189 @@ Stage Summary:
   8. `/home/z/my-project/src/components/screens/prep/replay.tsx` — `InterviewReplay`
   9. `/home/z/my-project/src/components/screens/prep/profile.tsx` — `StudentProfile`
 - Any screens pending: None. All 9 Prep Mode screens complete, lint-clean, and compile-ready for router wiring.
+
+---
+
+## Task ID: FLOW-CAND · Agent flow-cand
+
+**Scope:** Add the `FlowNav` sequential navigation component to the 6 Invited-Candidate screen files. Surgical edit only — import + render once near the bottom of each screen.
+
+**Files edited (6)** — all under `src/components/screens/candidate/`:
+
+| File | Export | FlowNav placement |
+|------|--------|-------------------|
+| `apply.tsx`     | `ApplyPage`             | After trailing `motion.p`, as last child of `<section>` (outside the `AnimatePresence` success card so it always renders) |
+| `login.tsx`     | `CandidateLogin`        | After trailing `motion.p`, as last child of `<section>` |
+| `change-password.tsx` | `ForcePasswordChange` | After `</StaggeredReveal>`, as last child of `<section>` |
+| `system-check.tsx` | `PreTestCheck`       | After trailing `motion.p`, as last child of `<section>` |
+| `dashboard.tsx` | `CandidateDashboard`   | After trailing `motion.p`, as last child of `<section>` |
+| `results.tsx`   | `CandidateResults`      | After trailing `motion.p`, as last child of `<section>` |
+
+**Import added** (after other imports, top of each file):
+```tsx
+import { FlowNav } from "@/components/shared/flow-nav";
+```
+
+**Render added** (once per file, last child of the page `<section>`, inside `AuroraBackground`):
+```tsx
+<FlowNav flowId="candidate" />
+```
+
+**Reference flow (from `src/lib/flows.ts`):**
+Apply → Candidate Login → Force Password Change → Pre-Test System Check → Candidate Dashboard → Candidate Results
+
+**Placement rules followed:**
+- ✅ Outside any conditional render blocks (after `</StaggeredReveal>` or trailing static `motion.p`, never inside `AnimatePresence`/`!submitted`/`error` branches)
+- ✅ Inside the page wrapper (`<AuroraBackground>` → `<section>`) so it gets the dark background
+- ✅ LAST child of the page wrapper, after any conditional success/error messages
+- ✅ For `apply.tsx`: placed AFTER the success card so it always renders
+
+**Constraints respected:**
+- Did NOT modify any other code, add FlowNav multiple times, place inside conditionals, reorder sections, or change exports/signatures.
+
+**Verification:** `bun run lint` → 0 errors, 0 warnings.
+
+**Agent work record:** `/home/z/my-project/agent-ctx/FLOW-CAND-flow-cand.md`
+
+---
+
+## Task ID: FLOW-SA · Agent: flow-sa
+
+**Task:** Add the `FlowNav` sequential navigation component to 8 Super Admin
+screen files. Surgical edit: import `FlowNav` from
+`@/components/shared/flow-nav`, render `<FlowNav flowId="superadmin" />`
+once near the bottom of each screen inside `PageWrap` (so it inherits the
+Aurora dark background) but outside any Dialog / Tab / conditional render.
+
+**Work Log:**
+- Read `src/components/shared/flow-nav.tsx` and `src/lib/flows.ts` to
+  confirm the component API (single required prop `flowId`, self-contained
+  GlowCard with built-in `mt-12`, returns `null` if the current screen
+  doesn't belong to the named flow) and the 8-step Super Admin sequence:
+  Dashboard → Companies → Users → AI Usage → Questions → System → Audit →
+  DB Health.
+- Read all 8 target screen files end-to-end. Each one uses the same
+  shape: `<AuroraBackground><PageWrap>…main content…</PageWrap>…optional
+  Dialogs…</AuroraBackground>`. None use in-page Tabs, so placement was
+  deterministic.
+- For each file, made two surgical edits:
+  1. Added `import { FlowNav } from "@/components/shared/flow-nav";`
+     after the previous last import line.
+  2. Added `<FlowNav flowId="superadmin" />` immediately before
+     `</PageWrap>` (so it sits inside the page wrapper but outside any
+     trailing Dialog block which stays after `</PageWrap>`).
+- No other code touched. No reordering, no signature changes, no class
+  adjustments. Diff per file = +1 import +2 render lines (incl. blank).
+
+**Files Edited (8):**
+1. `src/components/screens/superadmin/dashboard.tsx`
+2. `src/components/screens/superadmin/companies.tsx`
+3. `src/components/screens/superadmin/users.tsx`
+4. `src/components/screens/superadmin/ai-usage.tsx`
+5. `src/components/screens/superadmin/questions.tsx`
+6. `src/components/screens/superadmin/system.tsx`
+7. `src/components/screens/superadmin/audit.tsx`
+8. `src/components/screens/superadmin/db-health.tsx`
+
+**Verification:**
+- `bun run lint` → exit code 0, 0 errors, 0 warnings.
+- dev.log shows clean compilation of all 8 files after edits.
+- Work record written to `/home/z/my-project/agent-ctx/FLOW-SA-flow-sa.md`.
+
+**Stage Summary:**
+- 8 files edited, ~16 lines added total. FlowNav now renders as the last
+  child of `PageWrap` on every Super Admin screen, providing a persistent
+  stepper + Continue CTA through the 8-screen platform-tour flow.
+
+---
+
+### FLOW-ADMIN · flow-admin — Add `FlowNav` to 8 Company Admin screens
+
+**Task**: Surgically inject the `FlowNav` sequential navigation component at the bottom of every screen in the Company Admin flow (defined in `src/lib/flows.ts` as `ADMIN_FLOW`).
+
+**Reference flow** (8 steps): Company Register → Admin Dashboard → Campaign New → Question Manager → Candidate Leaderboard → Bulk Upload → Proctoring Review → Final Selection.
+
+**Files edited (8)** — all under `src/components/screens/admin/`:
+
+| File | Export | Placement |
+|------|--------|-----------|
+| `register.tsx`     | `CompanyRegister`        | After 2-col grid `</div>`, last child of `PageWrap` |
+| `dashboard.tsx`    | `AdminDashboard`         | After bottom strip `</div>` (Live activity + Integrity), last child of `PageWrap` |
+| `campaign-new.tsx` | `CampaignCreate`        | **Outside** `<AnimatePresence>` phase switch — shows in BOTH `form` + `success` phases |
+| `questions.tsx`    | `QuestionManager`        | **Outside** `<Tabs>` — shows regardless of active tab (aptitude/coding) |
+| `candidates.tsx`  | `CandidateLeaderboard`  | After bottom actions `</div>` (Refresh / Export row), last child of `PageWrap` |
+| `bulk-upload.tsx`  | `BulkUpload`            | **Outside** `<AnimatePresence>` phase switch — shows in all 3 phases (upload/processing/results) |
+| `proctoring.tsx`   | `ProctoringReview`      | After bottom CTA `</div>`, last child of `PageWrap` (BEFORE the `<Dialog>` which sits outside `PageWrap`) |
+| `selection.tsx`    | `FinalSelection`        | After footer `</GlowCard>`, last child of `PageWrap` |
+
+**Import added** (after other imports, top of each file):
+```tsx
+import { FlowNav } from "@/components/shared/flow-nav";
+```
+
+**Render added** (once per file, last child of `PageWrap`, inside `AuroraBackground`):
+```tsx
+<FlowNav flowId="admin" />
+```
+
+**Placement rules followed:**
+- ✅ Outside any conditional render blocks / phase switches / Tabs / Dialog content (specifically: outside `<AnimatePresence>` in campaign-new & bulk-upload, outside `<Tabs>` in questions, before the `<Dialog>` in proctoring)
+- ✅ Inside the page wrapper (`<AuroraBackground>` → `<PageWrap>` → `<section>`) so it gets the dark aurora background
+- ✅ LAST child of `PageWrap`, after the existing final section
+- ✅ Self-contained card (built-in `mt-12` spacing — no extra margin classes added)
+
+**Constraints respected:**
+- ❌ Did NOT modify any other code, add FlowNav multiple times, place inside a Tab/Dialog/conditional, reorder sections, or change exports/signatures.
+
+**Verification:** `bun run lint` → 0 errors, 0 warnings. `rg FlowNav src/components/screens/admin` → 16 hits across 8 files (8 imports + 8 renders), confirming exactly one FlowNav per file.
+
+**Agent work record:** `/home/z/my-project/agent-ctx/FLOW-ADMIN-flow-admin.md`
+
+---
+
+## Task ID: FLOW-PREP · Agent: flow-prep
+
+**Task:** Surgically inject the `FlowNav` sequential navigation component at the bottom of every screen in the Prep Mode flow (defined in `src/lib/flows.ts` as `PREP_FLOW`).
+
+**Reference flow** (9 steps): Landing → Auth → Dashboard → Resume → Aptitude → Coding → Interview → Report → Replay.
+
+**Files edited (10)** — all under `src/components/screens/prep/` (the 9 PREP_FLOW steps + `profile.tsx` for consistency):
+
+| File | Export | Placement |
+|------|--------|-----------|
+| `landing.tsx`  | `LandingScreen` | Between the final CTA `</section>` ("Ready to ace your next interview?") and the `{/* FOOTER */}` comment — sits at the AuroraBackground sibling level, ABOVE the `<footer>` |
+| `auth.tsx`     | `AuthScreen`   | After the root grid `</div>` (the 2-col marketing/form layout), directly before `</AuroraBackground>` (skipped the `<div className="px-4 pb-12">` wrapper because the screen wraps in `<AuroraBackground>`) |
+| `dashboard.tsx`| `DashboardScreen` | Last child of `PageWrap`, after the quick-actions grid `</div>` |
+| `resume.tsx`   | `ResumeHub`    | Last child of `PageWrap`, after the footer CTA `</div>` ("Want tailored interview questions...") |
+| `aptitude.tsx` | `AptitudePortal` | Last child of `PageWrap`, after the `<AnimatePresence>` results block `</div>` |
+| `coding.tsx`   | `CodingArena`  | Last child of `PageWrap`, after the stats strip `</div>` — placed BEFORE the `<Dialog>` (language-switch confirm) which sits OUTSIDE `PageWrap` between `</PageWrap>` and `</AuroraBackground>` |
+| `interview.tsx`| `InterviewScreen` | Last child of `PageWrap`, after the `<AnimatePresence>` phase switch `</div>` |
+| `report.tsx`   | `ReportScreen` | Last child of `PageWrap`, after the Download-PDF CTA `</div>` |
+| `replay.tsx`   | `ReplayScreen` | Last child of `PageWrap`, after the bottom GlowCard `</div>` ("Start New") |
+| `profile.tsx`  | `ProfileScreen` | Last child of `PageWrap`, after the Tabs `</div>` (profile is not in PREP_FLOW but `flowId="prep"` was still applied — falls back to landing as current step, acceptable) |
+
+**Import added** (top of each file, after `import { cn } from "@/lib/utils";`):
+```tsx
+import { FlowNav } from "@/components/shared/flow-nav";
+```
+
+**Render added** (once per file):
+```tsx
+<FlowNav flowId="prep" />
+```
+
+**Placement rules followed:**
+- ✅ Outside any Tabs / Dialog / AnimatePresence / conditional render blocks — every FlowNav is a sibling of the main content container, not inside a tab panel
+- ✅ Inside `AuroraBackground` so it gets the dark aurora background (inside `PageWrap` everywhere except `landing.tsx` and `auth.tsx`, where it lives directly inside `AuroraBackground` because those screens don't use a single `PageWrap`)
+- ✅ LAST child of its container (last child of `PageWrap` for 8 files; for `landing.tsx` it sits between the final CTA `<section>` and `<footer>` so the footer remains at the bottom; for `auth.tsx` it sits at the bottom of `AuroraBackground` below the form)
+- ✅ Self-contained card — built-in `mt-12` spacing, no extra margin classes added
+
+**Constraints respected:**
+- ❌ Did NOT modify any other code in the files
+- ❌ Did NOT add FlowNav multiple times in any file (verified: `rg FlowNav src/components/screens/prep` → 20 hits across 10 files = 10 imports + 10 renders)
+- ❌ Did NOT place FlowNav inside a Tab, Dialog, or conditional render block
+- ❌ Did NOT reorder existing sections, change screen exports, or change function signatures
+
+**Verification:** `bun run lint` → 0 errors, 0 warnings.
+
+**Agent work record:** `/home/z/my-project/agent-ctx/FLOW-PREP-flow-prep.md`

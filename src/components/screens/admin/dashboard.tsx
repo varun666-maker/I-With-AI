@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/table";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 const COMPANY = {
   name: "Acme Labs Pvt Ltd",
@@ -446,6 +447,8 @@ export function AdminDashboard() {
             </div>
           </GlowCard>
         </div>
+
+        <FlowNav flowId="admin" />
       </PageWrap>
     </AuroraBackground>
   );

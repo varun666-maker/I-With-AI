@@ -83,11 +83,45 @@ export const ALL_SCREENS: ScreenMeta[] = [
   { id: "superadmin-db-health", label: "Database Health", group: "superadmin" },
 ];
 
+export type AccentTheme =
+  | "violet"
+  | "ocean"
+  | "forest"
+  | "sunset"
+  | "coral"
+  | "lavender"
+  | "mint"
+  | "sunrise"
+  | "berry"
+  | "sage"
+  | "ember"
+  | "mono";
+
+export const ACCENT_THEMES: { id: AccentTheme; label: string; swatch: string }[] = [
+  { id: "violet",   label: "Violet",   swatch: "linear-gradient(135deg, #8b5cf6, #d946ef)" },
+  { id: "ocean",    label: "Ocean",    swatch: "linear-gradient(135deg, #0ea5e9, #06b6d4)" },
+  { id: "forest",   label: "Forest",   swatch: "linear-gradient(135deg, #10b981, #14b8a6)" },
+  { id: "sunset",   label: "Sunset",   swatch: "linear-gradient(135deg, #f59e0b, #f43f5e)" },
+  { id: "coral",    label: "Coral",     swatch: "linear-gradient(135deg, #f43f5e, #fb923c)" },
+  { id: "lavender", label: "Lavender", swatch: "linear-gradient(135deg, #a855f7, #ec4899)" },
+  { id: "mint",     label: "Mint",     swatch: "linear-gradient(135deg, #10b981, #84cc16)" },
+  { id: "sunrise",  label: "Sunrise",  swatch: "linear-gradient(135deg, #f59e0b, #f97316)" },
+  { id: "berry",    label: "Berry",    swatch: "linear-gradient(135deg, #ec4899, #a855f7)" },
+  { id: "sage",     label: "Sage",     swatch: "linear-gradient(135deg, #14b8a6, #22c55e)" },
+  { id: "ember",    label: "Ember",    swatch: "linear-gradient(135deg, #ef4444, #f59e0b)" },
+  { id: "mono",     label: "Mono",     swatch: "linear-gradient(135deg, #64748b, #1f2937)" },
+];
+
 interface NavState {
   current: ScreenId;
   history: ScreenId[];
   set: (id: ScreenId) => void;
   back: () => void;
+  // Theme
+  theme: "light" | "dark";
+  accent: AccentTheme;
+  setTheme: (t: "light" | "dark") => void;
+  setAccent: (a: AccentTheme) => void;
 }
 
 export const useNav = create<NavState>((set, get) => ({
@@ -103,5 +137,23 @@ export const useNav = create<NavState>((set, get) => ({
     if (hist.length <= 1) return;
     hist.pop();
     set({ history: hist, current: hist[hist.length - 1] });
+  },
+  theme: "dark",
+  accent: "violet",
+  setTheme: (theme) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("theme", theme);
+      const root = document.documentElement;
+      root.classList.remove("light", "dark");
+      root.classList.add(theme);
+    }
+    set({ theme });
+  },
+  setAccent: (accent) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("accent", accent);
+      document.documentElement.setAttribute("data-accent", accent);
+    }
+    set({ accent });
   },
 }));

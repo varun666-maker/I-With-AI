@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/shared/theme-provider";
 
-const inter = Inter({
+const inter = Geist({
   variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const jetbrainsMono = Geist_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
   display: "swap",
@@ -45,12 +46,35 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Apply stored theme + accent before paint to avoid FOUC */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var t = localStorage.getItem('theme');
+                  var a = localStorage.getItem('accent');
+                  if (t === 'light' || t === 'dark') {
+                    document.documentElement.classList.add(t);
+                  } else {
+                    document.documentElement.classList.add('dark');
+                  }
+                  document.documentElement.setAttribute('data-accent', a || 'violet');
+                } catch(e) {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.setAttribute('data-accent', 'violet');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased bg-background text-foreground font-sans`}
       >
-        {children}
-        <Toaster />
+        <ThemeProvider>{children}<Toaster /></ThemeProvider>
       </body>
     </html>
   );

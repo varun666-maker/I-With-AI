@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 // Mock campaign data — in production this comes from /api/campaigns/:slug
 const CAMPAIGN = {
@@ -414,6 +415,8 @@ export function ApplyPage() {
           Powered by InterviewAI · Your data is processed securely and never
           shared outside {CAMPAIGN.company}.
         </motion.p>
+
+        <FlowNav flowId="candidate" />
       </section>
     </AuroraBackground>
   );

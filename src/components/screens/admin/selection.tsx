@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/table";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 type Decision = "Selected" | "Rejected" | "Waitlisted" | "Pending";
 
@@ -364,6 +365,8 @@ export function FinalSelection() {
             </Button>
           </div>
         </GlowCard>
+
+        <FlowNav flowId="admin" />
       </PageWrap>
     </AuroraBackground>
   );

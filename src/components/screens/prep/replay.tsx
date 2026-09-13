@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 interface TranscriptItem {
   time: string;
@@ -367,6 +368,8 @@ export function InterviewReplay() {
             </Button>
           </GlowCard>
         </div>
+        <FlowNav flowId="prep" />
+
       </PageWrap>
     </AuroraBackground>
   );

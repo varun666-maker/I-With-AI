@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ALL_SCREENS, useNav, type ScreenId } from "@/lib/store";
 import { PulseBadge } from "./primitives";
+import { ThemeSwitcher } from "./theme-switcher";
 
 const GROUP_LABELS: Record<string, string> = {
   prep: "Prep Mode — Students",
@@ -122,6 +123,7 @@ export function TopNav() {
           </div>
 
           <div className="flex items-center gap-2">
+            <ThemeSwitcher />
             <Button
               size="sm"
               variant="ghost"

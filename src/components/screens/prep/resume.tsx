@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/table";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 type TabKey = "upload" | "results" | "history";
 
@@ -427,6 +428,8 @@ export function ResumeHub() {
             Start Interview <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
+        <FlowNav flowId="prep" />
+
       </PageWrap>
     </AuroraBackground>
   );

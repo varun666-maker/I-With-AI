@@ -38,6 +38,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 const FEATURE_ROWS = [
   {
@@ -459,6 +460,8 @@ export function SystemConfig() {
             </Button>
           </div>
         </motion.div>
+
+        <FlowNav flowId="superadmin" />
       </PageWrap>
     </AuroraBackground>
   );

@@ -1,0 +1,888 @@
+     1→"use client";
+     2→
+     3→import { useEffect, useMemo, useState } from "react";
+     4→import { AnimatePresence, motion } from "framer-motion";
+     5→import {
+     6→  ArrowRight,
+     7→  ArrowLeft,
+     8→  AtSign,
+     9→  CheckCircle2,
+    10→  Clock,
+    11→  Code2,
+    12→  Eye,
+    13→  EyeOff,
+    14→  Github,
+    15→  GraduationCap,
+    16→  Loader2,
+    17→  Lock,
+    18→  Mail,
+    19→  ShieldCheck,
+    20→  Sparkles,
+    21→  User,
+    22→  Video,
+    23→  X,
+    24→} from "lucide-react";
+    25→import {
+    26→  AuroraBackground,
+    27→  GlowCard,
+    28→  MagneticButton,
+    29→  PulseBadge,
+    30→  Shimmer,
+    31→} from "@/components/shared/primitives";
+    32→import { Button } from "@/components/ui/button";
+    33→import { Input } from "@/components/ui/input";
+    34→import { Label } from "@/components/ui/label";
+    35→import { Badge } from "@/components/ui/badge";
+    36→import {
+    37→  InputOTP,
+    38→  InputOTPGroup,
+    39→  InputOTPSlot,
+    40→} from "@/components/ui/input-otp";
+    41→import {
+    42→  Select,
+    43→  SelectContent,
+    44→  SelectItem,
+    45→  SelectTrigger,
+    46→  SelectValue,
+    47→} from "@/components/ui/select";
+    48→import { useNav } from "@/lib/store";
+    49→import { cn } from "@/lib/utils";
+    50→
+    51→const ROLE_OPTIONS = [
+    52→  "Frontend Developer",
+    53→  "Backend Developer",
+    54→  "Full-stack Developer",
+    55→  "Data Scientist",
+    56→  "Data Analyst",
+    57→  "DevOps Engineer",
+    58→  "Mobile Developer",
+    59→  "QA Engineer",
+    60→  "ML Engineer",
+    61→  "Product Manager",
+    62→];
+    63→
+    64→const SKILL_SUGGESTIONS = [
+    65→  "Python", "Java", "JavaScript", "TypeScript", "React", "Node.js", "FastAPI",
+    66→  "Django", "Flask", "SQL", "PostgreSQL", "MongoDB", "Redis", "Docker",
+    67→  "Kubernetes", "AWS", "GCP", "Azure", "GraphQL", "REST", "Kafka",
+    68→  "TensorFlow", "PyTorch", "Pandas", "NumPy", "Spark", "Git", "CI/CD",
+    69→  "System Design", "Microservices",
+    70→];
+    71→
+    72→const DEGREE_OPTIONS = [
+    73→  "B.Tech",
+    74→  "B.E.",
+    75→  "B.Sc",
+    76→  "B.A.",
+    77→  "B.Com",
+    78→  "M.Tech",
+    79→  "M.E.",
+    80→  "M.Sc",
+    81→  "MCA",
+    82→  "MBA",
+    83→  "Ph.D.",
+    84→];
+    85→
+    86→type TabKey = "signup" | "login";
+    87→
+    88→export function AuthScreen() {
+    89→  const { set } = useNav();
+    90→  const [tab, setTab] = useState<TabKey>("signup");
+    91→  const [step, setStep] = useState<1 | 2 | 3>(1);
+    92→
+    93→  return (
+    94→    <AuroraBackground showGrid={false}>
+    95→      <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl grid-cols-1 gap-0 px-0 lg:grid-cols-2 lg:gap-0">
+    96→        {/* Left: marketing panel */}
+    97→        <aside className="relative hidden overflow-hidden border-r border-white/5 lg:block">
+    98→          <div className="absolute inset-0 bg-gradient-to-br from-violet-500/15 via-fuchsia-500/10 to-sky-500/15" />
+    99→          <div className="relative flex h-full flex-col justify-between p-10 xl:p-14">
+   100→            <div>
+   101→              <PulseBadge color="violet" className="text-[11px] uppercase tracking-widest">
+   102→                InterviewAI · Prep Mode
+   103→              </PulseBadge>
+   104→              <h2 className="mt-6 text-4xl font-semibold leading-tight tracking-tight text-balance xl:text-5xl">
+   105→                Land your <span className="gradient-text">dream role</span><br /> with AI on your side.
+   106→              </h2>
+   107→              <p className="mt-4 max-w-md text-base text-pretty text-muted-foreground">
+   108→                Resume analysis, 1,500+ aptitude questions, a coding arena with AI
+   109→                review, and live AI interviews with body-language feedback. Free
+   110→                forever for students.
+   111→              </p>
+   112→            </div>
+   113→
+   114→            <AvatarMock />
+   115→
+   116→            <div className="grid grid-cols-3 gap-3">
+   117→              <Stat label="Students" value="5,000+" tone="text-violet-300" />
+   118→              <Stat label="Mock Qs" value="1.5k+" tone="text-fuchsia-300" />
+   119→              <Stat label="Reports" value="17-sec" tone="text-sky-300" />
+   120→            </div>
+   121→          </div>
+   122→        </aside>
+   123→
+   124→        {/* Right: form panel */}
+   125→        <section className="relative flex items-start justify-center px-4 py-8 sm:px-10 sm:py-12">
+   126→          <div className="w-full max-w-md">
+   127→            <button
+   128→              onClick={() => set("landing")}
+   129→              className="mb-6 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-white transition-colors"
+   130→            >
+   131→              <ArrowLeft className="h-3.5 w-3.5" /> Back to home
+   132→            </button>
+   133→
+   134→            <GlowCard className="relative overflow-hidden p-6 sm:p-8">
+   135→              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/50 to-transparent" />
+   136→
+   137→              {/* Tabs */}
+   138→              <div className="inline-flex w-full rounded-full border border-white/10 bg-white/5 p-1">
+   139→                {(["signup", "login"] as const).map((t) => (
+   140→                  <button
+   141→                    key={t}
+   142→                    onClick={() => {
+   143→                      setTab(t);
+   144→                      setStep(1);
+   145→                    }}
+   146→                    className={cn(
+   147→                      "relative flex-1 rounded-full py-1.5 text-xs font-medium capitalize transition-colors",
+   148→                      tab === t ? "text-white" : "text-muted-foreground hover:text-white",
+   149→                    )}
+   150→                  >
+   151→                    {t === "signup" ? "Sign Up" : "Login"}
+   152→                    {tab === t && (
+   153→                      <motion.span
+   154→                        layoutId="auth-tab-pill"
+   155→                        className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+   156→                      />
+   157→                    )}
+   158→                  </button>
+   159→                ))}
+   160→              </div>
+   161→
+   162→              <AnimatePresence mode="wait">
+   163→                {tab === "signup" ? (
+   164→                  <motion.div
+   165→                    key={`signup-${step}`}
+   166→                    initial={{ opacity: 0, y: 12 }}
+   167→                    animate={{ opacity: 1, y: 0 }}
+   168→                    exit={{ opacity: 0, y: -12 }}
+   169→                    transition={{ duration: 0.25 }}
+   170→                    className="mt-6"
+   171→                  >
+   172→                    <StepIndicator step={step} />
+   173→                    {step === 1 && <SignUpStep1 onNext={() => setStep(2)} />}
+   174→                    {step === 2 && <SignUpStep2 onBack={() => setStep(1)} onNext={() => setStep(3)} />}
+   175→                    {step === 3 && <SignUpStep3 onBack={() => setStep(2)} onDone={() => set("dashboard")} />}
+   176→                  </motion.div>
+   177→                ) : (
+   178→                  <motion.div
+   179→                    key="login"
+   180→                    initial={{ opacity: 0, y: 12 }}
+   181→                    animate={{ opacity: 1, y: 0 }}
+   182→                    exit={{ opacity: 0, y: -12 }}
+   183→                    transition={{ duration: 0.25 }}
+   184→                    className="mt-6"
+   185→                  >
+   186→                    <LoginPanel onLogin={() => set("dashboard")} />
+   187→                  </motion.div>
+   188→                )}
+   189→              </AnimatePresence>
+   190→            </GlowCard>
+   191→
+   192→            <p className="mt-5 text-center text-xs text-muted-foreground">
+   193→              By continuing you agree to our <span className="text-foreground/80 underline-offset-2 hover:underline">Terms</span> and <span className="text-foreground/80 underline-offset-2 hover:underline">Privacy Policy</span>.
+   194→            </p>
+   195→          </div>
+   196→        </section>
+   197→      </div>
+   198→    </AuroraBackground>
+   199→  );
+   200→}
+   201→
+   202→/* -------------------------------------------------------------------------- */
+   203→/* Sub-components                                                             */
+   204→/* -------------------------------------------------------------------------- */
+   205→
+   206→function Stat({ label, value, tone }: { label: string; value: string; tone: string }) {
+   207→  return (
+   208→    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+   209→      <p className={cn("text-lg font-semibold tracking-tight", tone)}>{value}</p>
+   210→      <p className="mt-0.5 text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+   211→    </div>
+   212→  );
+   213→}
+   214→
+   215→function AvatarMock() {
+   216→  return (
+   217→    <div className="relative my-12 grid place-items-center">
+   218→      <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 blur-3xl" />
+   219→      <motion.div
+   220→        animate={{ y: [0, -10, 0], scale: [1, 1.04, 1] }}
+   221→        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+   222→        className="relative grid h-44 w-44 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-2xl ring-1 ring-white/20"
+   223→      >
+   224→        <Sparkles className="h-14 w-14 text-white" />
+   225→        <div className="absolute -bottom-4 left-1/2 flex -translate-x-1/2 items-end gap-0.5">
+   226→          {Array.from({ length: 14 }).map((_, i) => (
+   227→            <motion.span
+   228→              key={i}
+   229→              className="w-1 rounded-full bg-violet-300"
+   230→              animate={{ height: [4, 16, 4] }}
+   231→              transition={{
+   232→                duration: 0.8,
+   233→                repeat: Infinity,
+   234→                delay: i * 0.06,
+   235→                ease: "easeInOut",
+   236→              }}
+   237→            />
+   238→          ))}
+   239→        </div>
+   240→      </motion.div>
+   241→      <p className="mt-10 text-center text-xs text-muted-foreground">
+   242→        Your AI interviewer · asks · listens · adapts.
+   243→      </p>
+   244→    </div>
+   245→  );
+   246→}
+   247→
+   248→function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
+   249→  const labels = ["Account", "Verify OTP", "Profile"];
+   250→  return (
+   251→    <div className="mb-6 flex items-center gap-2">
+   252→      {labels.map((l, i) => {
+   253→        const n = (i + 1) as 1 | 2 | 3;
+   254→        const active = step === n;
+   255→        const done = step > n;
+   256→        return (
+   257→          <div key={l} className="flex flex-1 items-center gap-2">
+   258→            <div className={cn(
+   259→              "grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-semibold ring-1 ring-inset transition-colors",
+   260→              active
+   261→                ? "bg-violet-500/20 text-violet-200 ring-violet-400/40"
+   262→                : done
+   263→                  ? "bg-emerald-500/20 text-emerald-200 ring-emerald-400/40"
+   264→                  : "bg-white/5 text-muted-foreground ring-white/10",
+   265→            )}>
+   266→              {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : n}
+   267→            </div>
+   268→            <span className={cn("text-[11px]", active ? "text-foreground" : "text-muted-foreground")}>{l}</span>
+   269→            {i < labels.length - 1 && (
+   270→              <div className="ml-1 h-px flex-1 bg-gradient-to-r from-white/15 to-transparent" />
+   271→            )}
+   272→          </div>
+   273→        );
+   274→      })}
+   275→    </div>
+   276→  );
+   277→}
+   278→
+   279→function Divider() {
+   280→  return (
+   281→    <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+   282→      <div className="h-px flex-1 bg-white/10" />
+   283→      OR
+   284→      <div className="h-px flex-1 bg-white/10" />
+   285→    </div>
+   286→  );
+   287→}
+   288→
+   289→function GoogleButton({ label }: { label: string }) {
+   290→  return (
+   291→    <Button
+   292→      type="button"
+   293→      variant="outline"
+   294→      className="w-full rounded-full bg-white/5 border-white/15 hover:bg-white/10"
+   295→    >
+   296→      <GoogleGlyph />
+   297→      {label}
+   298→    </Button>
+   299→  );
+   300→}
+   301→
+   302→function GoogleGlyph() {
+   303→  return (
+   304→    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden>
+   305→      <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.4 14.6 2.5 12 2.5 6.9 2.5 2.8 6.6 2.8 11.7S6.9 21 12 21c5.4 0 9-3.8 9-9.2 0-.6-.1-1.1-.2-1.6H12z" />
+   306→    </svg>
+   307→  );
+   308→}
+   309→
+   310→/* --------------------------- Sign-up step 1 ------------------------------ */
+   311→
+   312→function SignUpStep1({ onNext }: { onNext: () => void }) {
+   313→  const [name, setName] = useState("");
+   314→  const [email, setEmail] = useState("");
+   315→  const [pwd, setPwd] = useState("");
+   316→  const [show, setShow] = useState(false);
+   317→  const [loading, setLoading] = useState(false);
+   318→
+   319→  const valid = name.trim().length > 1 && /@/.test(email) && pwd.length >= 8;
+   320→
+   321→  const submit = () => {
+   322→    if (!valid) return;
+   323→    setLoading(true);
+   324→    setTimeout(() => {
+   325→      setLoading(false);
+   326→      onNext();
+   327→    }, 1100);
+   328→  };
+   329→
+   330→  return (
+   331→    <div>
+   332→      <h3 className="text-lg font-semibold">Create your free account</h3>
+   333→      <p className="mt-1 text-sm text-muted-foreground">
+   334→        Takes 2 minutes. No credit card. Free forever for students.
+   335→      </p>
+   336→
+   337→      <div className="mt-5 space-y-3">
+   338→        <div>
+   339→          <Label className="text-xs text-muted-foreground">Full Name</Label>
+   340→          <div className="relative mt-1">
+   341→            <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   342→            <Input
+   343→              value={name}
+   344→              onChange={(e) => setName(e.target.value)}
+   345→              placeholder="Priya Sharma"
+   346→              className="rounded-lg bg-white/5 pl-9 border-white/10"
+   347→            />
+   348→          </div>
+   349→        </div>
+   350→        <div>
+   351→          <Label className="text-xs text-muted-foreground">Email Address</Label>
+   352→          <div className="relative mt-1">
+   353→            <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   354→            <Input
+   355→              type="email"
+   356→              value={email}
+   357→              onChange={(e) => setEmail(e.target.value)}
+   358→              placeholder="you@email.com"
+   359→              className="rounded-lg bg-white/5 pl-9 border-white/10"
+   360→            />
+   361→          </div>
+   362→        </div>
+   363→        <div>
+   364→          <Label className="text-xs text-muted-foreground">Password</Label>
+   365→          <div className="relative mt-1">
+   366→            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   367→            <Input
+   368→              type={show ? "text" : "password"}
+   369→              value={pwd}
+   370→              onChange={(e) => setPwd(e.target.value)}
+   371→              placeholder="••••••••"
+   372→              className="rounded-lg bg-white/5 pl-9 pr-9 border-white/10"
+   373→            />
+   374→            <button
+   375→              type="button"
+   376→              onClick={() => setShow((s) => !s)}
+   377→              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-white"
+   378→              aria-label="Toggle password visibility"
+   379→            >
+   380→              {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+   381→            </button>
+   382→          </div>
+   383→          <p className="mt-1 text-[11px] text-muted-foreground">Min 8 characters · include a number & symbol for strength.</p>
+   384→        </div>
+   385→      </div>
+   386→
+   387→      <Divider />
+   388→      <GoogleButton label="Continue with Google" />
+   389→
+   390→      <MagneticButton
+   391→        onClick={submit}
+   392→        disabled={!valid || loading}
+   393→        className="mt-5 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400 disabled:opacity-50"
+   394→      >
+   395→        {loading ? (
+   396→          <>
+   397→            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending OTP…
+   398→          </>
+   399→        ) : (
+   400→          <>
+   401→            <Sparkles className="mr-2 h-4 w-4" /> Create Account
+   402→            <ArrowRight className="ml-2 h-4 w-4" />
+   403→          </>
+   404→        )}
+   405→      </MagneticButton>
+   406→    </div>
+   407→  );
+   408→}
+   409→
+   410→/* --------------------------- Sign-up step 2 ------------------------------ */
+   411→
+   412→function SignUpStep2({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
+   413→  const [otp, setOtp] = useState("");
+   414→  const [resendIn, setResendIn] = useState(272);
+   415→  const [error, setError] = useState<string | null>(null);
+   416→  const [attempts, setAttempts] = useState(3);
+   417→
+   418→  useEffect(() => {
+   419→    const t = setInterval(() => setResendIn((r) => (r > 0 ? r - 1 : 0)), 1000);
+   420→    return () => clearInterval(t);
+   421→  }, []);
+   422→
+   423→  const verify = () => {
+   424→    if (otp.length < 6) return;
+   425→    if (otp === "000000") {
+   426→      onNext();
+   427→    } else {
+   428→      const left = attempts - 1;
+   429→      setAttempts(left);
+   430→      setError(left > 0 ? `Invalid code. ${left} attempt${left > 1 ? "s" : ""} remaining.` : "Too many attempts. Please request a new OTP.");
+   431→      setOtp("");
+   432→    }
+   433→  };
+   434→
+   435→  return (
+   436→    <div>
+   437→      <h3 className="text-lg font-semibold">Verify your email</h3>
+   438→      <p className="mt-1 text-sm text-muted-foreground">
+   439→        We sent a 6-digit code to <span className="font-mono text-foreground">you@email.com</span>. Enter it below.
+   440→      </p>
+   441→
+   442→      <div className="mt-6 flex justify-center">
+   443→        <InputOTP
+   444→          maxLength={6}
+   445→          value={otp}
+   446→          onChange={(v) => { setOtp(v); setError(null); }}
+   447→        >
+   448→          <InputOTPGroup>
+   449→            {Array.from({ length: 6 }).map((_, i) => (
+   450→              <InputOTPSlot
+   451→                key={i}
+   452→                index={i}
+   453→                className="h-11 w-11 border-white/15 bg-white/5 first:rounded-l-lg last:rounded-r-lg text-base"
+   454→              />
+   455→            ))}
+   456→          </InputOTPGroup>
+   457→        </InputOTP>
+   458→      </div>
+   459→
+   460→      <div className="mt-3 flex justify-center">
+   461→        {resendIn > 0 ? (
+   462→          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+   463→            <Clock className="h-3.5 w-3.5" />
+   464→            Resend in {Math.floor(resendIn / 60)}:{String(resendIn % 60).padStart(2, "0")}
+   465→          </span>
+   466→        ) : (
+   467→          <button
+   468→            onClick={() => setResendIn(272)}
+   469→            className="text-xs font-medium text-violet-300 hover:text-violet-200"
+   470→          >
+   471→            Resend OTP
+   472→          </button>
+   473→        )}
+   474→      </div>
+   475→
+   476→      <AnimatePresence>
+   477→        {error && (
+   478→          <motion.p
+   479→            initial={{ opacity: 0, y: -4 }}
+   480→            animate={{ opacity: 1, y: 0 }}
+   481→            exit={{ opacity: 0 }}
+   482→            className="mt-3 rounded-md border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-center text-xs text-rose-200"
+   483→          >
+   484→            {error}
+   485→          </motion.p>
+   486→        )}
+   487→      </AnimatePresence>
+   488→
+   489→      <MagneticButton
+   490→        onClick={verify}
+   491→        disabled={otp.length < 6 || attempts <= 0}
+   492→        className="mt-5 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400 disabled:opacity-50"
+   493→      >
+   494→        <ShieldCheck className="mr-2 h-4 w-4" /> Verify & Continue
+   495→      </MagneticButton>
+   496→      <button
+   497→        onClick={onBack}
+   498→        className="mt-3 flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-white"
+   499→      >
+   500→        <ArrowLeft className="h-3.5 w-3.5" /> Back to account details
+   501→      </button>
+   502→      <p className="mt-3 text-center text-[11px] text-muted-foreground">
+   503→        Tip: use <span className="font-mono text-foreground">000000</span> as the demo OTP.
+   504→      </p>
+   505→    </div>
+   506→  );
+   507→}
+   508→
+   509→/* --------------------------- Sign-up step 3 ------------------------------ */
+   510→
+   511→function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => void }) {
+   512→  const [role, setRole] = useState<string>("");
+   513→  const [skills, setSkills] = useState<string[]>(["Python", "FastAPI"]);
+   514→  const [skillInput, setSkillInput] = useState("");
+   515→  const [education, setEducation] = useState([
+   516→    { degree: "B.Tech", institution: "IIT Bombay", year: "2022" },
+   517→  ]);
+   518→  const [linkedin, setLinkedin] = useState("");
+   519→  const [github, setGithub] = useState("");
+   520→  const [loading, setLoading] = useState(false);
+   521→
+   522→  const suggestions = useMemo(
+   523→    () =>
+   524→      SKILL_SUGGESTIONS.filter(
+   525→        (s) =>
+   526→          s.toLowerCase().includes(skillInput.toLowerCase()) &&
+   527→          !skills.some((x) => x.toLowerCase() === s.toLowerCase()),
+   528→      ).slice(0, 6),
+   529→    [skillInput, skills],
+   530→  );
+   531→
+   532→  const addSkill = (s: string) => {
+   533→    if (!s.trim()) return;
+   534→    if (!skills.includes(s)) setSkills([...skills, s]);
+   535→    setSkillInput("");
+   536→  };
+   537→  const removeSkill = (s: string) => setSkills(skills.filter((x) => x !== s));
+   538→
+   539→  const addEdu = () =>
+   540→    setEducation([...education, { degree: "B.Tech", institution: "", year: "" }]);
+   541→  const removeEdu = (i: number) => setEducation(education.filter((_, idx) => idx !== i));
+   542→  const updateEdu = (i: number, key: "degree" | "institution" | "year", val: string) =>
+   543→    setEducation(education.map((e, idx) => (idx === i ? { ...e, [key]: val } : e)));
+   544→
+   545→  const valid = !!role && skills.length > 0 && education.every((e) => e.institution && e.year);
+   546→
+   547→  const submit = () => {
+   548→    if (!valid) return;
+   549→    setLoading(true);
+   550→    setTimeout(() => {
+   551→      setLoading(false);
+   552→      onDone();
+   553→    }, 900);
+   554→  };
+   555→
+   556→  return (
+   557→    <div>
+   558→      <h3 className="text-lg font-semibold">Set up your profile</h3>
+   559→      <p className="mt-1 text-sm text-muted-foreground">
+   560→        This data personalises your AI interview questions and roadmap.
+   561→      </p>
+   562→
+   563→      <div className="mt-5 space-y-4">
+   564→        <div>
+   565→          <Label className="text-xs text-muted-foreground">Target Job Role</Label>
+   566→          <Select value={role} onValueChange={setRole}>
+   567→            <SelectTrigger className="mt-1 w-full rounded-lg bg-white/5 border-white/10">
+   568→              <SelectValue placeholder="Choose role…" />
+   569→            </SelectTrigger>
+   570→            <SelectContent>
+   571→              {ROLE_OPTIONS.map((r) => (
+   572→                <SelectItem key={r} value={r}>{r}</SelectItem>
+   573→              ))}
+   574→            </SelectContent>
+   575→          </Select>
+   576→        </div>
+   577→
+   578→        <div>
+   579→          <Label className="text-xs text-muted-foreground">Skills</Label>
+   580→          <div className="mt-1 flex flex-wrap items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 p-2">
+   581→            {skills.map((s) => (
+   582→              <Badge key={s} className="border-violet-400/30 bg-violet-500/15 text-violet-200">
+   583→                {s}
+   584→                <button onClick={() => removeSkill(s)} className="ml-1" aria-label={`Remove ${s}`}>
+   585→                  <X className="h-3 w-3" />
+   586→                </button>
+   587→              </Badge>
+   588→            ))}
+   589→            <input
+   590→              value={skillInput}
+   591→              onChange={(e) => setSkillInput(e.target.value)}
+   592→              onKeyDown={(e) => {
+   593→                if (e.key === "Enter") {
+   594→                  e.preventDefault();
+   595→                  addSkill(skillInput);
+   596→                }
+   597→              }}
+   598→              placeholder="Type a skill…"
+   599→              className="min-w-[120px] flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-muted-foreground"
+   600→            />
+   601→          </div>
+   602→          <AnimatePresence>
+   603→            {suggestions.length > 0 && (
+   604→              <motion.div
+   605→                initial={{ opacity: 0, y: -4 }}
+   606→                animate={{ opacity: 1, y: 0 }}
+   607→                exit={{ opacity: 0 }}
+   608→                className="mt-2 flex flex-wrap gap-1.5"
+   609→              >
+   610→                {suggestions.map((s) => (
+   611→                  <button
+   612→                    key={s}
+   613→                    onClick={() => addSkill(s)}
+   614→                    className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-muted-foreground hover:border-violet-400/30 hover:text-violet-200"
+   615→                  >
+   616→                    + {s}
+   617→                  </button>
+   618→                ))}
+   619→              </motion.div>
+   620→            )}
+   621→          </AnimatePresence>
+   622→        </div>
+   623→
+   624→        <div>
+   625→          <div className="flex items-center justify-between">
+   626→            <Label className="text-xs text-muted-foreground">Education</Label>
+   627→            <button
+   628→              onClick={addEdu}
+   629→              className="inline-flex items-center gap-1 text-[11px] text-violet-300 hover:text-violet-200"
+   630→            >
+   631→              + Add row
+   632→            </button>
+   633→          </div>
+   634→          <div className="mt-1 space-y-2">
+   635→            {education.map((e, i) => (
+   636→              <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-[7rem_1fr_5rem]">
+   637→                <Select
+   638→                  value={e.degree}
+   639→                  onValueChange={(v) => updateEdu(i, "degree", v)}
+   640→                >
+   641→                  <SelectTrigger className="rounded-lg bg-white/5 border-white/10">
+   642→                    <SelectValue />
+   643→                  </SelectTrigger>
+   644→                  <SelectContent>
+   645→                    {DEGREE_OPTIONS.map((d) => (
+   646→                      <SelectItem key={d} value={d}>{d}</SelectItem>
+   647→                    ))}
+   648→                  </SelectContent>
+   649→                </Select>
+   650→                <Input
+   651→                  value={e.institution}
+   652→                  onChange={(ev) => updateEdu(i, "institution", ev.target.value)}
+   653→                  placeholder="Institution"
+   654→                  className="rounded-lg bg-white/5 border-white/10"
+   655→                />
+   656→                <div className="flex items-center gap-1">
+   657→                  <Input
+   658→                    value={e.year}
+   659→                    onChange={(ev) => updateEdu(i, "year", ev.target.value)}
+   660→                    placeholder="Year"
+   661→                    className="rounded-lg bg-white/5 border-white/10"
+   662→                  />
+   663→                  {education.length > 1 && (
+   664→                    <button
+   665→                      onClick={() => removeEdu(i)}
+   666→                      className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-muted-foreground hover:text-rose-300"
+   667→                      aria-label="Remove education row"
+   668→                    >
+   669→                      <X className="h-4 w-4" />
+   670→                    </button>
+   671→                  )}
+   672→                </div>
+   673→              </div>
+   674→            ))}
+   675→          </div>
+   676→        </div>
+   677→
+   678→        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+   679→          <div>
+   680→            <Label className="text-xs text-muted-foreground">LinkedIn URL (optional)</Label>
+   681→            <div className="relative mt-1">
+   682→              <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   683→              <Input
+   684→                value={linkedin}
+   685→                onChange={(e) => setLinkedin(e.target.value)}
+   686→                placeholder="linkedin.com/in/you"
+   687→                className="rounded-lg bg-white/5 pl-9 border-white/10"
+   688→              />
+   689→            </div>
+   690→          </div>
+   691→          <div>
+   692→            <Label className="text-xs text-muted-foreground">GitHub URL (optional)</Label>
+   693→            <div className="relative mt-1">
+   694→              <Github className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   695→              <Input
+   696→                value={github}
+   697→                onChange={(e) => setGithub(e.target.value)}
+   698→                placeholder="github.com/you"
+   699→                className="rounded-lg bg-white/5 pl-9 border-white/10"
+   700→              />
+   701→            </div>
+   702→          </div>
+   703→        </div>
+   704→      </div>
+   705→
+   706→      <MagneticButton
+   707→        onClick={submit}
+   708→        disabled={!valid || loading}
+   709→        className="mt-6 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400 disabled:opacity-50"
+   710→      >
+   711→        {loading ? (
+   712→          <>
+   713→            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Setting up…
+   714→          </>
+   715→        ) : (
+   716→          <>
+   717→            <GraduationCap className="mr-2 h-4 w-4" /> Complete Setup
+   718→            <ArrowRight className="ml-2 h-4 w-4" />
+   719→          </>
+   720→        )}
+   721→      </MagneticButton>
+   722→      <button
+   723→        onClick={onBack}
+   724→        className="mt-3 flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-white"
+   725→      >
+   726→        <ArrowLeft className="h-3.5 w-3.5" /> Back to OTP verification
+   727→      </button>
+   728→    </div>
+   729→  );
+   730→}
+   731→
+   732→/* --------------------------- Login + forgot ------------------------------ */
+   733→
+   734→function LoginPanel({ onLogin }: { onLogin: () => void }) {
+   735→  const [email, setEmail] = useState("");
+   736→  const [pwd, setPwd] = useState("");
+   737→  const [loading, setLoading] = useState(false);
+   738→  const [forgot, setForgot] = useState(false);
+   739→  const [resetSent, setResetSent] = useState(false);
+   740→
+   741→  const valid = /@/.test(email) && pwd.length >= 8;
+   742→
+   743→  const login = () => {
+   744→    if (!valid) return;
+   745→    setLoading(true);
+   746→    setTimeout(() => {
+   747→      setLoading(false);
+   748→      onLogin();
+   749→    }, 900);
+   750→  };
+   751→
+   752→  return (
+   753→    <div>
+   754→      <h3 className="text-lg font-semibold">Welcome back</h3>
+   755→      <p className="mt-1 text-sm text-muted-foreground">Log in to continue your prep journey.</p>
+   756→
+   757→      {!forgot ? (
+   758→        <>
+   759→          <div className="mt-5 space-y-3">
+   760→            <div>
+   761→              <Label className="text-xs text-muted-foreground">Email Address</Label>
+   762→              <div className="relative mt-1">
+   763→                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   764→                <Input
+   765→                  type="email"
+   766→                  value={email}
+   767→                  onChange={(e) => setEmail(e.target.value)}
+   768→                  placeholder="you@email.com"
+   769→                  className="rounded-lg bg-white/5 pl-9 border-white/10"
+   770→                />
+   771→              </div>
+   772→            </div>
+   773→            <div>
+   774→              <Label className="text-xs text-muted-foreground">Password</Label>
+   775→              <div className="relative mt-1">
+   776→                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   777→                <Input
+   778→                  type="password"
+   779→                  value={pwd}
+   780→                  onChange={(e) => setPwd(e.target.value)}
+   781→                  placeholder="••••••••"
+   782→                  className="rounded-lg bg-white/5 pl-9 border-white/10"
+   783→                />
+   784→              </div>
+   785→            </div>
+   786→            <div className="flex items-center justify-between">
+   787→              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+   788→                <input type="checkbox" className="accent-violet-500" /> Remember me
+   789→              </label>
+   790→              <button
+   791→                onClick={() => setForgot(true)}
+   792→                className="text-xs text-violet-300 hover:text-violet-200"
+   793→              >
+   794→                Forgot Password?
+   795→              </button>
+   796→            </div>
+   797→          </div>
+   798→
+   799→          <Divider />
+   800→          <GoogleButton label="Continue with Google" />
+   801→
+   802→          <MagneticButton
+   803→            onClick={login}
+   804→            disabled={!valid || loading}
+   805→            className="mt-5 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400 disabled:opacity-50"
+   806→          >
+   807→            {loading ? (
+   808→              <>
+   809→                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in…
+   810→              </>
+   811→            ) : (
+   812→              <>
+   813→                Login <ArrowRight className="ml-2 h-4 w-4" />
+   814→              </>
+   815→            )}
+   816→          </MagneticButton>
+   817→        </>
+   818→      ) : (
+   819→        <AnimatePresence mode="wait">
+   820→          {!resetSent ? (
+   821→            <motion.div
+   822→              key="forgot-form"
+   823→              initial={{ opacity: 0, y: 8 }}
+   824→              animate={{ opacity: 1, y: 0 }}
+   825→              exit={{ opacity: 0, y: -8 }}
+   826→              className="mt-5 space-y-3"
+   827→            >
+   828→              <p className="text-sm text-muted-foreground">
+   829→                Enter your email and we&apos;ll send a reset link.
+   830→              </p>
+   831→              <div>
+   832→                <Label className="text-xs text-muted-foreground">Email Address</Label>
+   833→                <div className="relative mt-1">
+   834→                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   835→                  <Input
+   836→                    type="email"
+   837→                    defaultValue={email}
+   838→                    onChange={(e) => setEmail(e.target.value)}
+   839→                    placeholder="you@email.com"
+   840→                    className="rounded-lg bg-white/5 pl-9 border-white/10"
+   841→                  />
+   842→                </div>
+   843→              </div>
+   844→              <Button
+   845→                onClick={() => setResetSent(true)}
+   846→                disabled={!/@/.test(email)}
+   847→                className="w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0"
+   848→              >
+   849→                Send Reset Link
+   850→              </Button>
+   851→              <button
+   852→                onClick={() => setForgot(false)}
+   853→                className="flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-white"
+   854→              >
+   855→                <ArrowLeft className="h-3.5 w-3.5" /> Back to login
+   856→              </button>
+   857→            </motion.div>
+   858→          ) : (
+   859→            <motion.div
+   860→              key="forgot-sent"
+   861→              initial={{ opacity: 0, y: 8 }}
+   862→              animate={{ opacity: 1, y: 0 }}
+   863→              className="mt-8 flex flex-col items-center text-center"
+   864→            >
+   865→              <div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-400/30">
+   866→                <CheckCircle2 className="h-6 w-6" />
+   867→              </div>
+   868→              <p className="mt-4 text-sm font-medium">Reset link sent to your email</p>
+   869→              <p className="mt-1 text-xs text-muted-foreground">
+   870→                Click the link in your inbox to set a new password, then come back here to log in.
+   871→              </p>
+   872→              <Button
+   873→                onClick={() => { setResetSent(false); setForgot(false); }}
+   874→                className="mt-5 w-full rounded-full bg-white/10 border border-white/10 hover:bg-white/15"
+   875→              >
+   876→                Back to Login
+   877→              </Button>
+   878→            </motion.div>
+   879→          )}
+   880→        </AnimatePresence>
+   881→      )}
+   882→    </div>
+   883→  );
+   884→}
+   885→
+   886→/* Unused import markers to keep tree-shaking honest */
+   887→export const __icons = { Code2, Video, Shimmer };
+   888→

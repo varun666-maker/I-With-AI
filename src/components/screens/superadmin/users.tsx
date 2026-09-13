@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/table";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 type Role = "candidate" | "company_admin" | "student" | "super_admin";
 
@@ -329,6 +330,8 @@ export function UserManagement() {
           <span className="text-rose-200">Delete</span> action that fires a
           Celery GDPR job.
         </p>
+
+        <FlowNav flowId="superadmin" />
       </PageWrap>
 
       {/* Delete confirmation */}

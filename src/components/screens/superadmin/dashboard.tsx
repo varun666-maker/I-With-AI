@@ -28,6 +28,7 @@ import {
 } from "@/components/shared/primitives";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 const PULSE_DATA = [
   { t: "00:00", v: 320 },
@@ -320,6 +321,8 @@ export function SuperAdminDashboard() {
             ))}
           </StaggeredReveal>
         </section>
+
+        <FlowNav flowId="superadmin" />
       </PageWrap>
     </AuroraBackground>
   );

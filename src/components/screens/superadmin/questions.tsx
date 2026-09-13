@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/table";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 const APTITUDE = [
   { category: "Quantitative", count: 512, lastReseed: "12 days ago", tone: "violet" as const },
@@ -400,6 +401,8 @@ export function QuestionBankAdmin() {
             View the audit log →
           </button>
         </p>
+
+        <FlowNav flowId="superadmin" />
       </PageWrap>
 
       {/* Reseed confirmation */}

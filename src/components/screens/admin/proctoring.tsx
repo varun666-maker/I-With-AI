@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/table";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 type Severity = "info" | "warning" | "critical" | "auto-submitted";
 
@@ -384,6 +385,8 @@ export function ProctoringReview() {
             </MagneticButton>
           </div>
         </div>
+
+        <FlowNav flowId="admin" />
       </PageWrap>
 
       {/* Screenshot dialog */}

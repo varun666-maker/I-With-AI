@@ -22,13 +22,13 @@ export function AuroraBackground({
   return (
     <div className={cn("relative min-h-screen w-full overflow-x-hidden", className)}>
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-[20%] -left-[10%] h-[55vh] w-[55vh] rounded-full bg-violet-500/20 blur-[120px] animate-aurora" />
+        <div className="absolute -top-[20%] -left-[10%] h-[55vh] w-[55vh] rounded-full blur-[120px] animate-aurora aurora-blob-1" />
         <div
-          className="absolute top-[40%] -right-[10%] h-[55vh] w-[55vh] rounded-full bg-fuchsia-500/15 blur-[120px] animate-aurora"
+          className="absolute top-[40%] -right-[10%] h-[55vh] w-[55vh] rounded-full blur-[120px] animate-aurora aurora-blob-2"
           style={{ animationDelay: "-3s" }}
         />
         <div
-          className="absolute -bottom-[20%] left-[30%] h-[55vh] w-[55vh] rounded-full bg-sky-500/15 blur-[120px] animate-aurora"
+          className="absolute -bottom-[20%] left-[30%] h-[55vh] w-[55vh] rounded-full blur-[120px] animate-aurora aurora-blob-3"
           style={{ animationDelay: "-6s" }}
         />
       </div>

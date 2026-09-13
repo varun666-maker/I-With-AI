@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/select";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 const ROLE_OPTIONS = [
   "Frontend Developer",
@@ -195,6 +196,8 @@ export function AuthScreen() {
           </div>
         </section>
       </div>
+
+      <FlowNav flowId="prep" />
     </AuroraBackground>
   );
 }

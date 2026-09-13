@@ -27,6 +27,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { FlowNav } from "@/components/shared/flow-nav";
 
 // Mock results context — would come from /api/campaigns/:slug/results
 const CAMPAIGN = {
@@ -240,6 +241,8 @@ export function CandidateResults() {
           You will not be able to retake or revise these assessments. Reach out
           to {CAMPAIGN.company}&apos;s hiring team for next steps.
         </motion.p>
+
+        <FlowNav flowId="candidate" />
       </section>
     </AuroraBackground>
   );
