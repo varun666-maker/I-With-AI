@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>InterviewAI — Complete Workflow Specification</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  @page { size: 720px 1020px; margin: 0; }
+  :root {
+    --c-bg: #07070d;
+    --c-surface: #0e0e18;
+    --c-surface-2: #14141f;
+    --c-text: #e8e6e3;
+    --c-text-dim: #9ca3af;
+    --c-text-mute: #6b7280;
+    --c-border: rgba(255,255,255,0.08);
+    --c-border-strong: rgba(255,255,255,0.15);
+    --c-violet: #a855f7;
+    --c-fuchsia: #d946ef;
+    --c-sky: #06b6d4;
+    --c-emerald: #10b981;
+    --c-amber: #f59e0b;
+    --c-rose: #f43f5e;
+    --grad-1: linear-gradient(135deg, #a855f7, #d946ef);
+    --grad-2: linear-gradient(135deg, #a855f7, #06b6d4);
+    --grad-3: linear-gradient(135deg, #10b981, #14b8a6);
+    --grad-warm: linear-gradient(135deg, #f59e0b, #f43f5e);
+  }
+  html, body {
+    margin: 0; padding: 0; width: 720px;
+    background: var(--c-bg);
+    color: var(--c-text);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media screen {
+    html { display: flex; justify-content: center; background: #1a1a1a; }
+    body { margin: 20px auto; box-shadow: 0 30px 80px rgba(0,0,0,0.5); }
+  }
+
+  /* ─── COVER ─── */
+  .cover {
+    width: 720px; height: 1020px; box-sizing: border-box;
+    break-after: page; overflow: hidden;
+    position: relative;
+    background: radial-gradient(ellipse at top, #1a0f2e 0%, #07070d 60%);
+    padding: 70px 60px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .cover::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 20% 25%, rgba(168,85,247,0.25), transparent 45%),
+      radial-gradient(circle at 80% 35%, rgba(217,70,239,0.20), transparent 45%),
+      radial-gradient(circle at 50% 90%, rgba(6,182,212,0.15), transparent 50%);
+    pointer-events: none;
+  }
+  .cover::after {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 75%);
+    pointer-events: none;
+  }
+  .cover-top, .cover-mid, .cover-bot { position: relative; z-index: 2; }
+  .cover-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 999px;
+    border: 1px solid rgba(168,85,247,0.4);
+    background: rgba(168,85,247,0.08);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: #d8b4fe;
+  }
+  .cover-badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--c-violet); box-shadow: 0 0 8px var(--c-violet);
+  }
+  .cover-eyebrow {
+    margin-top: 28px; font-size: 12px; font-weight: 500;
+    color: var(--c-text-dim); letter-spacing: 0.06em;
+  }
+  .cover-title {
+    margin-top: 14px;
+    font-size: 56px; font-weight: 800; line-height: 1.05;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, #ffffff 0%, #d8b4fe 50%, #f0abfc 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .cover-title .accent {
+    background: linear-gradient(135deg, #a855f7, #d946ef);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .cover-subtitle {
+    margin-top: 18px; font-size: 16px; font-weight: 400;
+    color: var(--c-text-dim); max-width: 520px; line-height: 1.55;
+  }
+  .cover-meta {
+    display: flex; gap: 32px; margin-top: 30px;
+  }
+  .cover-meta-item {
+    border-left: 2px solid var(--c-violet); padding-left: 12px;
+  }
+  .cover-meta-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--c-text-mute);
+    letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .cover-meta-value {
+    margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--c-text);
+  }
+  .cover-flows {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-top: 36px;
+  }
+  .cover-flow-chip {
+    padding: 12px 14px; border-radius: 10px;
+    border: 1px solid var(--c-border);
+    background: rgba(255,255,255,0.025);
+  }
+  .cover-flow-chip-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--c-text-mute);
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .cover-flow-chip-title {
+    margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--c-text);
+  }
+  .cover-flow-chip-count {
+    margin-top: 2px; font-size: 10px; color: var(--c-text-dim);
+  }
+  .cover-bot {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding-top: 24px; border-top: 1px solid var(--c-border);
+  }
+  .cover-bot-left { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--c-text-mute); }
+  .cover-bot-right { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--c-text-mute); text-align: right; }
+
+  /* ─── MAIN CONTENT ─── */
+  .main-content { padding: 56px 60px 40px 60px; }
+
+  /* Chapter headers */
+  .chapter-header {
+    break-after: avoid; break-inside: avoid;
+    margin-top: 24px;
+  }
+  .chapter-header:first-child { margin-top: 0; }
+  .chapter-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid rgba(168,85,247,0.4);
+    background: rgba(168,85,247,0.08);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #d8b4fe;
+  }
+  .chapter-title {
+    margin-top: 10px; font-size: 28px; font-weight: 800;
+    letter-spacing: -0.02em; line-height: 1.15;
+  }
+  .chapter-title .grad {
+    background: linear-gradient(135deg, #a855f7, #d946ef);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .chapter-divider {
+    margin-top: 12px; height: 1px;
+    background: linear-gradient(to right, var(--c-violet), transparent);
+  }
+
+  /* Sub-section headers */
+  .sub-tag {
+    display: inline-block;
+    margin-top: 22px; margin-bottom: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--c-violet);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    font-weight: 600;
+    break-after: avoid;
+  }
+  .sub-title {
+    font-size: 18px; font-weight: 700; letter-spacing: -0.015em;
+    margin-top: 2px; break-after: avoid;
+  }
+  .sub-title .route {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; font-weight: 500; color: var(--c-text-dim);
+    margin-left: 8px;
+  }
+
+  /* Body text */
+  .body-text {
+    margin-top: 10px; color: var(--c-text-dim);
+    font-size: 13px; line-height: 1.7;
+  }
+  .body-text strong { color: var(--c-text); font-weight: 600; }
+  .body-text code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px; padding: 1px 6px;
+    background: rgba(168,85,247,0.12);
+    border: 1px solid rgba(168,85,247,0.2);
+    border-radius: 4px; color: #d8b4fe;
+  }
+
+  /* Cards */
+  .card {
+    break-inside: avoid;
+    margin-top: 14px;
+    padding: 16px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--c-border);
+    background: rgba(255,255,255,0.025);
+  }
+  .card-accent {
+    border-left: 3px solid var(--c-violet);
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700; color: var(--c-text);
+    margin-bottom: 6px;
+  }
+  .card-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--c-text-mute);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
+  /* Lists */
+  ul.clean { list-style: none; padding: 0; margin: 8px 0 0 0; }
+  ul.clean li {
+    position: relative; padding-left: 18px;
+    margin-bottom: 5px; font-size: 12.5px;
+    color: var(--c-text-dim); line-height: 1.55;
+  }
+  ul.clean li::before {
+    content: ''; position: absolute; left: 0; top: 8px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--c-violet);
+  }
+  ul.clean li strong { color: var(--c-text); font-weight: 600; }
+  ul.clean li code {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    padding: 1px 5px; background: rgba(168,85,247,0.12);
+    border-radius: 3px; color: #d8b4fe;
+  }
+
+  /* Flow diagrams */
+  .flow {
+    break-inside: avoid; margin-top: 14px;
+    padding: 20px 16px; border-radius: 12px;
+    border: 1px solid var(--c-border);
+    background: linear-gradient(135deg, rgba(168,85,247,0.04), rgba(217,70,239,0.04));
+  }
+  .flow-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--c-text-mute);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .flow-strip {
+    display: flex; flex-wrap: wrap; align-items: stretch; gap: 0;
+  }
+  .flow-node {
+    flex: 1 1 auto; min-width: 0;
+    padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--c-border-strong);
+    background: rgba(255,255,255,0.04);
+    text-align: center;
+    display: flex; flex-direction: column; justify-content: center;
+    min-height: 50px;
+  }
+  .flow-node-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px; color: var(--c-text-mute);
+    letter-spacing: 0.12em;
+  }
+  .flow-node-label {
+    font-size: 10.5px; font-weight: 600; color: var(--c-text);
+    margin-top: 2px; line-height: 1.25;
+  }
+  .flow-node.accent {
+    background: linear-gradient(135deg, rgba(168,85,247,0.18), rgba(217,70,239,0.12));
+    border-color: rgba(168,85,247,0.45);
+  }
+  .flow-node.accent .flow-node-label { color: #f0abfc; }
+  .flow-arrow {
+    display: flex; align-items: center; justify-content: center;
+    width: 18px; color: var(--c-violet);
+    font-size: 14px; flex-shrink: 0;
+  }
+
+  /* Vertical flow */
+  .flow-v { display: flex; flex-direction: column; gap: 0; }
+  .flow-v .flow-node { text-align: left; padding: 10px 14px; min-height: 36px; }
+  .flow-v .flow-arrow { width: 100%; height: 18px; transform: rotate(90deg); }
+
+  /* Tables */
+  .table {
+    break-inside: avoid;
+    margin-top: 14px; width: 100%; border-collapse: collapse;
+    font-size: 11.5px;
+  }
+  .table th, .table td {
+    padding: 8px 10px; text-align: left;
+    border-bottom: 1px solid var(--c-border);
+    vertical-align: top;
+  }
+  .table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--c-text-mute); font-weight: 600;
+    background: rgba(255,255,255,0.025);
+  }
+  .table td { color: var(--c-text-dim); }
+  .table td strong { color: var(--c-text); font-weight: 600; }
+  .table tr:last-child td { border-bottom: none; }
+
+  /* Badges */
+  .badge {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 999px; font-size: 10px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;
+  }
+  .b-violet { background: rgba(168,85,247,0.15); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.3); }
+  .b-emerald { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+  .b-amber { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+  .b-rose { background: rgba(244,63,94,0.15); color: #fda4af; border: 1px solid rgba(244,63,94,0.3); }
+  .b-sky { background: rgba(6,182,212,0.15); color: #67e8f9; border: 1px solid rgba(6,182,212,0.3); }
+  .b-slate { background: rgba(148,163,184,0.15); color: #cbd5e1; border: 1px solid rgba(148,163,184,0.3); }
+
+  /* Callouts */
+  .callout {
+    break-inside: avoid;
+    margin-top: 14px; padding: 14px 16px;
+    border-radius: 10px;
+    border-left: 3px solid var(--c-violet);
+    background: rgba(168,85,247,0.06);
+  }
+  .callout.warn { border-color: var(--c-amber); background: rgba(245,158,11,0.06); }
+  .callout.danger { border-color: var(--c-rose); background: rgba(244,63,94,0.06); }
+  .callout.success { border-color: var(--c-emerald); background: rgba(16,185,129,0.06); }
+  .callout-title {
+    font-size: 11px; font-weight: 700; margin-bottom: 6px;
+    color: #d8b4fe; letter-spacing: 0.04em;
+  }
+  .callout.warn .callout-title { color: #fcd34d; }
+  .callout.danger .callout-title { color: #fda4af; }
+  .callout.success .callout-title { color: #6ee7b7; }
+  .callout-body { font-size: 12px; color: var(--c-text-dim); line-height: 1.6; }
+  .callout-body strong { color: var(--c-text); }
+
+  /* Code blocks */
+  pre.code {
+    break-inside: avoid;
+    margin-top: 12px; padding: 12px 14px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--c-border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; line-height: 1.6;
+    color: #c4b5fd;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+  }
+  pre.code .k { color: #f0abfc; }   /* keyword */
+  pre.code .s { color: #6ee7b7; }   /* string */
+  pre.code .c { color: #6b7280; }   /* comment */
+
+  /* TOC */
+  .toc-item {
+    break-inside: avoid;
+    display: flex; align-items: baseline;
+    padding: 10px 0; border-bottom: 1px dashed var(--c-border);
+  }
+  .toc-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--c-violet);
+    width: 36px; flex-shrink: 0;
+  }
+  .toc-label {
+    flex: 1; font-size: 13px; color: var(--c-text);
+  }
+  .toc-label small { display: block; font-size: 10.5px; color: var(--c-text-mute); margin-top: 2px; }
+  .toc-page {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--c-text-mute);
+  }
+
+  /* Ending */
+  .ending {
+    width: 720px; height: 1020px; box-sizing: border-box;
+    break-before: page; overflow: hidden;
+    position: relative;
+    background: radial-gradient(ellipse at bottom, #1a0f2e 0%, #07070d 60%);
+    padding: 80px 60px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .ending::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 30% 70%, rgba(168,85,247,0.25), transparent 50%),
+      radial-gradient(circle at 70% 30%, rgba(217,70,239,0.20), transparent 50%);
+    pointer-events: none;
+  }
+  .ending-content { position: relative; z-index: 2; }
+  .ending-title {
+    font-size: 40px; font-weight: 800; line-height: 1.1;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, #ffffff, #d8b4fe);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .ending-sub {
+    margin-top: 14px; font-size: 15px; color: var(--c-text-dim);
+    max-width: 520px; line-height: 1.6;
+  }
+  .ending-bot {
+    position: relative; z-index: 2;
+    padding-top: 24px; border-top: 1px solid var(--c-border);
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--c-text-mute);
+    display: flex; justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ COVER ═══════════════ -->
+<div class="cover">
+  <div class="cover-top">
+    <div class="cover-badge">
+      <span class="dot"></span>
+      <span>Workflow Specification · v1.0</span>
+    </div>
+    <div class="cover-eyebrow">DUAL-MODE AI SAAS · ENGINEERING DOCUMENT</div>
+    <h1 class="cover-title">
+      Interview<span class="accent">AI</span><br>
+      Complete Workflow
+    </h1>
+    <p class="cover-subtitle">
+      An end-to-end engineering specification of the four user flows that power the platform — Prep Mode, Company Admin, Invited Candidate, and Super Admin — including screen-by-screen breakdowns, proctoring rules, automation pipelines, and data models.
+    </p>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <div class="cover-meta-label">Audience</div>
+        <div class="cover-meta-value">Dev Team</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="cover-meta-label">Screens</div>
+        <div class="cover-meta-value">32</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="cover-meta-label">Flows</div>
+        <div class="cover-meta-value">4</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="cover-meta-label">Stack</div>
+        <div class="cover-meta-value">React · FastAPI</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-mid">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--c-text-mute); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px;">
+      Four User Experiences · One Codebase
+    </div>
+    <div class="cover-flows">
+      <div class="cover-flow-chip">
+        <div class="cover-flow-chip-label">Flow 01 · Prep Mode</div>
+        <div class="cover-flow-chip-title">Students &amp; Job Seekers</div>
+        <div class="cover-flow-chip-count">10 screens · unlimited retakes</div>
+      </div>
+      <div class="cover-flow-chip">
+        <div class="cover-flow-chip-label">Flow 02 · Company Admin</div>
+        <div class="cover-flow-chip-title">Recruiters &amp; HR</div>
+        <div class="cover-flow-chip-count">8 screens · hiring pipeline</div>
+      </div>
+      <div class="cover-flow-chip">
+        <div class="cover-flow-chip-label">Flow 03 · Invited Candidate</div>
+        <div class="cover-flow-chip-title">Proctored Applicants</div>
+        <div class="cover-flow-chip-count">6 screens · strict proctoring</div>
+      </div>
+      <div class="cover-flow-chip">
+        <div class="cover-flow-chip-label">Flow 04 · Super Admin</div>
+        <div class="cover-flow-chip-title">Platform Owner</div>
+        <div class="cover-flow-chip-count">8 screens · full access</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-bot">
+    <div class="cover-bot-left">
+      InterviewAI · Engineering Docs<br>
+      Generated for development reference
+    </div>
+    <div class="cover-bot-right">
+      v1.0 · 2025<br>
+      Confidential — Internal
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TOC ═══════════════ -->
+<div class="main-content">
+  <div class="chapter-header">
+    <div class="chapter-tag">Document Map</div>
+    <h2 class="chapter-title">Table of <span class="grad">Contents</span></h2>
+    <div class="chapter-divider"></div>
+  </div>
+  <div class="body-text" style="margin-top: 14px;">
+    This document walks through every user flow in the InterviewAI platform — from a student's first resume upload to a super admin's audit log review. Each chapter is self-contained: read top-to-bottom for a full tour, or jump directly to the flow you're working on. The four flows are intentionally separate user experiences that share one codebase and one AI backend, allowing the platform to serve both self-directed practice and corporate hiring without compromising either.
+  </div>
+
+  <div style="margin-top: 18px;">
+    <div class="toc-item">
+      <div class="toc-num">01</div>
+      <div class="toc-label">Platform Overview &amp; Tech Stack
+        <small>Dual-mode architecture · 4 user roles · React + FastAPI + Gemini stack</small>
+      </div>
+      <div class="toc-page">p. 3</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">02</div>
+      <div class="toc-label">Prep Mode Flow (Student)
+        <small>10 screens · Landing → Auth → Dashboard → Resume → Aptitude → Coding → Interview → Report → Replay → Profile</small>
+      </div>
+      <div class="toc-page">p. 5</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">03</div>
+      <div class="toc-label">Hiring Mode: Company Admin Flow
+        <small>8 screens · Register → Dashboard → Campaign → Questions → Leaderboard → Bulk Upload → Proctoring → Selection</small>
+      </div>
+      <div class="toc-page">p. 14</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">04</div>
+      <div class="toc-label">Hiring Mode: Invited Candidate Flow
+        <small>6 screens · Apply → Login → Password → System Check → Campaign → Results (strict proctoring, zero retakes)</small>
+      </div>
+      <div class="toc-page">p. 22</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">05</div>
+      <div class="toc-label">Super Admin Flow
+        <small>8 screens · Dashboard → Companies → Users → AI Usage → Questions → System → Audit → DB Health</small>
+      </div>
+      <div class="toc-page">p. 27</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">06</div>
+      <div class="toc-label">Proctoring &amp; Integrity System
+        <small>Prep vs Hiring · 3-strike warning system · Integrity scoring · Cloudinary frame storage</small>
+      </div>
+      <div class="toc-page">p. 32</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">07</div>
+      <div class="toc-label">Apply Page → Invite Email Automation
+        <small>End-to-end pipeline: public link → resume analysis → leaderboard → one-click shortlist → automated invite emails</small>
+      </div>
+      <div class="toc-page">p. 35</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">08</div>
+      <div class="toc-label">Data Models &amp; Infrastructure
+        <small>Postgres · MongoDB · Redis · Cloudinary · Celery workers · table sizes</small>
+      </div>
+      <div class="toc-page">p. 38</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CHAPTER 1: PLATFORM OVERVIEW ═══════════════ -->
+<div class="main-content">
+  <div class="chapter-header">
+    <div class="chapter-tag">Chapter 01</div>
+    <h2 class="chapter-title">Platform Overview &amp; <span class="grad">Tech Stack</span></h2>
+    <div class="chapter-divider"></div>
+  </div>
+
+  <div class="body-text">
+    <strong>InterviewAI</strong> is a dual-mode AI SaaS platform that simulates an end-to-end corporate hiring pipeline. Built on a single codebase, it serves two completely separate user experiences: a self-directed <strong>Prep Mode</strong> for students and job seekers who want to practice interviewing with an AI, and a <strong>Hiring Mode</strong> for companies that want to actually screen and hire real candidates at scale. The two modes share the same AI backend (Gemini 1.5 Flash, Whisper, MediaPipe, face-api.js), the same database primitives, and the same component library, but they differ fundamentally in their proctoring philosophy: Prep Mode treats proctoring signals as informational only — a self-awareness tool — while Hiring Mode treats them as enforced rules with auto-submission, integrity flags, and 20% score penalties.
+  </div>
+
+  <div class="sub-tag">User Roles</div>
+  <div class="sub-title">Four Roles, Four Permission Surfaces</div>
+  <div class="body-text">
+    The platform models four distinct roles, each scoped to a different slice of the data. A single email can only hold one role at a time — a user cannot be both a student and a candidate, because the two experiences have different data privacy implications (students own their data; candidates' data is shared with the hiring company).
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Role</th>
+        <th>Created via</th>
+        <th>Sees</th>
+        <th>Write scope</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>student</strong></td>
+        <td>Self-registration on <code>/auth</code></td>
+        <td>Own profile, own interviews, own reports</td>
+        <td>Own data only · unlimited retakes</td>
+      </tr>
+      <tr>
+        <td><strong>candidate</strong></td>
+        <td>Admin shortlist → invite email</td>
+        <td>One campaign only · own round scores</td>
+        <td>Test answers · interview answers · zero retakes</td>
+      </tr>
+      <tr>
+        <td><strong>company_admin</strong></td>
+        <td>Self-registration on <code>/company/register</code></td>
+        <td>Own company · own campaigns · all candidates in those campaigns</td>
+        <td>CRUD campaigns · questions · shortlist · final decisions</td>
+      </tr>
+      <tr>
+        <td><strong>super_admin</strong></td>
+        <td>Script-created at deployment</td>
+        <td>Everything across all companies</td>
+        <td>Suspend companies · GDPR delete · reseed questions · system config</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="sub-tag">Tech Stack</div>
+  <div class="sub-title">Frontend · Backend · AI · Infrastructure</div>
+  <div class="body-text">
+    The stack was chosen for three reasons: (1) every layer is free or has a generous free tier, (2) each component is best-in-class for its specific job, and (3) the AI layer runs primarily in the browser for face/emotion analysis to keep server costs low. The backend is intentionally polyglot — Postgres for transactional records, Mongo for nested document data (interview reports, proctoring event logs), and Redis for rate limiting and BullMQ job queues.
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Frontend</div>
+    <ul class="clean">
+      <li><strong>React 18</strong> + Vite — SPA with state-based routing (no Next.js for the student app)</li>
+      <li><strong>Tailwind CSS</strong> + <strong>shadcn/ui</strong> + <strong>Radix UI</strong> — design system primitives</li>
+      <li><strong>Zustand</strong> — lightweight global state (auth, current screen, theme)</li>
+      <li><strong>Framer Motion</strong> — entrance animations, page transitions, magnetic hover</li>
+      <li><strong>Recharts</strong> — radar, line, bar charts for the dashboard</li>
+      <li><strong>Monaco Editor</strong> — VS Code-grade editor inside Coding Arena</li>
+      <li><strong>Three.js</strong> — 3D animated AI interviewer avatar with lip-sync</li>
+      <li><strong>face-api.js</strong> + <strong>MediaPipe</strong> — browser-side emotion &amp; posture detection</li>
+    </ul>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Backend</div>
+    <ul class="clean">
+      <li><strong>FastAPI</strong> (Python 3.11) — async REST API + WebSocket for live interview state</li>
+      <li><strong>PostgreSQL</strong> via Supabase — users, companies, campaigns, applicant_pool</li>
+      <li><strong>MongoDB Atlas</strong> — aptitude_questions (1,770), coding_problems (315), interview_reports (17-section nested docs), proctoring_events</li>
+      <li><strong>Redis</strong> via Upstash — rate limiting, session cache, BullMQ job queue</li>
+      <li><strong>Celery</strong> workers — async resume analysis, interview processing (60s), report generation, GDPR deletion</li>
+      <li><strong>Resend</strong> — transactional email (OTP, invite emails, password reset)</li>
+      <li><strong>Cloudinary</strong> — resume PDFs, interview recordings (video+audio), flagged proctoring webcam frames</li>
+      <li><strong>Piston API</strong> — code execution across Python/Java/C++/JS/SQL/Go/TypeScript</li>
+    </ul>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">AI Layer</div>
+    <ul class="clean">
+      <li><strong>Gemini 1.5 Flash</strong> — primary LLM for resume analysis, interview Q&amp;A, code review, report generation</li>
+      <li><strong>OpenAI Whisper</strong> (via API) — speech-to-text for live interview transcripts</li>
+      <li><strong>Web Speech API</strong> — text-to-speech for the AI avatar (browser-native, free)</li>
+      <li><strong>MediaPipe</strong> — eye contact %, posture, hand gestures (runs in browser, free)</li>
+      <li><strong>face-api.js</strong> — emotion detection every 5 seconds (runs in browser, free)</li>
+      <li><strong>COCO-SSD</strong> — object detection for phone/extra-person in proctored tests</li>
+      <li><strong>MediaRecorder API</strong> — records the interview (video + audio) for later replay</li>
+    </ul>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">⚡ Rate-Limit Strategy</div>
+    <div class="callout-body">
+      Gemini has a 15 RPM (requests-per-minute) free-tier limit. The backend enforces a 4-second sleep between consecutive Gemini calls via a Celery semaphore. The Super Admin → AI Usage Monitor screen surfaces rate-limit events in real time so the team can spot abusive users before they hit the daily quota (15,000 requests/day).
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CHAPTER 2: PREP MODE ═══════════════ -->
+<div class="main-content">
+  <div class="chapter-header">
+    <div class="chapter-tag">Chapter 02</div>
+    <h2 class="chapter-title">Prep Mode Flow <span class="grad">(Student)</span></h2>
+    <div class="chapter-divider"></div>
+  </div>
+
+  <div class="body-text">
+    Prep Mode is the self-directed practice experience. Any visitor can register, upload their resume, take unlimited aptitude tests, code in the arena, and run live AI interviews — all for free, all without any proctoring penalty. The proctoring signals (tab switches, fullscreen exits, posture flags) are still captured and shown to the student, but framed as self-awareness data rather than enforcement. This is the funnel that converts anonymous visitors into engaged users who eventually tell their friends.
+  </div>
+
+  <div class="flow">
+    <div class="flow-title">Prep Mode · End-to-End Flow</div>
+    <div class="flow-strip">
+      <div class="flow-node"><div class="flow-node-num">01</div><div class="flow-node-label">Landing</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="flow-node-num">02</div><div class="flow-node-label">Register (3 steps)</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node accent"><div class="flow-node-num">03</div><div class="flow-node-label">Dashboard</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="flow-node-num">04</div><div class="flow-node-label">Resume</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="flow-node-num">05</div><div class="flow-node-label">Aptitude</div></div>
+    </div>
+    <div class="flow-strip" style="margin-top: 8px;">
+      <div class="flow-node"><div class="flow-node-num">06</div><div class="flow-node-label">Coding</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node accent"><div class="flow-node-num">07</div><div class="flow-node-label">AI Interview</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="flow-node-num">08</div><div class="flow-node-label">Report (17 sec.)</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="flow-node-num">09</div><div class="flow-node-label">Replay</div></div>
+      <div class="flow-arrow">↻</div>
+      <div class="flow-node"><div class="flow-node-num">10</div><div class="flow-node-label">Profile</div></div>
+    </div>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">✓ Key Principle: Unlimited Retakes, Informational Proctoring</div>
+    <div class="callout-body">
+      In Prep Mode, every assessment (aptitude, coding, interview) can be retaken unlimited times. Tab switches and fullscreen exits are logged and shown to the student as a self-awareness stat — they never block, warn, or affect the score. The student is the only audience for their own proctoring data.
+    </div>
+  </div>
+
+  <div class="sub-tag">Screen 01</div>
+  <div class="sub-title">Landing Page <span class="route">/</span></div>
+  <div class="body-text">
+    The public homepage. No login required. This is the first thing any visitor sees, and the primary conversion funnel into Prep Mode registration. The page is built as a single-screen scroll: hero, social proof, feature bento grid, how-it-works strip, interactive demo, testimonials, pricing, footer.
+  </div>
+  <ul class="clean">
+    <li><strong>Hero:</strong> Headline "Master Every Interview with AI", subtitle, dual CTAs — <code>Start Preparing Free</code> (primary, → <code>/auth</code>) and <code>For Companies</code> (secondary, → <code>/company/register</code>)</li>
+    <li><strong>Social proof:</strong> "Trusted by 5,000+ students" + avatar row</li>
+    <li><strong>AI avatar preview:</strong> 3D animated avatar that bobs/breathes + waveform bars + label "This AI interviewer will ask you questions"</li>
+    <li><strong>Feature grid:</strong> 6 cards — AI Resume Analyzer, Aptitude Practice (1,500+), Coding Arena, AI Interview, Detailed Reports (17-section PDF), Track Progress</li>
+    <li><strong>How It Works:</strong> 4 horizontal steps with arrows — Upload Resume → Practice Tests → AI Interview → Get Report</li>
+    <li><strong>Testimonials:</strong> 3 student quote cards</li>
+    <li><strong>Final CTA:</strong> Gradient banner "Ready to ace your next interview?" + button</li>
+    <li><strong>Footer:</strong> 4-column links</li>
+  </ul>
+
+  <div class="sub-tag">Screen 02</div>
+  <div class="sub-title">Auth Page <span class="route">/auth</span></div>
+  <div class="body-text">
+    Registration AND login on a single screen — no navigating between separate pages for signup vs login vs OTP vs profile setup. The content switches in-place via a step counter. On desktop, the screen is split 50/50: left = gradient + 3D avatar + tagline, right = form. On mobile, only the form shows.
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Sign Up Flow — 3 Steps, Same Screen</div>
+    <div class="card-meta">Step counter persists in top-right of the form card</div>
+    <ul class="clean" style="margin-top: 10px;">
+      <li><strong>Step 1 — Create Account:</strong> Name, Email, Password (min 8 chars). "OR" divider. "Continue with Google" button. "Create Account" CTA → backend sends OTP to email</li>
+      <li><strong>Step 2 — OTP Verification:</strong> "We sent a 6-digit code to your@email.com". 6 individual input boxes (auto-advance on type, backspace jumps to previous). Countdown "Resend in 4:32" → becomes "Resend OTP" button at 0. "Verify" button disabled until 6 digits filled. Wrong code → red error "Invalid code. 2 attempts remaining." After 3 wrong attempts → must request new OTP</li>
+      <li><strong>Step 3 — Profile Setup:</strong> Job Role dropdown (Frontend/Backend/Full-stack/Data/DevOps/...), Skills tag input with autocomplete, Education repeatable group (Degree + Institution + Year + Add/Remove), LinkedIn URL (optional), GitHub URL (optional). "Complete Setup" → account created with role=<code>student</code> → redirect to <code>/dashboard</code></li>
+    </ul>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Login Tab</div>
+    <ul class="clean" style="margin-top: 8px;">
+      <li>Email + Password + "Forgot Password?" link</li>
+      <li>"OR" divider + "Continue with Google" button</li>
+      <li>"Login" CTA → <code>/dashboard</code></li>
+    </ul>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">Forgot Password Flow</div>
+    <div class="callout-body">
+      Inline expansion — clicking "Forgot Password?" reveals an email input + "Send Reset Link" button. User enters email → sees "Reset link sent to your email." Email contains a tokenized link → user sets a new password → redirected back to login. No separate page route required.
+    </div>
+  </div>
+
+  <div class="sub-tag">Screen 03</div>
+  <div class="sub-title">Student Dashboard <span class="route">/dashboard</span></div>
+  <div class="body-text">
+    The student's home base after login. Every time they finish an activity, they return here. The dashboard summarizes everything at a glance: latest score, score trend, skill radar, resume ATS, aptitude breakdown, recent interviews, learning roadmap, coding heatmap, and fair-usage stats.
+  </div>
+  <ul class="clean">
+    <li><strong>Header:</strong> "Welcome back, Priya! 👋" + "Download Report" button (hidden by default — fades in with pulse animation when WebSocket delivers <code>REPORT_READY</code> ~60s after interview ends)</li>
+    <li><strong>Top row (2-col):</strong> Left = circular Score Gauge showing last interview % + "Last: Jan 15". Right = Score Trend Line chart (last 10 sessions)</li>
+    <li><strong>Middle row (3-col):</strong> Skill Radar Chart (6 axes: Technical, Communication, Behavioral, Body Language, Confidence, Problem Solving) · Resume Score Card (ATS 87/100 + progress bar) · Aptitude Quick Stats (5 horizontal bars: Quant, Logical, Verbal, Analytical, DI)</li>
+    <li><strong>Bottom row (2-col):</strong> Left = Recent Interviews list (date, type badge, score, Replay → link). Right = Learning Roadmap checklist (6 weeks: ✅/🔄/🔒) + Coding Heatmap (GitHub-style 12-week grid, green = activity)</li>
+    <li><strong>Fair Usage Summary (collapsible):</strong> "Your self-awareness stats" → "Tab switches last test: 3 | Fullscreen exits: 1" + info tooltip "Logged for your awareness only. No penalties."</li>
+  </ul>
+
+  <div class="sub-tag">Screen 04</div>
+  <div class="sub-title">Resume Hub <span class="route">/resume</span></div>
+  <div class="body-text">
+    Where the student uploads their resume and gets back a detailed AI analysis. The page has 3 sub-screens that switch in-place based on the current state: upload → loading → results → history.
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Sub-screen 4a — Upload</div>
+    <ul class="clean" style="margin-top: 8px;">
+      <li>Centered drag-and-drop zone (~300px tall), accepts PDF/DOCX, max 5MB</li>
+      <li>File selected → filename + size shown below + "Analyze Resume" button</li>
+      <li>Click Analyze → file uploads → 10-15 second AI analysis → shimmer skeleton placeholder (same shape as results card, pulsing gray) appears while waiting</li>
+    </ul>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Sub-screen 4b — Results</div>
+    <ul class="clean" style="margin-top: 8px;">
+      <li><strong>3 stat cards:</strong> ATS Score (87/100, circular gauge) · Overall Resume Score (82/100, progress bar) · Job Fit (78%, progress bar + "Backend Developer" label)</li>
+      <li><strong>Skills (2-col):</strong> "Skills Found" tags in green (Python, FastAPI, React, SQL) | "Missing Skills" in red (Docker, CI/CD, Testing) + "Recommended" in yellow (System Design, Redis)</li>
+      <li><strong>Issues (2-col):</strong> Grammar Issues list (line #, issue, suggested fix) | Formatting Issues bullets ("No consistent date format", "Missing LinkedIn URL")</li>
+      <li><strong>AI Summary card:</strong> 2 paragraphs of narrative ("Priya has a strong foundation in backend development…")</li>
+      <li><strong>Badges:</strong> Experience Level: Junior · Word Count: 487 · Pages: 1</li>
+      <li><strong>Actions:</strong> "Download Full Report" + "Upload New Resume"</li>
+    </ul>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Sub-screen 4c — Upload History</div>
+    <ul class="clean" style="margin-top: 8px;">
+      <li>Table (or card list on mobile) of all past uploads: Date, ATS Score, Job Fit %, "View" link</li>
+      <li>Clicking "View" re-renders sub-screen 4b with that historical analysis</li>
+      <li>All versions saved permanently — students can upload new resumes anytime</li>
+    </ul>
+  </div>
+
+  <div class="sub-tag">Screen 05</div>
+  <div class="sub-title">Aptitude Portal <span class="route">/aptitude</span></div>
+  <div class="body-text">
+    Timed aptitude practice. 25 MCQs across 5 categories (Quant, Logical, Verbal, Analytical, DI) — 5 questions per category — in 30 minutes. Three sub-screens switch based on test phase: rules → test → results.
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Sub-screen 5a — Rules</div>
+    <ul class="clean" style="margin-top: 8px;">
+      <li>Centered card: "25 Questions" + "30 Minutes" + "5 Categories" with icons</li>
+      <li>Category breakdown: Quantitative (5), Logical (5), Verbal (5), Analytical (5), Data Interpretation (5)</li>
+      <li>"No Negative Marking" ✓ + "Unlimited Retakes" ↻</li>
+      <li>"Start Test" CTA (big, centered, primary)</li>
+    </ul>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Sub-screen 5b — Test</div>
+    <ul class="clean" style="margin-top: 8px;">
+      <li><strong>Top bar:</strong> Countdown timer (left, turns red &amp; pulses &lt;5min, larger &lt;1min) · "Q 12 of 25" (center) · Bookmark button (right)</li>
+      <li><strong>Left — Question:</strong> Category badge → question text → 4 options (A/B/C/D, selected = accent border+bg) → Previous/Next buttons</li>
+      <li><strong>Right — Navigation grid:</strong> 5×5 grid of 25 circles. Green = answered, Yellow = bookmarked, Orange ring = current, Gray = unanswered. Click any circle to jump. Legend below.</li>
+      <li><strong>Footer:</strong> "Tab switches: 2 | Fullscreen exits: 0" (informational only) · "Submit Test" (ghost style to prevent accidental clicks)</li>
+      <li><strong>Timer behavior:</strong> Black → red+bold+pulse &lt;5min → red+bold+larger &lt;1min → auto-submit at 00:00</li>
+      <li><strong>Auto-save:</strong> Every 30s to localStorage. Browser crash → resume from where they left off.</li>
+      <li><strong>Submit confirmation:</strong> Modal — "Are you sure? X questions are unanswered." or "All 25 questions answered. Submit?"</li>
+    </ul>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Sub-screen 5c — Results</div>
+    <ul class="clean" style="margin-top: 8px;">
+      <li><strong>Score summary:</strong> "18/25 Correct (72%)" + progress bar</li>
+      <li><strong>Category breakdown:</strong> 5 horizontal bars — Quant 80% (green), Logical 60% (yellow), Verbal 100% (green), Analytical 80% (green), DI 40% (red)</li>
+      <li><strong>Wrong answers section:</strong> For each wrong question — question text (truncated) + "Your answer: B" (red ✕) + "Correct answer: C" (green ✓) + explanation paragraph</li>
+      <li><strong>Action:</strong> "Take Again" button → back to Rules screen with fresh 25 random questions. Retakes unlimited.</li>
+    </ul>
+  </div>
+
+  <div class="sub-tag">Screen 06</div>
+  <div class="sub-title">Coding Arena <span class="route">/coding</span></div>
+  <div class="body-text">
+    A VS Code-like coding environment with execution and AI code review. On desktop, the screen is split 50/50 with a draggable divider. On mobile, panes stack vertically (problem on top, collapsible; editor on bottom).
+  </div>
+  <ul class="clean">
+    <li><strong>Left pane — Problem:</strong> Title with difficulty badge (Easy=green, Medium=yellow, Hard=red), formatted description, example I/O in code blocks, constraints. SQL problems add a schema diagram + sample data table.</li>
+    <li><strong>Right pane — Editor:</strong> Language dropdown (Python/Java/C++/JS/SQL/Go/TS) → Monaco editor (syntax highlighting, autocomplete, bracket matching, theme matches user's appearance mode) → Custom Input field → ▶Run (ghost) + ✓Submit (primary) buttons → Test cases section</li>
+    <li><strong>Run:</strong> Executes against 3 visible test cases via Piston API. Per-case result: ✅ Passed (12ms, 14MB) or ❌ Failed — Expected [0,1] Got [1,0]</li>
+    <li><strong>Submit:</strong> Runs all 10 test cases (3 visible + 7 hidden). Shows pass/fail count "7/10 passed"</li>
+    <li><strong>AI Code Review panel (slides down after submit):</strong> Overall Score 85/100 (progress bar) · Time Complexity O(n) ✅ Optimal · Space Complexity O(n) · Sub-scores (Code Quality 90, Readability 85, Correctness 70) · Strengths (green bullets) · Suggestions (yellow bullets) · "Refactored Snippet" collapsible</li>
+    <li><strong>Language switching:</strong> Confirmation modal — "Switching language will clear your code. Continue?"</li>
+    <li><strong>Auto-save:</strong> Every 30s to localStorage. "Auto-saved ✓" briefly shown.</li>
+    <li><strong>Proctoring footer:</strong> Same as aptitude — informational only</li>
+  </ul>
+
+  <div class="sub-tag">Screen 07</div>
+  <div class="sub-title">AI Interview <span class="route">/interview</span></div>
+  <div class="body-text">
+    The flagship feature. The student has a live, real-time conversation with an AI interviewer who asks questions, listens to answers, generates follow-ups, and analyzes body language. Four sub-screens switch based on interview phase.
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Sub-screen 7a — Setup</div>
+    <ul class="clean" style="margin-top: 8px;">
+      <li>"Choose Interview Type" — 6 cards in 3×2 grid (2-col on mobile):
+        <ol style="margin: 4px 0 0 16px; color: var(--c-text-dim); font-size: 12px;">
+          <li>HR/Behavioral — 20-30 min, 8-12 Qs</li>
+          <li>Technical — General — 30-45 min, 10-15 Qs</li>
+          <li>Technical — Role-Specific — 30-45 min, 10-15 Qs</li>
+          <li>Managerial — 25-35 min, 8-10 Qs</li>
+          <li>Company-Specific — 25-35 min, 8-12 Qs</li>
+          <li>Full End-to-End — 55-75 min, 25-40 Qs</li>
+        </ol>
+      </li>
+      <li>Each card: icon, title, description, duration, question count. Click to select (accent border highlight).</li>
+      <li><strong>System Check:</strong> "🎤 Microphone: [Test]" → requests permission → "Working ✅" / "Not detected ❌". "📷 Camera: [Test]" → requests permission → small webcam preview or error.</li>
+      <li>"Begin Interview" button (disabled until both mic + camera confirmed working)</li>
+    </ul>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Sub-screen 7b — Live Interview</div>
+    <div class="card-meta">Desktop: split 50/50. Mobile: stacked.</div>
+    <ul class="clean" style="margin-top: 10px;">
+      <li><strong>Left side — Avatar &amp; Analysis:</strong>
+        <ul style="margin: 4px 0 0 16px; color: var(--c-text-dim); font-size: 11.5px;">
+          <li>3D avatar (~320×320px) — Idle: gentle breathing/bobbing · Speaking: mouth moves (lip-synced) · Thinking: head tilt + "..." typing dots overlay</li>
+          <li>Voice waveform — ~20 vertical bars animate height based on user's audio volume</li>
+          <li>Real-time analysis indicators:
+            <ul style="margin: 2px 0 0 14px;">
+              <li>Emotion: 😐 Neutral (updates every 5s via face-api.js)</li>
+              <li>Eye Contact: 78% (via MediaPipe)</li>
+              <li>Posture: ✅ Good or ⚠️ Check posture (via MediaPipe)</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><strong>Right side — Question &amp; Transcript:</strong>
+        <ul style="margin: 4px 0 0 16px; color: var(--c-text-dim); font-size: 11.5px;">
+          <li>"AI Question:" label + current question text in a card</li>
+          <li>Microphone toggle: "🎤 Speak now..." — click to start/stop, or auto-detects when user starts talking</li>
+          <li>Live Transcript (chat-like): AI messages left-aligned (accent color) · User messages right-aligned (subtle bg) · Each has timestamp · Auto-scrolls to latest</li>
+          <li>When AI is generating next question: "● ● ● AI is thinking..." typing dots</li>
+        </ul>
+      </li>
+      <li><strong>Top bar:</strong> Countdown timer (red &lt;5min) · "Q 3 of 10" · "End Early" ghost button (confirmation modal: "End interview early? You won't be able to resume.")</li>
+      <li><strong>Footer:</strong> "Tab switches: 1 | Fullscreen exits: 0 (logged only)"</li>
+    </ul>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Sub-screen 7c — Processing</div>
+    <ul class="clean" style="margin-top: 8px;">
+      <li>Large conic rainbow spinner</li>
+      <li>Processing steps update via WebSocket:
+        <ul style="margin: 4px 0 0 16px; color: var(--c-text-dim); font-size: 11.5px;">
+          <li>✅ Transcribing audio...</li>
+          <li>✅ Evaluating answers...</li>
+          <li>🔄 Generating report... (currently in progress)</li>
+          <li>⬜ Calculating scores...</li>
+        </ul>
+      </li>
+      <li>"This takes approximately 60 seconds"</li>
+      <li>If &gt;5 min: "Taking longer than expected. We'll notify you when ready." + option to go to dashboard and wait there</li>
+      <li>Backend: Celery background job. Frontend just shows progress via WebSocket.</li>
+    </ul>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">Sub-screen 7d — Done</div>
+    <ul class="clean" style="margin-top: 8px;">
+      <li>Large ✅ icon with spring scale-in animation</li>
+      <li>"Interview Complete!"</li>
+      <li>"Your report is being generated and will appear on your dashboard."</li>
+      <li>"Go to Dashboard" button</li>
+      <li>~60s later: WebSocket <code>REPORT_READY</code> arrives → "Download Report" button on dashboard activates</li>
+    </ul>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">🔧 Technical Loop (Live Interview)</div>
+    <div class="callout-body">
+      <strong>1.</strong> AI avatar speaks first question via Web Speech API TTS (mouth sync).<br>
+      <strong>2.</strong> When avatar stops, mic activates → user speaks answer.<br>
+      <strong>3.</strong> Audio recorded + sent to server → Whisper transcribes → transcript appears live.<br>
+      <strong>4.</strong> Transcript sent to Gemini → generates dynamic follow-up → avatar speaks new question.<br>
+      <strong>5.</strong> Loop: Question → Answer → Follow-up → Answer → ... until all questions done.<br>
+      <strong>6.</strong> Simultaneously: face-api.js detects emotion every 5s. MediaPipe tracks eye contact %, posture, gestures. Indicators update on left side.<br>
+      <strong>7.</strong> Entire session recorded via MediaRecorder (video+audio) → uploaded to Cloudinary after interview ends.
+    </div>
+  </div>
+
+  <div class="sub-tag">Screen 08</div>
+  <div class="sub-title">Report <span class="route">/report/:id</span></div>
+  <div class="body-text">
+    A full, detailed PDF report viewable in the browser. 17 sections cover every aspect of interview performance. Each section is its own card with a section number and title. A sticky "📥 Download PDF" button stays visible in the top-right while scrolling.
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr><th>#</th><th>Section</th><th>Content</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1</strong></td><td>Cover Page</td><td>Platform logo · "Interview Report" · candidate name · date · interview type</td></tr>
+      <tr><td><strong>2</strong></td><td>Executive Summary</td><td>3 paragraphs · high-level overview of candidate performance</td></tr>
+      <tr><td><strong>3</strong></td><td>Overall Score Table</td><td>6 rows (Technical, Communication, Behavioral, Body Language, Confidence, Problem Solving) · score /100 · progress bar</td></tr>
+      <tr><td><strong>4</strong></td><td>Hiring Recommendation</td><td>Large badge: "Strongly Recommend" (green) · "Recommend" (blue) · "Conditionally Recommend" (yellow) · "Not Recommended" (red)</td></tr>
+      <tr><td><strong>5</strong></td><td>Resume Analysis</td><td>ATS score · job fit % · skills found &amp; missing</td></tr>
+      <tr><td><strong>6</strong></td><td>Aptitude Analysis</td><td>Per-category scores · strengths · weaknesses</td></tr>
+      <tr><td><strong>7</strong></td><td>Coding Analysis</td><td>Problems attempted · pass rate · code quality · AI review summary</td></tr>
+      <tr><td><strong>8</strong></td><td>Technical Analysis</td><td>Per-question accuracy scores · depth ratings</td></tr>
+      <tr><td><strong>9</strong></td><td>HR/Behavioral Analysis</td><td>STAR method usage · motivation clarity · culture fit indicators</td></tr>
+      <tr><td><strong>10</strong></td><td>Communication Analysis</td><td>Clarity score · structure rating · filler word count · pacing</td></tr>
+      <tr><td><strong>11</strong></td><td>CV/Emotion Analysis</td><td>Dominant emotions · avg eye contact % · posture consistency</td></tr>
+      <tr><td><strong>12</strong></td><td>Emotion Timeline Chart</td><td>Line chart — X=question #, Y=emotion scores over time</td></tr>
+      <tr><td><strong>13</strong></td><td>Session Highlights</td><td>3-5 key moment cards with timestamps — "Best answer at Q5", "Weakest moment at Q8"</td></tr>
+      <tr><td><strong>14</strong></td><td>Top 7 Strengths</td><td>Bulleted list with green ✓ — "Strong conceptual understanding of distributed systems"</td></tr>
+      <tr><td><strong>15</strong></td><td>Top 7 Improvements</td><td>Bulleted list with yellow ⚠ — "Reduce filler words (used 'um' 23 times)"</td></tr>
+      <tr><td><strong>16</strong></td><td>6-Week Learning Roadmap</td><td>6 collapsible cards — week theme · daily goal · free resource links · milestone</td></tr>
+      <tr><td><strong>17</strong></td><td>Final Recommendation</td><td>Closing paragraph with actionable next steps</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-tag">Screen 09</div>
+  <div class="sub-title">Interview Replay <span class="route">/replay/:id</span></div>
+  <div class="body-text">
+    Re-watch a past interview with the video recording synced to the transcript and AI annotations. Reached by clicking "Replay →" on any interview card.
+  </div>
+  <ul class="clean">
+    <li><strong>Video player:</strong> Standard controls (play/pause/seek/volume) + current time "12:45 / 25:30". Click anywhere on progress bar to jump.</li>
+    <li><strong>Transcript panel (scrollable):</strong> Each Q&amp;A pair listed — AI question + timestamp (e.g. "0:00") + user answer + timestamp (e.g. "0:15") + AI annotation/note ("Good structure, could mention projects"). Click any line → video jumps to that timestamp.</li>
+    <li><strong>Emotion timeline strip:</strong> Horizontal strip of emotion icons per question — 😐──😐──😊──😐──🤔──😐</li>
+    <li><strong>Fallback:</strong> If recording upload failed (network error during interview): "Recording unavailable — transcript and scores still accessible"</li>
+  </ul>
+
+  <div class="sub-tag">Screen 10</div>
+  <div class="sub-title">Profile <span class="route">/profile</span></div>
+  <div class="body-text">
+    Where the student edits personal info used by the AI to personalize interview questions. 4 tabs.
+  </div>
+  <ul class="clean">
+    <li><strong>Tab 1 — Personal Info:</strong> Name, Phone, Date of Birth, City, Avatar upload (image file)</li>
+    <li><strong>Tab 2 — Education:</strong> Repeatable list — Degree (dropdown) + Institution (text) + Year (text). "+ Add Education" button + "×" remove per row.</li>
+    <li><strong>Tab 3 — Skills:</strong> Tag input with autocomplete. Type → see suggestions → click to add. Existing skills appear as removable pills.</li>
+    <li><strong>Tab 4 — Job Preferences:</strong> Preferred roles (multi-select) · Experience level (dropdown) · Expected salary (text) · Preferred locations (tag input)</li>
+  </ul>
+  <div class="callout">
+    <div class="callout-title">Why profile data matters</div>
+    <div class="callout-body">
+      Profile data is sent to Gemini when generating interview questions. If the user is a Backend Developer with Python/FastAPI skills, the AI asks backend-specific questions (APIs, DB, queues) instead of generic ones. The more complete the profile, the more targeted the practice.
+    </div>
+  </div>
+</div>
