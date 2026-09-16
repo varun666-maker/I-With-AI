@@ -611,3 +611,153 @@
 
 .animate-bob { animation: bob 4s ease-in-out infinite; }
 .animate-spin-slow { animation: spin-slow 12s linear infinite; }
+
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT MODE CONTRAST FIXES
+   ═══════════════════════════════════════════════════════════════
+   Problem: Tailwind's text-*-200/300/400 and bg-*-500/10 classes are
+   designed for dark backgrounds. On white/light backgrounds they're
+   nearly invisible. These overrides use darker shades (600/700/800)
+   in light mode, while preserving the accent theme's hue.
+
+   Using !important to override Tailwind's generated utilities.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Text colors: 200→800, 300→700, 400→600 for readability on white ─── */
+:root:not(.dark) .text-violet-200   { color: var(--color-violet-800) !important; }
+:root:not(.dark) .text-violet-300   { color: var(--color-violet-700) !important; }
+:root:not(.dark) .text-violet-400   { color: var(--color-violet-600) !important; }
+:root:not(.dark) .text-fuchsia-200  { color: var(--color-fuchsia-800) !important; }
+:root:not(.dark) .text-fuchsia-300  { color: var(--color-fuchsia-700) !important; }
+:root:not(.dark) .text-fuchsia-400  { color: var(--color-fuchsia-600) !important; }
+:root:not(.dark) .text-sky-200      { color: var(--color-sky-800) !important; }
+:root:not(.dark) .text-sky-300      { color: var(--color-sky-700) !important; }
+:root:not(.dark) .text-sky-400      { color: var(--color-sky-600) !important; }
+:root:not(.dark) .text-emerald-200  { color: var(--color-emerald-800) !important; }
+:root:not(.dark) .text-emerald-300  { color: var(--color-emerald-700) !important; }
+:root:not(.dark) .text-emerald-400  { color: var(--color-emerald-600) !important; }
+:root:not(.dark) .text-amber-200    { color: var(--color-amber-800) !important; }
+:root:not(.dark) .text-amber-300    { color: var(--color-amber-700) !important; }
+:root:not(.dark) .text-amber-400    { color: var(--color-amber-600) !important; }
+:root:not(.dark) .text-rose-200     { color: var(--color-rose-800) !important; }
+:root:not(.dark) .text-rose-300     { color: var(--color-rose-700) !important; }
+:root:not(.dark) .text-rose-400     { color: var(--color-rose-600) !important; }
+:root:not(.dark) .text-cyan-200     { color: var(--color-cyan-800) !important; }
+:root:not(.dark) .text-cyan-300     { color: var(--color-cyan-700) !important; }
+:root:not(.dark) .text-cyan-400     { color: var(--color-cyan-600) !important; }
+:root:not(.dark) .text-teal-200     { color: var(--color-teal-800) !important; }
+:root:not(.dark) .text-teal-300     { color: var(--color-teal-700) !important; }
+:root:not(.dark) .text-teal-400     { color: var(--color-teal-600) !important; }
+:root:not(.dark) .text-orange-200   { color: var(--color-orange-800) !important; }
+:root:not(.dark) .text-orange-300   { color: var(--color-orange-700) !important; }
+:root:not(.dark) .text-orange-400   { color: var(--color-orange-600) !important; }
+:root:not(.dark) .text-lime-200     { color: var(--color-lime-800) !important; }
+:root:not(.dark) .text-lime-300     { color: var(--color-lime-700) !important; }
+:root:not(.dark) .text-lime-400     { color: var(--color-lime-600) !important; }
+:root:not(.dark) .text-green-200    { color: var(--color-green-800) !important; }
+:root:not(.dark) .text-green-300    { color: var(--color-green-700) !important; }
+:root:not(.dark) .text-green-400    { color: var(--color-green-600) !important; }
+:root:not(.dark) .text-indigo-200   { color: var(--color-indigo-800) !important; }
+:root:not(.dark) .text-indigo-300   { color: var(--color-indigo-700) !important; }
+:root:not(.dark) .text-indigo-400   { color: var(--color-indigo-600) !important; }
+:root:not(.dark) .text-purple-200   { color: var(--color-purple-800) !important; }
+:root:not(.dark) .text-purple-300   { color: var(--color-purple-700) !important; }
+:root:not(.dark) .text-purple-400   { color: var(--color-purple-600) !important; }
+:root:not(.dark) .text-pink-200     { color: var(--color-pink-800) !important; }
+:root:not(.dark) .text-pink-300     { color: var(--color-pink-700) !important; }
+:root:not(.dark) .text-pink-400     { color: var(--color-pink-600) !important; }
+
+/* ─── Backgrounds: increase opacity for visibility on white ─── */
+:root:not(.dark) .bg-violet-500\/5   { background-color: color-mix(in oklab, var(--color-violet-500) 12%, transparent) !important; }
+:root:not(.dark) .bg-violet-500\/10  { background-color: color-mix(in oklab, var(--color-violet-500) 20%, transparent) !important; }
+:root:not(.dark) .bg-violet-500\/15  { background-color: color-mix(in oklab, var(--color-violet-500) 28%, transparent) !important; }
+:root:not(.dark) .bg-violet-500\/20  { background-color: color-mix(in oklab, var(--color-violet-500) 32%, transparent) !important; }
+:root:not(.dark) .bg-fuchsia-500\/5  { background-color: color-mix(in oklab, var(--color-fuchsia-500) 12%, transparent) !important; }
+:root:not(.dark) .bg-fuchsia-500\/10 { background-color: color-mix(in oklab, var(--color-fuchsia-500) 20%, transparent) !important; }
+:root:not(.dark) .bg-fuchsia-500\/15 { background-color: color-mix(in oklab, var(--color-fuchsia-500) 28%, transparent) !important; }
+:root:not(.dark) .bg-fuchsia-500\/20 { background-color: color-mix(in oklab, var(--color-fuchsia-500) 32%, transparent) !important; }
+:root:not(.dark) .bg-sky-500\/5      { background-color: color-mix(in oklab, var(--color-sky-500) 12%, transparent) !important; }
+:root:not(.dark) .bg-sky-500\/10     { background-color: color-mix(in oklab, var(--color-sky-500) 20%, transparent) !important; }
+:root:not(.dark) .bg-sky-500\/15     { background-color: color-mix(in oklab, var(--color-sky-500) 28%, transparent) !important; }
+:root:not(.dark) .bg-sky-500\/20     { background-color: color-mix(in oklab, var(--color-sky-500) 32%, transparent) !important; }
+:root:not(.dark) .bg-emerald-500\/5  { background-color: color-mix(in oklab, var(--color-emerald-500) 12%, transparent) !important; }
+:root:not(.dark) .bg-emerald-500\/10 { background-color: color-mix(in oklab, var(--color-emerald-500) 20%, transparent) !important; }
+:root:not(.dark) .bg-emerald-500\/15 { background-color: color-mix(in oklab, var(--color-emerald-500) 28%, transparent) !important; }
+:root:not(.dark) .bg-emerald-500\/20 { background-color: color-mix(in oklab, var(--color-emerald-500) 32%, transparent) !important; }
+:root:not(.dark) .bg-amber-500\/5    { background-color: color-mix(in oklab, var(--color-amber-500) 12%, transparent) !important; }
+:root:not(.dark) .bg-amber-500\/10   { background-color: color-mix(in oklab, var(--color-amber-500) 20%, transparent) !important; }
+:root:not(.dark) .bg-amber-500\/15   { background-color: color-mix(in oklab, var(--color-amber-500) 28%, transparent) !important; }
+:root:not(.dark) .bg-amber-500\/20   { background-color: color-mix(in oklab, var(--color-amber-500) 32%, transparent) !important; }
+:root:not(.dark) .bg-rose-500\/5     { background-color: color-mix(in oklab, var(--color-rose-500) 12%, transparent) !important; }
+:root:not(.dark) .bg-rose-500\/10    { background-color: color-mix(in oklab, var(--color-rose-500) 20%, transparent) !important; }
+:root:not(.dark) .bg-rose-500\/15    { background-color: color-mix(in oklab, var(--color-rose-500) 28%, transparent) !important; }
+:root:not(.dark) .bg-rose-500\/20    { background-color: color-mix(in oklab, var(--color-rose-500) 32%, transparent) !important; }
+:root:not(.dark) .bg-cyan-500\/10    { background-color: color-mix(in oklab, var(--color-cyan-500) 20%, transparent) !important; }
+:root:not(.dark) .bg-cyan-500\/15    { background-color: color-mix(in oklab, var(--color-cyan-500) 28%, transparent) !important; }
+:root:not(.dark) .bg-teal-500\/10    { background-color: color-mix(in oklab, var(--color-teal-500) 20%, transparent) !important; }
+:root:not(.dark) .bg-orange-500\/10  { background-color: color-mix(in oklab, var(--color-orange-500) 20%, transparent) !important; }
+
+/* ─── Borders: increase opacity for visibility on white ─── */
+:root:not(.dark) .border-violet-400\/20  { border-color: color-mix(in oklab, var(--color-violet-400) 45%, transparent) !important; }
+:root:not(.dark) .border-violet-400\/30  { border-color: color-mix(in oklab, var(--color-violet-400) 55%, transparent) !important; }
+:root:not(.dark) .border-violet-400\/40  { border-color: color-mix(in oklab, var(--color-violet-400) 65%, transparent) !important; }
+:root:not(.dark) .border-fuchsia-400\/20 { border-color: color-mix(in oklab, var(--color-fuchsia-400) 45%, transparent) !important; }
+:root:not(.dark) .border-fuchsia-400\/30 { border-color: color-mix(in oklab, var(--color-fuchsia-400) 55%, transparent) !important; }
+:root:not(.dark) .border-sky-400\/20     { border-color: color-mix(in oklab, var(--color-sky-400) 45%, transparent) !important; }
+:root:not(.dark) .border-sky-400\/30     { border-color: color-mix(in oklab, var(--color-sky-400) 55%, transparent) !important; }
+:root:not(.dark) .border-emerald-400\/20 { border-color: color-mix(in oklab, var(--color-emerald-400) 45%, transparent) !important; }
+:root:not(.dark) .border-emerald-400\/30 { border-color: color-mix(in oklab, var(--color-emerald-400) 55%, transparent) !important; }
+:root:not(.dark) .border-amber-400\/20   { border-color: color-mix(in oklab, var(--color-amber-400) 45%, transparent) !important; }
+:root:not(.dark) .border-amber-400\/30   { border-color: color-mix(in oklab, var(--color-amber-400) 55%, transparent) !important; }
+:root:not(.dark) .border-rose-400\/20    { border-color: color-mix(in oklab, var(--color-rose-400) 45%, transparent) !important; }
+:root:not(.dark) .border-rose-400\/30    { border-color: color-mix(in oklab, var(--color-rose-400) 55%, transparent) !important; }
+
+/* ─── White-opacity utilities: on white bg these are invisible → use foreground ─── */
+:root:not(.dark) .bg-white\/\[0\.02\]   { background-color: color-mix(in oklab, var(--foreground) 4%, transparent) !important; }
+:root:not(.dark) .bg-white\/\[0\.03\]   { background-color: color-mix(in oklab, var(--foreground) 5%, transparent) !important; }
+:root:not(.dark) .bg-white\/\[0\.025\]  { background-color: color-mix(in oklab, var(--foreground) 5%, transparent) !important; }
+:root:not(.dark) .bg-white\/5           { background-color: color-mix(in oklab, var(--foreground) 7%, transparent) !important; }
+:root:not(.dark) .bg-white\/10          { background-color: color-mix(in oklab, var(--foreground) 12%, transparent) !important; }
+:root:not(.dark) .border-white\/5       { border-color: color-mix(in oklab, var(--foreground) 10%, transparent) !important; }
+:root:not(.dark) .border-white\/10      { border-color: color-mix(in oklab, var(--foreground) 14%, transparent) !important; }
+:root:not(.dark) .border-white\/15      { border-color: color-mix(in oklab, var(--foreground) 20%, transparent) !important; }
+:root:not(.dark) .border-white\/20      { border-color: color-mix(in oklab, var(--foreground) 24%, transparent) !important; }
+
+/* ─── gradient-text: use darker stops so it's visible on white ─── */
+:root:not(.dark) .gradient-text {
+  background: linear-gradient(135deg,
+    var(--color-violet-700),
+    var(--color-fuchsia-700) 40%,
+    var(--color-violet-800) 100%) !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ─── text-glow: remove the glow shadow (invisible on light bg) ─── */
+:root:not(.dark) .text-glow { text-shadow: none !important; }
+
+/* ─── glass: use foreground-based tint instead of white ─── */
+:root:not(.dark) .glass {
+  background: color-mix(in oklch, var(--foreground) 4%, transparent) !important;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid color-mix(in oklch, var(--foreground) 10%, transparent) !important;
+}
+:root:not(.dark) .glass-strong {
+  background: color-mix(in oklch, var(--foreground) 6%, transparent) !important;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid color-mix(in oklch, var(--foreground) 14%, transparent) !important;
+}
+
+/* ─── bg-grid: use darker grid lines in light mode ─── */
+:root:not(.dark) .bg-grid {
+  background-image:
+    linear-gradient(to right, oklch(0.5 0 0 / 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.5 0 0 / 0.08) 1px, transparent 1px) !important;
+  background-size: 48px 48px !important;
+}
+
+/* ─── noise: reduce opacity in light mode ─── */
+:root:not(.dark) .noise { opacity: 0.015 !important; }
