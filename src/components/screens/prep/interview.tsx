@@ -48,7 +48,6 @@ import {
 } from "@/components/ui/dialog";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 type SubScreen = "setup" | "live" | "processing" | "done";
 
@@ -443,7 +442,6 @@ export function InterviewStudio() {
             )}
           </AnimatePresence>
         </div>
-        <FlowNav flowId="prep" />
 
       </PageWrap>
     </AuroraBackground>

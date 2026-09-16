@@ -35,7 +35,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 interface Component {
   id: string;
@@ -480,7 +479,6 @@ export function DatabaseHealth() {
           </GlowCard>
         </motion.div>
 
-        <FlowNav flowId="superadmin" />
       </PageWrap>
     </AuroraBackground>
   );

@@ -41,7 +41,6 @@ import {
 } from "@/components/ui/select";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 const DEGREE_OPTIONS = [
   "B.Tech", "B.E.", "B.Sc", "B.A.", "B.Com",
@@ -116,7 +115,6 @@ export function StudentProfile() {
             </TabsContent>
           </Tabs>
         </div>
-        <FlowNav flowId="prep" />
 
       </PageWrap>
     </AuroraBackground>

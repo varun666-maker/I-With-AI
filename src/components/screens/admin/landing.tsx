@@ -51,7 +51,6 @@ import {
   StaggeredReveal,
   revealItem,
 } from "@/components/shared/primitives";
-import { FlowNav } from "@/components/shared/flow-nav";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNav } from "@/lib/store";
@@ -951,12 +950,6 @@ export function CompanyLanding() {
         </div>
       </footer>
 
-      {/* Sequential flow nav at bottom */}
-      <div className="px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <FlowNav flowId="admin" />
-        </div>
-      </div>
     </AuroraBackground>
   );
 }

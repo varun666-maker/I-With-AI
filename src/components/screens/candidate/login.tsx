@@ -28,7 +28,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 export function CandidateLogin() {
   const { set } = useNav();
@@ -220,7 +219,6 @@ export function CandidateLogin() {
           On first login you&apos;ll be asked to set a new password.
         </motion.p>
 
-        <FlowNav flowId="candidate" />
       </section>
     </AuroraBackground>
   );

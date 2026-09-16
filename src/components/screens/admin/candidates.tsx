@@ -49,7 +49,6 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 type Source = "apply-link" | "bulk-upload";
 type Status = "In Progress" | "Completed" | "Locked" | "Invited";
@@ -600,7 +599,6 @@ export function CandidateLeaderboard() {
           </div>
         </div>
 
-        <FlowNav flowId="admin" />
       </PageWrap>
     </AuroraBackground>
   );

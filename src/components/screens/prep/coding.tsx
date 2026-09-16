@@ -54,7 +54,6 @@ import {
 } from "@/components/ui/collapsible";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 const LANGUAGES = ["Python", "Java", "C++", "JavaScript", "SQL", "Go", "TypeScript"];
 
@@ -380,7 +379,6 @@ export function CodingArena() {
             </div>
           ))}
         </div>
-        <FlowNav flowId="prep" />
 
       </PageWrap>
 

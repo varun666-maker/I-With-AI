@@ -55,7 +55,6 @@ import {
 } from "@/components/ui/collapsible";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 const TREND = [
   { d: "Nov 1", score: 52 },
@@ -454,7 +453,6 @@ export function StudentDashboard() {
             </button>
           ))}
         </div>
-        <FlowNav flowId="prep" />
 
       </PageWrap>
     </AuroraBackground>

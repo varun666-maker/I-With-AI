@@ -32,7 +32,6 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 // Mock campaign context — would come from /api/campaigns/:slug
 const CAMPAIGN = {
@@ -276,7 +275,6 @@ export function CandidateDashboard() {
           or retakes. Finish what you start.
         </motion.p>
 
-        <FlowNav flowId="candidate" />
       </section>
     </AuroraBackground>
   );

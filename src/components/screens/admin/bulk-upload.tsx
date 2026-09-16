@@ -31,7 +31,6 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 type Phase = "upload" | "processing" | "results";
 
@@ -483,7 +482,6 @@ export function BulkUpload() {
           )}
         </AnimatePresence>
 
-        <FlowNav flowId="admin" />
       </PageWrap>
     </AuroraBackground>
   );

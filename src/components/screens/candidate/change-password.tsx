@@ -24,7 +24,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 const PW_RULES = [
   { id: "len", label: "At least 8 characters", test: (v: string) => v.length >= 8 },
@@ -303,7 +302,6 @@ export function ForcePasswordChange() {
           </motion.div>
         </StaggeredReveal>
 
-        <FlowNav flowId="candidate" />
       </section>
     </AuroraBackground>
   );

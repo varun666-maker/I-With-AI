@@ -48,7 +48,6 @@ import {
 } from "@/components/ui/table";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 type AptQuestion = {
   id: string;
@@ -240,7 +239,6 @@ export function QuestionManager() {
           </TabsContent>
         </Tabs>
 
-        <FlowNav flowId="admin" />
       </PageWrap>
     </AuroraBackground>
   );

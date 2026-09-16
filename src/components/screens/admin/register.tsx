@@ -27,7 +27,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 const TRUST_ITEMS = [
   "1,500+ aptitude bank",
@@ -317,7 +316,6 @@ export function CompanyRegister() {
           </motion.div>
         </div>
 
-        <FlowNav flowId="admin" />
       </PageWrap>
     </AuroraBackground>
   );

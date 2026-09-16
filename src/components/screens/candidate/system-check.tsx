@@ -26,7 +26,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 type CheckState = "pending" | "ok" | "fail";
 
@@ -204,7 +203,6 @@ export function PreTestCheck() {
           frames are stored only if a violation is flagged.
         </motion.p>
 
-        <FlowNav flowId="candidate" />
       </section>
     </AuroraBackground>
   );

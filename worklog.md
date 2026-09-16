@@ -425,3 +425,46 @@ import { FlowNav } from "@/components/shared/flow-nav";
 **Verification:** `bun run lint` → 0 errors, 0 warnings.
 
 **Agent work record:** `/home/z/my-project/agent-ctx/FLOW-PREP-flow-prep.md`
+
+---
+
+## Task ID: FLOWNAV-CLEANUP · Agent: flownav-cleanup
+
+**Task:** `FlowNav` was promoted to a GLOBAL render in `src/app/page.tsx` (between `TopNav` and the active screen). Remove the per-screen `FlowNav` import + render from ALL screen files under `src/components/screens/` so only the global one remains (otherwise every screen would show TWO FlowNav bars).
+
+**Files edited (33)** — all under `src/components/screens/`:
+
+| Group | Files | Count |
+|-------|-------|-------|
+| Prep | `auth`, `dashboard`, `resume`, `aptitude`, `coding`, `interview`, `report`, `replay`, `profile`, `landing` | 10 |
+| Admin | `landing`, `register`, `dashboard`, `campaign-new`, `questions`, `candidates`, `bulk-upload`, `proctoring`, `selection` | 9 |
+| Candidate | `apply`, `login`, `change-password`, `system-check`, `dashboard`, `results` | 6 |
+| Super Admin | `dashboard`, `companies`, `users`, `ai-usage`, `questions`, `system`, `audit`, `db-health` | 8 |
+
+**Edits per file (exactly 2 via `MultiEdit`):**
+
+1. **Removed the import line** (matched with trailing newline so no blank line was left behind):
+   ```tsx
+   import { FlowNav } from "@/components/shared/flow-nav";
+   ```
+
+2. **Removed the JSX render** (matched with trailing newline):
+   - Simple pattern (32 files): `<FlowNav flowId="prep|admin|candidate|superadmin" />` (6- or 8-space indent per file)
+   - Wrapped pattern (`admin/landing.tsx` only): removed the entire block — the `{/* Sequential flow nav at bottom */}` comment + two wrapping `<div>`s (which existed ONLY to hold FlowNav) + the `<FlowNav flowId="admin" />` line
+
+**Post-edit cleanup:** `prep/landing.tsx` had blank lines on BOTH sides of the original FlowNav render; removing the line left a double-blank between `</section>` and `{/* FOOTER */}`. A follow-up `Edit` collapsed the double blank back to a single blank line to keep ESLint's `no-multiple-empty-lines` happy. All other files had only a single adjacent blank line, so no further cleanup was needed.
+
+**⚠ Discrepancy note:** The task instructions claimed "the prep `landing.tsx` does NOT have FlowNav — skip it" and listed the total as 32 files. In reality, `prep/landing.tsx` DID contain FlowNav (line 40 import + line 531 render — added by the earlier FLOW-PREP agent). To satisfy the explicit verification criterion (`rg "FlowNav" src/components/screens/` → ZERO matches) and the overall stated goal ("only the global one remains"), `prep/landing.tsx` was ALSO cleaned up (bringing the actual total to 33 files). Details are documented in the agent work record.
+
+**Constraints respected:**
+- ✅ Did NOT modify any other code, change exports/signatures, reorder sections, or remove any other imports.
+- ✅ Did NOT touch the FlowNav component definition (`src/components/shared/flow-nav.tsx`) or the global render (`src/app/page.tsx`).
+
+**Verification:**
+- `rg "FlowNav" src/components/screens/` → **No matches found** (ZERO per-screen references) ✅
+- `bun run lint` → **exit code 0** (0 errors, 0 warnings) ✅
+- `rg "FlowNav" src/` → only 4 matches remain, all in the expected locations:
+  - `src/app/page.tsx:6` (import) + `src/app/page.tsx:96` (global `<FlowNav />` render)
+  - `src/components/shared/flow-nav.tsx:43` (JSDoc) + `src/components/shared/flow-nav.tsx:54` (`export function FlowNav()`)
+
+**Agent work record:** `/home/z/my-project/agent-ctx/FLOWNAV-CLEANUP-flownav-cleanup.md`

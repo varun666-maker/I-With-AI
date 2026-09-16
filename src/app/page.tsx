@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useNav, type ScreenId } from "@/lib/store";
 import { TopNav } from "@/components/shared/top-nav";
+import { FlowNav } from "@/components/shared/flow-nav";
 import { LandingPage } from "@/components/screens/prep/landing";
 
 // Prep Mode
@@ -92,6 +93,7 @@ export default function Home() {
   return (
     <>
       <TopNav />
+      <FlowNav />
       <AnimatePresence mode="wait">
         <motion.div
           key={current}

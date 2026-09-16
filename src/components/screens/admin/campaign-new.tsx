@@ -46,7 +46,6 @@ import {
 } from "@/components/ui/select";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FlowNav } from "@/components/shared/flow-nav";
 
 type Rounds = { aptitude: boolean; coding: boolean; interview: boolean };
 
@@ -478,7 +477,6 @@ export function CampaignCreate() {
           )}
         </AnimatePresence>
 
-        <FlowNav flowId="admin" />
       </PageWrap>
     </AuroraBackground>
   );
