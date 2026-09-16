@@ -13,6 +13,7 @@ export type ScreenId =
   | "replay"
   | "profile"
   // Company Admin
+  | "company-landing"
   | "company-register"
   | "admin-dashboard"
   | "campaign-new"
@@ -57,6 +58,7 @@ export const ALL_SCREENS: ScreenMeta[] = [
   { id: "replay", label: "Interview Replay", group: "prep" },
   { id: "profile", label: "Student Profile", group: "prep" },
   // Company Admin
+  { id: "company-landing", label: "Company Landing Page", group: "admin" },
   { id: "company-register", label: "Company Registration", group: "admin" },
   { id: "admin-dashboard", label: "Admin Dashboard", group: "admin" },
   { id: "campaign-new", label: "Campaign Creation", group: "admin" },

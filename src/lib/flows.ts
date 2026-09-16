@@ -25,9 +25,10 @@ export const PREP_FLOW: FlowStep[] = [
 
 /**
  * Company Admin sequential flow:
- * Register → Admin Dashboard → Create Campaign → Add Questions → Leaderboard → (Bulk Upload alternative) → Proctoring → Final Selection
+ * Landing → Register → Admin Dashboard → Create Campaign → Add Questions → Leaderboard → (Bulk Upload alternative) → Proctoring → Final Selection
  */
 export const ADMIN_FLOW: FlowStep[] = [
+  { id: "company-landing",        label: "Company Landing",  hint: "Discover the hiring platform — ROI, automation, pricing" },
   { id: "company-register",       label: "Register",          hint: "Create the company admin account" },
   { id: "admin-dashboard",        label: "Admin Dashboard",   hint: "See all campaigns at a glance" },
   { id: "campaign-new",           label: "Create Campaign",   hint: "Configure + share the apply link" },

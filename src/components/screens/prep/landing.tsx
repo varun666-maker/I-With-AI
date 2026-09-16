@@ -238,7 +238,7 @@ export function LandingPage() {
               size="lg"
               variant="outline"
               className="h-12 rounded-full px-7 border-white/15 bg-white/5 backdrop-blur hover:bg-white/10"
-              onClick={() => set("company-register")}
+              onClick={() => set("company-landing")}
             >
               For Companies
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -556,7 +556,7 @@ export function LandingPage() {
             <FooterCol
               title="Hiring Mode"
               links={["For Companies", "Pricing", "Proctoring", "Bulk Upload", "Leaderboard"]}
-              onClick={() => set("company-register")}
+              onClick={() => set("company-landing")}
             />
             <FooterCol
               title="Company"

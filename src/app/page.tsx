@@ -17,6 +17,7 @@ import { InterviewReplay } from "@/components/screens/prep/replay";
 import { StudentProfile } from "@/components/screens/prep/profile";
 
 // Company Admin
+import { CompanyLanding } from "@/components/screens/admin/landing";
 import { CompanyRegister } from "@/components/screens/admin/register";
 import { AdminDashboard } from "@/components/screens/admin/dashboard";
 import { CampaignCreate } from "@/components/screens/admin/campaign-new";
@@ -57,6 +58,7 @@ const SCREENS: Record<ScreenId, React.ComponentType> = {
   replay: InterviewReplay,
   profile: StudentProfile,
   // Company Admin
+  "company-landing": CompanyLanding,
   "company-register": CompanyRegister,
   "admin-dashboard": AdminDashboard,
   "campaign-new": CampaignCreate,

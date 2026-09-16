@@ -104,7 +104,7 @@ export function TopNav() {
             </NavTab>
             <NavTab
               active={current.startsWith("company-") || current.startsWith("admin-")}
-              onClick={() => go("company-register")}
+              onClick={() => go("company-landing")}
             >
               For Companies
             </NavTab>
