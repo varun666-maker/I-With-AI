@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useNav, type ScreenId } from "@/lib/store";
 import { TopNav } from "@/components/shared/top-nav";
 import { FlowNav } from "@/components/shared/flow-nav";
+import { SiteChrome } from "@/components/shared/site-chrome";
 import { LandingPage } from "@/components/screens/prep/landing";
 
 // Prep Mode
@@ -94,9 +95,11 @@ export default function Home() {
     <>
       <TopNav />
       <FlowNav />
+      <SiteChrome />
       <AnimatePresence mode="wait">
         <motion.div
           key={current}
+          id="main-content"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}

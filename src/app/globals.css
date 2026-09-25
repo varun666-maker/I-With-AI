@@ -761,3 +761,118 @@
 
 /* ─── noise: reduce opacity in light mode ─── */
 :root:not(.dark) .noise { opacity: 0.015 !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   PRINT STYLESHEET
+   ═══════════════════════════════════════════════════════════════
+   When a user prints (Ctrl+P / Cmd+P), hide all interactive chrome
+   and show only the main content. Optimized for the 17-section
+   interview report, which is the primary printable artifact.
+   ═══════════════════════════════════════════════════════════════ */
+
+@media print {
+  /* Hide all interactive elements */
+  header,
+  nav,
+  footer,
+  button,
+  [role="dialog"],
+  [role="banner"],
+  [aria-label*="cookie" i],
+  [aria-label*="Back to top" i],
+  [aria-label*="Contact support" i],
+  .fixed,
+  .sticky {
+    display: none !important;
+  }
+
+  /* Reset page margins */
+  @page {
+    margin: 1.5cm;
+  }
+
+  /* Force light theme for print (ink saver) */
+  html {
+    background: white !important;
+    color: black !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  /* Main content takes full width */
+  #main-content {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Cards become plain boxes with thin borders */
+  [class*="rounded-lg"],
+  [class*="rounded-xl"] {
+    border: 1px solid #999 !important;
+    border-radius: 0 !important;
+    background: white !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Headlines render solid black, not gradient */
+  h1, h2, h3, h4 {
+    color: black !important;
+    background: none !important;
+    -webkit-text-fill-color: black !important;
+    page-break-after: avoid;
+  }
+
+  /* Body text solid dark grey */
+  p, li, span, td, th {
+    color: #1a1a1a !important;
+  }
+
+  /* Links show their URL in parentheses (only on report) */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #555;
+  }
+
+  /* Accent-colored text becomes dark grey for print */
+  [class*="text-violet"],
+  [class*="text-fuchsia"],
+  [class*="text-sky"],
+  [class*="text-emerald"],
+  [class*="text-amber"],
+  [class*="text-rose"],
+  [class*="text-cyan"] {
+    color: #1a1a1a !important;
+  }
+
+  /* Page break before major sections (useful for the 17-section report) */
+  h2 {
+    page-break-before: auto;
+    margin-top: 1.5em;
+  }
+
+  /* Avoid orphan headings */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+
+  /* Tables stay together */
+  table {
+    page-break-inside: avoid;
+    width: 100% !important;
+  }
+
+  /* Images print at full width */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+}

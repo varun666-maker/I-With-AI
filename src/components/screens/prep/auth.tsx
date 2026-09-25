@@ -738,11 +738,28 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
   const [loading, setLoading] = useState(false);
   const [forgot, setForgot] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; pwd?: string }>({});
+  const [touched, setTouched] = useState<{ email?: boolean; pwd?: boolean }>({});
 
-  const valid = /@/.test(email) && pwd.length >= 8;
+  const validateEmail = (v: string) => {
+    if (!v) return "Email is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "Enter a valid email address";
+    return undefined;
+  };
+  const validatePwd = (v: string) => {
+    if (!v) return "Password is required";
+    if (v.length < 8) return "Password must be at least 8 characters";
+    return undefined;
+  };
+
+  const valid = !validateEmail(email) && !validatePwd(pwd);
 
   const login = () => {
-    if (!valid) return;
+    const newErrors = { email: validateEmail(email), pwd: validatePwd(pwd) };
+    setErrors(newErrors);
+    setTouched({ email: true, pwd: true });
+    if (newErrors.email || newErrors.pwd) return;
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -765,24 +782,66 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
                 <Input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (touched.email) setErrors((p) => ({ ...p, email: validateEmail(e.target.value) }));
+                  }}
+                  onBlur={() => {
+                    setTouched((p) => ({ ...p, email: true }));
+                    setErrors((p) => ({ ...p, email: validateEmail(email) }));
+                  }}
                   placeholder="you@email.com"
-                  className="rounded-lg bg-white/5 pl-9 border-white/10"
+                  aria-invalid={!!errors.email && touched.email}
+                  aria-describedby={errors.email && touched.email ? "login-email-error" : undefined}
+                  className={cn(
+                    "rounded-lg bg-white/5 pl-9 border-white/10",
+                    errors.email && touched.email && "border-rose-400/60 focus-visible:ring-rose-400/30"
+                  )}
                 />
               </div>
+              {errors.email && touched.email && (
+                <p id="login-email-error" className="mt-1 text-xs text-rose-500 dark:text-rose-400" role="alert">
+                  {errors.email}
+                </p>
+              )}
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Password</Label>
               <div className="relative mt-1">
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  type="password"
+                  type={showPwd ? "text" : "password"}
                   value={pwd}
-                  onChange={(e) => setPwd(e.target.value)}
+                  onChange={(e) => {
+                    setPwd(e.target.value);
+                    if (touched.pwd) setErrors((p) => ({ ...p, pwd: validatePwd(e.target.value) }));
+                  }}
+                  onBlur={() => {
+                    setTouched((p) => ({ ...p, pwd: true }));
+                    setErrors((p) => ({ ...p, pwd: validatePwd(pwd) }));
+                  }}
                   placeholder="••••••••"
-                  className="rounded-lg bg-white/5 pl-9 border-white/10"
+                  aria-invalid={!!errors.pwd && touched.pwd}
+                  aria-describedby={errors.pwd && touched.pwd ? "login-pwd-error" : undefined}
+                  className={cn(
+                    "rounded-lg bg-white/5 pl-9 pr-9 border-white/10",
+                    errors.pwd && touched.pwd && "border-rose-400/60 focus-visible:ring-rose-400/30"
+                  )}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd((s) => !s)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+                  aria-label={showPwd ? "Hide password" : "Show password"}
+                >
+                  {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
+              {errors.pwd && touched.pwd && (
+                <p id="login-pwd-error" className="mt-1 text-xs text-rose-500 dark:text-rose-400" role="alert">
+                  {errors.pwd}
+                </p>
+              )}
             </div>
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -790,7 +849,7 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
               </label>
               <button
                 onClick={() => setForgot(true)}
-                className="text-xs text-violet-300 hover:text-violet-200"
+                className="text-xs text-violet-600 hover:text-violet-700 dark:text-violet-300 dark:hover:text-violet-200"
               >
                 Forgot Password?
               </button>

@@ -3,10 +3,12 @@
 import { useEffect } from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useNav } from "@/lib/store";
+import { captureUtm } from "@/lib/utm";
 
 /**
  * Syncs the Zustand theme + accent state to <html> on mount.
  * The initial paint is handled by the inline script in layout.tsx to avoid FOUC.
+ * Also captures UTM params from the URL on first visit.
  */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = useNav((s) => s.theme);
@@ -36,14 +38,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (storedTheme === "light" || storedTheme === "dark") {
         setTheme(storedTheme);
       } else {
-        // Detect system preference on first visit
+        // Detect system preference on first visit, default to dark
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        setTheme(prefersDark ? "dark" : "dark"); // default dark
+        setTheme(prefersDark ? "dark" : "dark");
       }
       if (storedAccent) setAccent(storedAccent);
     } catch {
       // ignore
     }
+
+    // Capture UTM params from URL on first visit (for attribution tracking)
+    captureUtm();
   }, [setTheme, setAccent]);
 
   // Keep DOM in sync whenever state changes

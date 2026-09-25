@@ -411,21 +411,21 @@ export function LandingPage() {
               <span className="font-semibold">InterviewAI</span>
             </div>
             <nav className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <button onClick={() => set("auth")} className="hover:text-foreground">
+              <button onClick={() => set("auth")} className="hover:text-foreground transition-colors">
                 Prep Mode
               </button>
-              <button onClick={() => set("company-landing")} className="hover:text-foreground">
+              <button onClick={() => set("company-landing")} className="hover:text-foreground transition-colors">
                 For Companies
               </button>
-              <button onClick={() => set("apply")} className="hover:text-foreground">
+              <button onClick={() => set("apply")} className="hover:text-foreground transition-colors">
                 Candidate
               </button>
-              <button onClick={() => set("superadmin-dashboard")} className="hover:text-foreground">
+              <button onClick={() => set("superadmin-dashboard")} className="hover:text-foreground transition-colors">
                 Super Admin
               </button>
             </nav>
             <p className="text-xs text-muted-foreground">
-              © 2025 InterviewAI
+              © 2025 InterviewAI · Last updated Sep 2025
             </p>
           </div>
         </div>
