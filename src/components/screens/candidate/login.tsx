@@ -11,17 +11,14 @@ import {
   Loader2,
   LogIn,
   ShieldCheck,
-  Sparkles,
   User,
 } from "lucide-react";
 import {
-  AuroraBackground,
   GlowCard,
-  MagneticButton,
-  PulseBadge,
   revealItem,
   StaggeredReveal,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,7 +42,7 @@ export function CandidateLogin() {
       return;
     }
     setLoading(true);
-    // Mock auth — backend verifies credentials + checks requirePasswordChange.
+    // Mock auth. Backend verifies credentials + checks requirePasswordChange.
     setTimeout(() => {
       setLoading(false);
       // Simulate first-login flow → force password change screen.
@@ -54,7 +51,7 @@ export function CandidateLogin() {
   };
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <section className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col items-center justify-center px-4 py-12 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -62,7 +59,9 @@ export function CandidateLogin() {
           transition={{ duration: 0.5 }}
           className="flex justify-center"
         >
-          <PulseBadge color="amber">Invited Candidate Login</PulseBadge>
+          <Badge variant="outline" className="rounded-full border-amber-400/40 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300">
+            Invited Candidate Login
+          </Badge>
         </motion.div>
 
         <motion.h1
@@ -71,7 +70,7 @@ export function CandidateLogin() {
           transition={{ duration: 0.6, delay: 0.08 }}
           className="mt-5 text-center text-3xl font-semibold tracking-tight text-balance"
         >
-          Welcome back to your <span className="gradient-text text-glow">assessment</span>
+          Welcome back to your <span className="text-violet-500 dark:text-violet-400">assessment</span>
         </motion.h1>
 
         <motion.p
@@ -86,7 +85,7 @@ export function CandidateLogin() {
         <StaggeredReveal className="mt-8 w-full" delay={0.05}>
           <motion.div variants={revealItem}>
             <GlowCard className="relative overflow-hidden p-6 sm:p-8">
-              <div className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 text-violet-200 ring-1 ring-inset ring-white/10">
+              <div className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-300 ring-1 ring-inset ring-black/10 dark:ring-white/10">
                 <ShieldCheck className="h-5 w-5" />
               </div>
 
@@ -155,10 +154,10 @@ export function CandidateLogin() {
                   </div>
                 )}
 
-                <MagneticButton
+                <Button
                   type="submit"
                   disabled={loading}
-                  className="h-11 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-7 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
+                  className="h-11 w-full rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600"
                 >
                   {loading ? (
                     <>
@@ -171,15 +170,13 @@ export function CandidateLogin() {
                       Login
                     </>
                   )}
-                </MagneticButton>
+                </Button>
 
-                <div className="flex items-start gap-2 rounded-lg border border-amber-400/20 bg-amber-500/5 px-3 py-2.5 text-xs text-amber-100/90">
-                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" />
+                <div className="flex items-start gap-2 rounded-lg border border-amber-400/20 bg-amber-500/5 px-3 py-2.5 text-xs text-amber-800 dark:text-amber-100/90">
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
                   <p>
-                    This is your{" "}
-                    <span className="font-medium">invited candidate login</span>{" "}
-                    — different from your student account. Use the credentials
-                    emailed to you, not your InterviewAI prep-mode account.
+                    Use the credentials emailed to you for this campaign. They
+                    are separate from your InterviewAI prep-mode account.
                   </p>
                 </div>
               </form>
@@ -190,15 +187,14 @@ export function CandidateLogin() {
                 <button
                   type="button"
                   onClick={() => set("apply")}
-                  className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-white"
+                  className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
                 >
-                  <Sparkles className="h-3.5 w-3.5" />
                   Apply to a campaign
                 </button>
                 <button
                   type="button"
                   className={cn(
-                    "inline-flex items-center gap-1.5 text-muted-foreground hover:text-white",
+                    "inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground",
                   )}
                   onClick={() => alert("Contact Acme Corp HR for help.")}
                 >
@@ -220,6 +216,6 @@ export function CandidateLogin() {
         </motion.p>
 
       </section>
-    </AuroraBackground>
+    </div>
   );
 }

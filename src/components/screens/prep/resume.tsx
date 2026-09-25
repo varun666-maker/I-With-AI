@@ -12,15 +12,11 @@ import {
   FileText,
   Info,
   Loader2,
-  Sparkles,
   Upload,
   X,
 } from "lucide-react";
 import {
-  AuroraBackground,
-  GlowCard,
   PageWrap,
-  PulseBadge,
   SectionHeading,
   Shimmer,
   StaggeredReveal,
@@ -49,8 +45,8 @@ const SKILLS_MISSING = ["Docker", "CI/CD", "Testing"];
 const SKILLS_RECOMMENDED = ["System Design", "Redis", "Kafka"];
 
 const GRAMMAR_ISSUES = [
-  { line: 12, issue: "“utilised” — overused verb", fix: "Use “built” or “shipped” for impact." },
-  { line: 23, issue: "Passive voice — “was implemented”", fix: "Use active: “Implemented a FastAPI service…”" },
+  { line: 12, issue: "“utilised” - overused verb", fix: "Use “built” or “shipped” for impact." },
+  { line: 23, issue: "Passive voice - “was implemented”", fix: "Use active: “Implemented a FastAPI service…”" },
   { line: 41, issue: "Missing Oxford comma", fix: "Add a comma before the final “and”." },
 ];
 
@@ -88,12 +84,12 @@ export function ResumeHub() {
   };
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap>
         <BackToHome />
         <SectionHeading
           eyebrow="Resume Hub"
-          title={<>Resume <span className="gradient-text">ATS Analyzer</span></>}
+          title={<>Resume <span className="text-violet-500 dark:text-violet-400">ATS Analyzer</span></>}
           description="Upload your resume in PDF or DOCX. Our AI gives you an ATS score, missing keywords, grammar and formatting issues, and a personalised improvement plan in under 15 seconds."
           align="left"
         />
@@ -111,15 +107,15 @@ export function ResumeHub() {
               className={cn(
                 "relative rounded-full border px-4 py-1.5 text-xs font-medium transition-colors",
                 tab === k
-                  ? "border-violet-400/40 bg-violet-500/10 text-violet-100"
-                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-white",
+                  ? "border-violet-400/40 bg-violet-500/10 text-violet-700 dark:text-violet-100"
+                  : "border-black/10 bg-black/[0.02] text-muted-foreground hover:text-foreground dark:border-white/10 dark:bg-white/[0.03]",
               )}
             >
               {label}
               {tab === k && (
                 <motion.span
                   layoutId="resume-tab-pill"
-                  className="absolute inset-x-2 -bottom-px h-px bg-gradient-to-r from-transparent via-violet-400 to-transparent"
+                  className="absolute inset-x-2 -bottom-px h-px bg-violet-400"
                 />
               )}
             </button>
@@ -136,15 +132,15 @@ export function ResumeHub() {
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.25 }}
               >
-                <GlowCard className="p-6 sm:p-8">
+                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm sm:p-8 dark:border-white/10">
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-center">
                     <div>
-                      <PulseBadge color="emerald" className="mb-3 text-[11px] uppercase tracking-widest">
+                      <Badge variant="outline" className="mb-3 border-emerald-400/30 bg-emerald-500/10 text-[11px] uppercase tracking-widest text-emerald-700 dark:text-emerald-200">
                         Free analysis · 15s avg
-                      </PulseBadge>
+                      </Badge>
                       <h3 className="text-xl font-semibold tracking-tight">Drop your resume here</h3>
                       <p className="mt-2 text-sm text-muted-foreground">
-                        We accept PDF or DOCX up to 5&nbsp;MB. Your resume never leaves the platform — analysis runs over a secure worker and is deleted after 30 days. All past versions are saved to your account so you can compare progress over time.
+                        We accept PDF or DOCX up to 5&nbsp;MB. Your resume never leaves the platform. Analysis runs over a secure worker and is deleted after 30 days. All past versions are saved to your account so you can compare progress over time.
                       </p>
                       <ul className="mt-4 space-y-2 text-sm text-foreground/80">
                         {[
@@ -154,7 +150,7 @@ export function ResumeHub() {
                           "Job-fit percentage for your chosen role",
                         ].map((l) => (
                           <li key={l} className="flex items-start gap-2">
-                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                            <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-violet-500 dark:bg-violet-400" />
                             {l}
                           </li>
                         ))}
@@ -168,12 +164,12 @@ export function ResumeHub() {
                       loading={phase === "loading"}
                     />
                   </div>
-                </GlowCard>
+                </div>
 
                 {phase === "loading" && (
-                  <GlowCard className="mt-4 p-6">
+                  <div className="mt-4 rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
                     <div className="flex items-center gap-3">
-                      <Loader2 className="h-4 w-4 animate-spin text-violet-300" />
+                      <Loader2 className="h-4 w-4 animate-spin text-violet-500 dark:text-violet-400" />
                       <p className="text-sm text-muted-foreground">
                         Analyzing resume… extracting skills, running ATS scan, scoring grammar.
                       </p>
@@ -184,7 +180,7 @@ export function ResumeHub() {
                       ))}
                     </div>
                     <Shimmer className="mt-3 h-40" />
-                  </GlowCard>
+                  </div>
                 )}
               </motion.div>
             )}
@@ -211,101 +207,101 @@ export function ResumeHub() {
                 </StaggeredReveal>
 
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                  <GlowCard className="p-6">
+                  <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium">Skills Found</p>
-                      <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-200">{SKILLS_FOUND.length}</Badge>
+                      <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">{SKILLS_FOUND.length}</Badge>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {SKILLS_FOUND.map((s) => (
-                        <Badge key={s} className="border-emerald-400/30 bg-emerald-500/10 text-emerald-200">{s}</Badge>
+                        <Badge key={s} className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">{s}</Badge>
                       ))}
                     </div>
-                  </GlowCard>
-                  <GlowCard className="p-6">
+                  </div>
+                  <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
                     <p className="text-sm font-medium">Missing & Recommended Skills</p>
                     <div className="mt-3">
-                      <p className="text-[11px] uppercase tracking-wider text-rose-300">Missing — high priority</p>
+                      <p className="text-[11px] uppercase tracking-wider text-rose-600 dark:text-rose-300">Missing. High priority</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {SKILLS_MISSING.map((s) => (
-                          <Badge key={s} className="border-rose-400/30 bg-rose-500/10 text-rose-200">
+                          <Badge key={s} className="border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-200">
                             <X className="h-3 w-3" /> {s}
                           </Badge>
                         ))}
                       </div>
-                      <p className="mt-3 text-[11px] uppercase tracking-wider text-amber-300">Recommended — bonus</p>
+                      <p className="mt-3 text-[11px] uppercase tracking-wider text-amber-600 dark:text-amber-300">Recommended. Bonus</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {SKILLS_RECOMMENDED.map((s) => (
-                          <Badge key={s} className="border-amber-400/30 bg-amber-500/10 text-amber-200">{s}</Badge>
+                          <Badge key={s} className="border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-200">{s}</Badge>
                         ))}
                       </div>
                     </div>
-                  </GlowCard>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                  <GlowCard className="p-6">
+                  <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium">Grammar Issues</p>
-                      <Badge className="border-rose-400/30 bg-rose-500/10 text-rose-200">{GRAMMAR_ISSUES.length}</Badge>
+                      <Badge className="border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-200">{GRAMMAR_ISSUES.length}</Badge>
                     </div>
                     <ul className="mt-3 space-y-2">
                       {GRAMMAR_ISSUES.map((g) => (
-                        <li key={g.line} className="rounded-md border border-white/5 bg-white/[0.02] p-3 text-xs">
+                        <li key={g.line} className="rounded-md border border-black/5 bg-black/[0.02] p-3 text-xs dark:border-white/5 dark:bg-white/[0.02]">
                           <div className="flex items-center gap-2">
-                            <span className="rounded bg-rose-500/15 px-1.5 py-0.5 font-mono text-rose-200">L{g.line}</span>
+                            <span className="rounded bg-rose-500/15 px-1.5 py-0.5 font-mono text-rose-700 dark:text-rose-200">L{g.line}</span>
                             <span className="text-foreground/80">{g.issue}</span>
                           </div>
-                          <p className="mt-1.5 text-emerald-300">
+                          <p className="mt-1.5 text-emerald-700 dark:text-emerald-300">
                             <span className="font-medium">Fix:</span> {g.fix}
                           </p>
                         </li>
                       ))}
                     </ul>
-                  </GlowCard>
-                  <GlowCard className="p-6">
+                  </div>
+                  <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium">Formatting Issues</p>
-                      <AlertTriangle className="h-4 w-4 text-amber-300" />
+                      <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-300" />
                     </div>
                     <ul className="mt-3 space-y-2 text-xs text-foreground/80">
                       {FORMAT_ISSUES.map((f, i) => (
-                        <li key={i} className="flex items-start gap-2 rounded-md border border-white/5 bg-white/[0.02] px-3 py-2">
-                          <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+                        <li key={i} className="flex items-start gap-2 rounded-md border border-black/5 bg-black/[0.02] px-3 py-2 dark:border-white/5 dark:bg-white/[0.02]">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
                           {f}
                         </li>
                       ))}
                     </ul>
-                  </GlowCard>
+                  </div>
                 </div>
 
-                <GlowCard className="p-6">
+                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-violet-300" />
+                    <FileText className="h-4 w-4 text-violet-500 dark:text-violet-400" />
                     <p className="text-sm font-medium">AI Summary</p>
                   </div>
                   <p className="mt-3 text-sm text-pretty text-muted-foreground">
-                    Priya has a strong foundation in backend development with Python and FastAPI. Her resume shows real impact — shipping a service that handles 2M requests/day, and owning a key ingestion pipeline end-to-end. However, the document under-sells her DevOps experience: she mentions Docker briefly but doesn&apos;t list CI/CD tools (GitHub Actions, GitLab CI) which the backend JD requires. Adding 2-3 measurable bullets around observability and testing would push her ATS score past 90 for the Backend Developer role.
+                    Priya has a strong foundation in backend development with Python and FastAPI. Her resume shows real impact, shipping a service that handles 2M requests/day, and owning a key ingestion pipeline end-to-end. However, the document under-sells her DevOps experience: she mentions Docker briefly but doesn&apos;t list CI/CD tools (GitHub Actions, GitLab CI) which the backend JD requires. Adding 2-3 measurable bullets around observability and testing would push her ATS score past 90 for the Backend Developer role.
                   </p>
                   <p className="mt-3 text-sm text-pretty text-muted-foreground">
-                    The resume is clean and uses action verbs, but mixes two typefaces (Inter + Georgia) and lacks a LinkedIn URL. Address these formatting issues first — they&apos;re 10-minute fixes. Then add the missing keywords (Docker, CI/CD, Testing) and re-upload to see the score jump.
+                    The resume is clean and uses action verbs, but mixes two typefaces (Inter + Georgia) and lacks a LinkedIn URL. Address these formatting issues first. They&apos;re 10-minute fixes. Then add the missing keywords (Docker, CI/CD, Testing) and re-upload to see the score jump.
                   </p>
                   <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <Badge className="border-white/10 bg-white/5 text-white/70">Experience Level: Junior</Badge>
-                    <Badge className="border-white/10 bg-white/5 text-white/70">Word Count: 487</Badge>
-                    <Badge className="border-white/10 bg-white/5 text-white/70">Pages: 1</Badge>
-                    <Badge className="border-white/10 bg-white/5 text-white/70">File: PDF · 184 KB</Badge>
+                    <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5">Experience Level: Junior</Badge>
+                    <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5">Word Count: 487</Badge>
+                    <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5">Pages: 1</Badge>
+                    <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5">File: PDF · 184 KB</Badge>
                   </div>
-                </GlowCard>
+                </div>
 
                 <div className="flex flex-wrap gap-3">
-                  <Button className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0">
+                  <Button className="rounded-full bg-violet-500 text-white hover:bg-violet-600">
                     <Download className="mr-2 h-4 w-4" /> Download Full Report
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setTab("upload")}
-                    className="rounded-full border-white/15 bg-white/5 hover:bg-white/10"
+                    className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
                   >
                     <Upload className="mr-2 h-4 w-4" /> Upload New Resume
                   </Button>
@@ -321,20 +317,20 @@ export function ResumeHub() {
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.25 }}
               >
-                <GlowCard className="p-6">
+                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium">Upload History</p>
                       <p className="text-[11px] text-muted-foreground">All resume versions are saved. Click “View” to re-open an analysis.</p>
                     </div>
-                    <BookOpen className="h-4 w-4 text-violet-300" />
+                    <BookOpen className="h-4 w-4 text-violet-500 dark:text-violet-400" />
                   </div>
 
                   {/* Desktop table */}
-                  <div className="mt-4 hidden overflow-hidden rounded-lg border border-white/10 md:block">
+                  <div className="mt-4 hidden overflow-hidden rounded-lg border border-black/10 md:block dark:border-white/10">
                     <Table>
                       <TableHeader>
-                        <TableRow className="border-white/10 hover:bg-transparent">
+                        <TableRow className="border-black/10 hover:bg-transparent dark:border-white/10">
                           <TableHead className="text-muted-foreground">Date</TableHead>
                           <TableHead className="text-muted-foreground">File</TableHead>
                           <TableHead className="text-muted-foreground">Target Role</TableHead>
@@ -345,12 +341,12 @@ export function ResumeHub() {
                       </TableHeader>
                       <TableBody>
                         {HISTORY.map((h, i) => (
-                          <TableRow key={i} className="border-white/10 hover:bg-white/[0.02]">
+                          <TableRow key={i} className="border-black/10 hover:bg-black/[0.02] dark:border-white/10 dark:hover:bg-white/[0.02]">
                             <TableCell className="text-sm">{h.date}</TableCell>
                             <TableCell className="font-mono text-xs text-muted-foreground">{h.file}</TableCell>
                             <TableCell className="text-sm">{h.role}</TableCell>
                             <TableCell>
-                              <span className={cn("font-mono font-semibold", h.ats >= 80 ? "text-emerald-300" : h.ats >= 70 ? "text-amber-300" : "text-rose-300")}>
+                              <span className={cn("font-mono font-semibold", h.ats >= 80 ? "text-emerald-600 dark:text-emerald-300" : h.ats >= 70 ? "text-amber-600 dark:text-amber-300" : "text-rose-600 dark:text-rose-300")}>
                                 {h.ats}/100
                               </span>
                             </TableCell>
@@ -360,7 +356,7 @@ export function ResumeHub() {
                             <TableCell className="text-right">
                               <button
                                 onClick={() => setTab("results")}
-                                className="text-xs text-violet-300 hover:text-violet-200"
+                                className="text-xs text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
                               >
                                 View →
                               </button>
@@ -374,26 +370,26 @@ export function ResumeHub() {
                   {/* Mobile cards */}
                   <ul className="mt-4 space-y-2 md:hidden">
                     {HISTORY.map((h, i) => (
-                      <li key={i} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                      <li key={i} className="rounded-lg border border-black/10 bg-black/[0.02] p-3 dark:border-white/10 dark:bg-white/[0.02]">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium">{h.role}</p>
                           <button
                             onClick={() => setTab("results")}
-                            className="text-xs text-violet-300"
+                            className="text-xs text-violet-600 dark:text-violet-400"
                           >
                             View →
                           </button>
                         </div>
                         <p className="mt-1 text-[11px] text-muted-foreground">{h.date} · {h.file}</p>
                         <div className="mt-2 flex items-center gap-3 text-xs">
-                          <span className="text-emerald-300">ATS {h.ats}</span>
+                          <span className="text-emerald-600 dark:text-emerald-300">ATS {h.ats}</span>
                           <span className="text-muted-foreground">·</span>
                           <span>Fit {h.fit}%</span>
                         </div>
                       </li>
                     ))}
                   </ul>
-                </GlowCard>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -412,24 +408,24 @@ export function ResumeHub() {
         </Tabs>
 
         {/* Footer CTA */}
-        <div className="mt-10 flex flex-col items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.02] p-5 sm:flex-row sm:items-center">
+        <div className="mt-10 flex flex-col items-start justify-between gap-4 rounded-lg border border-black/10 bg-card p-5 shadow-sm sm:flex-row sm:items-center dark:border-white/10">
           <div className="flex items-start gap-3">
-            <Info className="mt-0.5 h-4 w-4 text-sky-300" />
+            <Info className="mt-0.5 h-4 w-4 text-sky-600 dark:text-sky-300" />
             <div>
               <p className="text-sm font-medium">Want tailored interview questions for your role?</p>
-              <p className="text-xs text-muted-foreground">Take an AI interview — questions are generated from your resume + profile.</p>
+              <p className="text-xs text-muted-foreground">Take an AI interview. Questions are generated from your resume + profile.</p>
             </div>
           </div>
           <Button
             onClick={() => set("interview")}
-            className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0"
+            className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
           >
             Start Interview <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
 
       </PageWrap>
-    </AuroraBackground>
+    </div>
   );
 }
 
@@ -461,17 +457,17 @@ function Dropzone({
           onPick();
         }}
         className={cn(
-          "group grid min-h-[260px] w-full place-items-center rounded-2xl border-2 border-dashed p-6 text-center transition-colors",
+          "group grid min-h-[260px] w-full place-items-center rounded-lg border-2 border-dashed p-6 text-center transition-colors",
           dragging
             ? "border-violet-400/60 bg-violet-500/10"
-            : "border-white/15 bg-white/[0.02] hover:border-violet-400/40 hover:bg-white/[0.03]",
+            : "border-black/15 bg-black/[0.02] hover:border-violet-400/40 hover:bg-black/[0.03] dark:border-white/15 dark:bg-white/[0.02] dark:hover:bg-white/[0.03]",
         )}
       >
         <div>
           <motion.div
             animate={{ y: [0, -6, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 text-violet-300 ring-1 ring-inset ring-white/10"
+            className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-violet-500/10 text-violet-500 ring-1 ring-inset ring-black/10 dark:text-violet-400 dark:ring-white/10"
           >
             <Upload className="h-6 w-6" />
           </motion.div>
@@ -479,15 +475,15 @@ function Dropzone({
             {dragging ? "Drop your file to upload" : "Drag & drop your resume"}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            or <span className="text-violet-300 underline-offset-2 group-hover:underline">browse files</span> · PDF or DOCX · max 5&nbsp;MB
+            or <span className="text-violet-600 underline-offset-2 group-hover:underline dark:text-violet-400">browse files</span> · PDF or DOCX · max 5&nbsp;MB
           </p>
         </div>
       </button>
 
       {file && (
-        <div className="mt-3 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5">
+        <div className="mt-3 flex items-center justify-between rounded-lg border border-black/10 bg-black/[0.02] px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.03]">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-rose-500/15 text-rose-300">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-300">
               <FileText className="h-4 w-4" />
             </span>
             <div className="min-w-0">
@@ -498,7 +494,7 @@ function Dropzone({
           <div className="flex items-center gap-2">
             <button
               onClick={onClear}
-              className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:text-rose-300"
+              className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:text-rose-500"
               aria-label="Remove file"
             >
               <X className="h-4 w-4" />
@@ -506,7 +502,7 @@ function Dropzone({
             <Button
               onClick={onAnalyze}
               disabled={loading}
-              className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0"
+              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
             >
               {loading ? (
                 <>
@@ -514,7 +510,7 @@ function Dropzone({
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-4 w-4" /> Analyze Resume
+                  <FileText className="mr-2 h-4 w-4" /> Analyze Resume
                 </>
               )}
             </Button>
@@ -539,27 +535,21 @@ function ScoreCard({
   hint: string;
 }) {
   const toneRing: Record<string, string> = {
-    emerald: "text-emerald-300",
-    violet: "text-violet-300",
-    amber: "text-amber-300",
-  };
-  const toneBar: Record<string, string> = {
-    emerald: "bg-emerald-400",
-    violet: "bg-violet-400",
-    amber: "bg-amber-400",
+    emerald: "text-emerald-600 dark:text-emerald-300",
+    violet: "text-violet-500 dark:text-violet-300",
+    amber: "text-amber-600 dark:text-amber-300",
   };
   const pct = (value / max) * 100;
   return (
-    <GlowCard className="p-6">
+    <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
       <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
       <div className="mt-2 flex items-baseline gap-1">
         <span className={cn("text-4xl font-semibold tracking-tight", toneRing[tone])}>{value}</span>
         <span className="text-sm text-muted-foreground">/{max}</span>
       </div>
-      <Progress value={pct} className={cn("mt-3 bg-white/10")} />
-      <div className={cn("mt-2 h-0.5 w-full rounded-full", toneBar[tone])} style={{ opacity: 0 }} />
+      <Progress value={pct} className={cn("mt-3 bg-black/10 dark:bg-white/10")} />
       <p className="mt-2 text-[11px] text-muted-foreground">{hint}</p>
-    </GlowCard>
+    </div>
   );
 }
 

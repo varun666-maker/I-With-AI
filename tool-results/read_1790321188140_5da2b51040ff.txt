@@ -1,0 +1,668 @@
+     1→"use client";
+     2→
+     3→import { useMemo, useState } from "react";
+     4→import { motion } from "framer-motion";
+     5→import {
+     6→  AlertTriangle,
+     7→  ArrowRight,
+     8→  Award,
+     9→  BarChart3,
+    10→  Brain,
+    11→  Calendar,
+    12→  CheckCircle2,
+    13→  Clock,
+    14→  Code2,
+    15→  Download,
+    16→  Eye,
+    17→  FileText,
+    18→  FlaskConical,
+    19→  GraduationCap,
+    20→  Heart,
+    21→  Info,
+    22→  Layers,
+    23→  Lightbulb,
+    24→  ListChecks,
+    25→  Mic,
+    26→  Milestone,
+    27→  Quote,
+    28→  RefreshCw,
+    29→  Smile,
+    30→  Sparkles,
+    31→  Star,
+    32→  Target,
+    33→  TrendingUp,
+    34→  Trophy,
+    35→  User,
+    36→  Video,
+    37→  Zap,
+    38→} from "lucide-react";
+    39→import {
+    40→  CartesianGrid,
+    41→  Line,
+    42→  LineChart,
+    43→  ResponsiveContainer,
+    44→  Tooltip,
+    45→  XAxis,
+    46→  YAxis,
+    47→} from "recharts";
+    48→import {
+    49→  AuroraBackground,
+    50→  GlowCard,
+    51→  PageWrap,
+    52→  PulseBadge,
+    53→  StaggeredReveal,
+    54→  revealItem,
+    55→} from "@/components/shared/primitives";
+    56→import { BackToHome } from "@/components/shared/top-nav";
+    57→import { Button } from "@/components/ui/button";
+    58→import { Badge } from "@/components/ui/badge";
+    59→import { Progress } from "@/components/ui/progress";
+    60→import {
+    61→  Accordion,
+    62→  AccordionContent,
+    63→  AccordionItem,
+    64→  AccordionTrigger,
+    65→} from "@/components/ui/accordion";
+    66→import { useNav } from "@/lib/store";
+    67→import { cn } from "@/lib/utils";
+    68→
+    69→const SCORES = [
+    70→  { dim: "Technical", score: 82, color: "bg-violet-400" },
+    71→  { dim: "Communication", score: 74, color: "bg-fuchsia-400" },
+    72→  { dim: "Behavioral", score: 68, color: "bg-sky-400" },
+    73→  { dim: "Body Language", score: 71, color: "bg-emerald-400" },
+    74→  { dim: "Confidence", score: 79, color: "bg-amber-400" },
+    75→  { dim: "Problem Solving", score: 85, color: "bg-rose-400" },
+    76→];
+    77→
+    78→const EMOTION_TIMELINE = [
+    79→  { q: 1, neutral: 65, happy: 20, surprised: 10, sad: 5 },
+    80→  { q: 2, neutral: 55, happy: 30, surprised: 12, sad: 3 },
+    81→  { q: 3, neutral: 60, happy: 25, surprised: 8, sad: 7 },
+    82→  { q: 4, neutral: 40, happy: 45, surprised: 12, sad: 3 },
+    83→  { q: 5, neutral: 50, happy: 35, surprised: 8, sad: 7 },
+    84→  { q: 6, neutral: 35, happy: 50, surprised: 10, sad: 5 },
+    85→  { q: 7, neutral: 70, happy: 15, surprised: 5, sad: 10 },
+    86→  { q: 8, neutral: 45, happy: 25, surprised: 5, sad: 25 },
+    87→  { q: 9, neutral: 55, happy: 30, surprised: 10, sad: 5 },
+    88→  { q: 10, neutral: 40, happy: 50, surprised: 7, sad: 3 },
+    89→];
+    90→
+    91→const HIGHLIGHTS = [
+    92→  { q: 5, t: "1:42", title: "Best answer at Q5", desc: "Strong STAR story about the Redis memory leak — concrete metrics, clear ownership." },
+    93→  { q: 8, t: "3:30", title: "Weakest moment at Q8", desc: "Lost structure when asked about cross-team conflict. Consider the STAR-L framework." },
+    94→  { q: 3, t: "0:54", title: "Surprising insight at Q3", desc: "Used the word &lsquo;curious&rsquo; 4 times — strong curiosity signal flagged for the role." },
+    95→];
+    96→
+    97→const STRENGTHS = [
+    98→  "Strong conceptual understanding of distributed systems — explained CAP theorem correctly.",
+    99→  "Excellent eye contact throughout (78% — well above the 65% baseline).",
+   100→  "Clear, calm vocal tone even under pressure. Pacing averaged 142 wpm (ideal range).",
+   101→  "Used concrete metrics — &ldquo;2M req/day&rdquo;, &ldquo;p99 latency 80ms&rdquo; — instead of vague claims.",
+   102→  "Asked a thoughtful clarifying question before answering the system design prompt.",
+   103→  "Owned failures honestly — talked about a Postgres deadlock without blaming teammates.",
+   104→  "Closed the interview with two strong questions about the team&apos;s roadmap.",
+   105→];
+   106→
+   107→const IMPROVEMENTS = [
+   108→  "Reduce filler words — used &lsquo;um&rsquo; 23 times and &lsquo;like&rsquo; 11 times (mostly in Q1 and Q8).",
+   109→  "Provide more structured answers using the STAR method — 3 of 10 answers lacked the &lsquo;Result&rsquo; step.",
+   110→  "Posture dropped in the second half — 4 slouching warnings after Q6. Sit upright, feet flat.",
+   111→  "Eye contact breaks during technical explanations — you looked up-left 7 times while thinking.",
+   112→  "Avoid hedging phrases like &lsquo;sort of&rsquo; / &lsquo;I guess&rsquo; — used 9 times. Replace with confident assertions.",
+   113→  "When stuck on system design, draw the architecture aloud instead of pausing 8+ seconds.",
+   114→  "End answers with a 1-line summary — only 2 of 10 answers had a closing line.",
+   115→];
+   116→
+   117→const ROADMAP_WEEKS = [
+   118→  {
+   119→    theme: "Week 1 · Core Fundamentals",
+   120→    goal: "Refresh DSA basics, Big-O, and core data structures (arrays, hashmaps, linked lists).",
+   121→    resources: ["NeetCode 150 (free)", "Big-O Cheat Sheet (free)", "Structy.dev arrays track"],
+   122→    milestone: "Solve 15 array + hashmap problems in under 12 min each.",
+   123→  },
+   124→  {
+   125→    theme: "Week 2 · System Design Primer",
+   126→    goal: "Understand load balancers, caching layers, message queues, and DB trade-offs.",
+   127→    resources: ["ByteByteGo newsletter (free)", "Designing Data-Intensive Apps (book)", "Gaurav Sen YouTube"],
+   128→    milestone: "Design a URL-shortener end-to-end on a whiteboard.",
+   129→  },
+   130→  {
+   131→    theme: "Week 3 · Backend Deep Dive",
+   132→    goal: "Concurrency, REST/gRPC, DB indexes, transactions, idempotency.",
+   133→    resources: ["FastAPI docs", "PostgreSQL EXPLAIN tutorial", "Stripe idempotency blog"],
+   134→    milestone: "Refactor a personal project to add idempotent POST endpoints.",
+   135→  },
+   136→  {
+   137→    theme: "Week 4 · Frontend Speedrun",
+   138→    goal: "React hooks, state management, performance budgets, accessibility.",
+   139→    resources: ["Epic React (free chapters)", "Web.dev Performance", "Josh Comeau CSS"],
+   140→    milestone: "Build a dashboard with Lighthouse score ≥ 90.",
+   141→  },
+   142→  {
+   143→    theme: "Week 5 · Behavioral STAR Stories",
+   144→    goal: "Write 6 rehearsed STAR stories covering conflict, failure, leadership, ambiguity.",
+   145→    resources: ["Amazon LP list (free)", "STAR method primer", "Your own resume bullets"],
+   146→    milestone: "Record 6 stories and rehearse each under 90 seconds.",
+   147→  },
+   148→  {
+   149→    theme: "Week 6 · Mock Loop",
+   150→    goal: "Daily 1 mock interview + report review. Target overall score ≥ 85.",
+   151→    resources: ["InterviewAI (this platform)", "Pramp (free peer mocks)", "Exponent mock library"],
+   152→    milestone: "Complete 5 mock interviews with score ≥ 85 on the final one.",
+   153→  },
+   154→];
+   155→
+   156→export function InterviewReport() {
+   157→  const { set } = useNav();
+   158→  const [downloading, setDownloading] = useState(false);
+   159→
+   160→  const download = () => {
+   161→    setDownloading(true);
+   162→    setTimeout(() => setDownloading(false), 1200);
+   163→  };
+   164→
+   165→  return (
+   166→    <AuroraBackground showGrid={false}>
+   167→      {/* Sticky download button */}
+   168→      <motion.div
+   169→        initial={{ opacity: 0, y: -8 }}
+   170→        animate={{ opacity: 1, y: 0 }}
+   171→        className="fixed right-4 top-20 z-40 sm:right-6"
+   172→      >
+   173→        <Button
+   174→          onClick={download}
+   175→          disabled={downloading}
+   176→          className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 shadow-2xl"
+   177→        >
+   178→          <Download className={cn("mr-2 h-4 w-4", downloading && "animate-bounce")} />
+   179→          {downloading ? "Generating…" : "Download PDF"}
+   180→        </Button>
+   181→      </motion.div>
+   182→
+   183→      <PageWrap>
+   184→        <BackToHome />
+   185→
+   186→        <div className="mt-2">
+   187→          <PulseBadge color="emerald" className="mb-3 text-[11px] uppercase tracking-widest">
+   188→            Interview Report · v4
+   189→          </PulseBadge>
+   190→          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+   191→            Interview Report — <span className="gradient-text">Priya Sharma</span>
+   192→          </h1>
+   193→          <p className="mt-2 text-sm text-muted-foreground">
+   194→            Generated on <span className="text-foreground">Jan 15, 2025</span> · Interview type <span className="text-foreground">Technical — Role-Specific (Backend)</span> · Session ID <span className="font-mono text-foreground">#INT-2025-0115-P3XK</span> · Duration 28 min 14 sec.
+   195→          </p>
+   196→        </div>
+   197→
+   198→        <StaggeredReveal className="mt-8 space-y-4" delay={0.04}>
+   199→          {/* 1. Cover Page */}
+   200→          <SectionCard n={1} title="Cover Page" icon={FileText}>
+   201→            <div className="relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 p-6">
+   202→              <div className="flex items-start justify-between gap-4">
+   203→                <div>
+   204→                  <div className="flex items-center gap-2">
+   205→                    <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+   206→                      <Sparkles className="h-4 w-4" />
+   207→                    </div>
+   208→                    <span className="font-semibold">
+   209→                      Interview<span className="gradient-text">AI</span>
+   210→                    </span>
+   211→                  </div>
+   212→                  <h3 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">Interview Report</h3>
+   213→                  <p className="mt-1 text-sm text-muted-foreground">A comprehensive analysis of your AI interview performance.</p>
+   214→                </div>
+   215→                <div className="hidden text-right sm:block">
+   216→                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Candidate</p>
+   217→                  <p className="mt-1 font-semibold">Priya Sharma</p>
+   218→                  <p className="mt-2 text-[11px] uppercase tracking-wider text-muted-foreground">Date</p>
+   219→                  <p className="mt-1 font-medium">Jan 15, 2025</p>
+   220→                </div>
+   221→              </div>
+   222→              <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+   223→                {[
+   224→                  { l: "Interview Type", v: "Technical · Backend" },
+   225→                  { l: "Duration", v: "28m 14s" },
+   226→                  { l: "Questions", v: "10 / 10" },
+   227→                  { l: "Overall Score", v: "78 / 100" },
+   228→                ].map((s) => (
+   229→                  <div key={s.l} className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+   230→                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{s.l}</p>
+   231→                    <p className="mt-1 text-sm font-semibold">{s.v}</p>
+   232→                  </div>
+   233→                ))}
+   234→              </div>
+   235→            </div>
+   236→          </SectionCard>
+   237→
+   238→          {/* 2. Executive Summary */}
+   239→          <SectionCard n={2} title="Executive Summary" icon={BarChart3}>
+   240→            <div className="space-y-3 text-sm text-foreground/85">
+   241→              <p>
+   242→                Priya demonstrated a strong technical foundation with a clear ability to articulate distributed-systems concepts. Her overall interview score of <strong className="text-violet-300">78/100</strong> places her in the &ldquo;Recommend&rdquo; band — a 4-point improvement from her previous session, indicating steady growth. The interview was conducted in <em>Technical — Role-Specific (Backend)</em> mode with 10 questions across behavioral, system design, and deep technical tracks.
+   243→              </p>
+   244→              <p>
+   245→                Her strengths lie in conceptual clarity (scoring 85/100 in Problem Solving) and consistent vocal tone under pressure. She used concrete metrics (&ldquo;2M requests/day&rdquo;, &ldquo;p99 latency 80ms&rdquo;) — a sign of seasoned engineering communication. Eye contact averaged <strong>78%</strong>, well above the 65% baseline, and posture remained consistent through the first half of the interview.
+   246→              </p>
+   247→              <p>
+   248→                The two most impactful improvements are (1) reducing filler words (used &lsquo;um&rsquo; 23 times — mostly during transitions), and (2) tightening the &lsquo;Result&rsquo; step in STAR-format answers. Addressing these two items is estimated to push the next score past 85. A detailed 6-week roadmap is provided in section 16.
+   249→              </p>
+   250→            </div>
+   251→          </SectionCard>
+   252→
+   253→          {/* 3. Overall Score Table */}
+   254→          <SectionCard n={3} title="Overall Score Table" icon={Award}>
+   255→            <div className="overflow-hidden rounded-lg border border-white/10">
+   256→              <table className="w-full text-sm">
+   257→                <thead>
+   258→                  <tr className="border-b border-white/10 bg-white/[0.02]">
+   259→                    <th className="px-3 py-2 text-left text-xs uppercase tracking-wider text-muted-foreground">Dimension</th>
+   260→                    <th className="px-3 py-2 text-left text-xs uppercase tracking-wider text-muted-foreground">Score</th>
+   261→                    <th className="px-3 py-2 text-left text-xs uppercase tracking-wider text-muted-foreground">Bar</th>
+   262→                  </tr>
+   263→                </thead>
+   264→                <tbody>
+   265→                  {SCORES.map((s) => (
+   266→                    <tr key={s.dim} className="border-b border-white/5 last:border-0">
+   267→                      <td className="px-3 py-2 font-medium">{s.dim}</td>
+   268→                      <td className="px-3 py-2 font-mono font-semibold text-violet-300">{s.score}/100</td>
+   269→                      <td className="px-3 py-2">
+   270→                        <div className="flex items-center gap-2">
+   271→                          <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
+   272→                            <div className={cn("h-full rounded-full", s.color)} style={{ width: `${s.score}%` }} />
+   273→                          </div>
+   274→                          <span className="text-[11px] text-muted-foreground">{s.score}%</span>
+   275→                        </div>
+   276→                      </td>
+   277→                    </tr>
+   278→                  ))}
+   279→                </tbody>
+   280→              </table>
+   281→            </div>
+   282→          </SectionCard>
+   283→
+   284→          {/* 4. Hiring Recommendation */}
+   285→          <SectionCard n={4} title="Hiring Recommendation" icon={Trophy}>
+   286→            <div className="relative overflow-hidden rounded-xl border border-sky-400/30 bg-sky-500/10 p-6 text-center">
+   287→              <Badge className="mx-auto border-sky-400/40 bg-sky-500/20 text-sky-100">
+   288→                <CheckCircle2 className="mr-1 h-3 w-3" /> Backend Developer · Junior-Mid
+   289→              </Badge>
+   290→              <p className="mt-3 text-3xl font-semibold tracking-tight text-sky-200 sm:text-4xl">Recommend</p>
+   291→              <p className="mt-2 text-sm text-muted-foreground">
+   292→                Based on overall score (78), technical accuracy (82), and behavioral signals. Priya shows strong potential for the Backend Developer role. Suggest a follow-up system design round to confirm seniority band.
+   293→              </p>
+   294→              <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
+   295→                <span className="rounded-full border border-white/10 px-2 py-0.5 text-rose-300">Not Recommended &lt; 50</span>
+   296→                <span className="rounded-full border border-white/10 px-2 py-0.5 text-amber-300">Conditional 50-65</span>
+   297→                <span className="rounded-full border border-sky-400/40 bg-sky-500/20 px-2 py-0.5 text-sky-100">Recommend 65-85</span>
+   298→                <span className="rounded-full border border-white/10 px-2 py-0.5 text-emerald-300">Strong ≥ 85</span>
+   299→              </div>
+   300→            </div>
+   301→          </SectionCard>
+   302→
+   303→          {/* 5. Resume Analysis */}
+   304→          <SectionCard n={5} title="Resume Analysis" icon={FileText}>
+   305→            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+   306→              <ScoreStat label="ATS Score" value="87" tone="text-emerald-300" />
+   307→              <ScoreStat label="Job Fit" value="78%" tone="text-amber-300" />
+   308→              <ScoreStat label="Skills Match" value="9 / 14" tone="text-violet-300" />
+   309→            </div>
+   310→            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+   311→              <div>
+   312→                <p className="text-xs uppercase tracking-wider text-emerald-300">Skills Found</p>
+   313→                <div className="mt-2 flex flex-wrap gap-1.5">
+   314→                  {["Python", "FastAPI", "React", "SQL", "PostgreSQL", "REST", "Git", "Microservices", "Redis"].map((s) => (
+   315→                    <Badge key={s} className="border-emerald-400/30 bg-emerald-500/10 text-emerald-200">{s}</Badge>
+   316→                  ))}
+   317→                </div>
+   318→              </div>
+   319→              <div>
+   320→                <p className="text-xs uppercase tracking-wider text-rose-300">Missing / Recommended</p>
+   321→                <div className="mt-2 flex flex-wrap gap-1.5">
+   322→                  {["Docker", "CI/CD", "Testing", "System Design", "Kafka", "Kubernetes"].map((s) => (
+   323→                    <Badge key={s} className="border-rose-400/30 bg-rose-500/10 text-rose-200">{s}</Badge>
+   324→                  ))}
+   325→                </div>
+   326→              </div>
+   327→            </div>
+   328→          </SectionCard>
+   329→
+   330→          {/* 6. Aptitude Analysis */}
+   331→          <SectionCard n={6} title="Aptitude Analysis" icon={Brain}>
+   332→            <p className="text-sm text-muted-foreground">
+   333→              Last aptitude test: <span className="text-foreground">Jan 14, 2025</span> · Score <span className="text-emerald-300">18/25 (72%)</span>.
+   334→            </p>
+   335→            <div className="mt-4 space-y-2">
+   336→              {[
+   337→                { c: "Quantitative", v: 80 },
+   338→                { c: "Logical", v: 60 },
+   339→                { c: "Verbal", v: 100 },
+   340→                { c: "Analytical", v: 80 },
+   341→                { c: "Data Interpretation", v: 40 },
+   342→              ].map((r) => (
+   343→                <div key={r.c} className="space-y-1">
+   344→                  <div className="flex items-center justify-between text-xs">
+   345→                    <span className="text-foreground/80">{r.c}</span>
+   346→                    <span className={cn("font-mono font-semibold", r.v >= 80 ? "text-emerald-300" : r.v >= 60 ? "text-amber-300" : "text-rose-300")}>{r.v}%</span>
+   347→                  </div>
+   348→                  <Progress value={r.v} className="bg-white/10" />
+   349→                </div>
+   350→              ))}
+   351→            </div>
+   352→            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+   353→              <InsightBox tone="emerald" title="Strengths" items={["Strong Verbal (100%)", "Solid Quant (80%) and Analytical (80%)"]} />
+   354→              <InsightBox tone="rose" title="Weaknesses" items={["Data Interpretation needs work (40%)", "Logical — practice syllogisms and series"]} />
+   355→            </div>
+   356→          </SectionCard>
+   357→
+   358→          {/* 7. Coding Analysis */}
+   359→          <SectionCard n={7} title="Coding Analysis" icon={Code2}>
+   360→            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+   361→              <ScoreStat label="Problems Attempted" value="2" tone="text-violet-300" />
+   362→              <ScoreStat label="Pass Rate" value="7/10" tone="text-emerald-300" />
+   363→              <ScoreStat label="Code Quality" value="90" tone="text-sky-300" />
+   364→              <ScoreStat label="Complexity" value="O(n)" tone="text-amber-300" />
+   365→            </div>
+   366→            <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
+   367→              <p className="font-medium">AI Code Review Summary</p>
+   368→              <p className="mt-2 text-foreground/80">
+   369→                Priya&apos;s solution to &ldquo;Two Sum&rdquo; was optimal — single-pass O(n) with a hash map. Variable naming was clean and the code handled the no-solution edge case. Suggestions: add type hints and raise <code className="font-mono text-violet-200">ValueError</code> instead of returning an empty list. The Two-Pointer refactor is included in the editor.
+   370→              </p>
+   371→            </div>
+   372→          </SectionCard>
+   373→
+   374→          {/* 8. Technical Analysis */}
+   375→          <SectionCard n={8} title="Technical Analysis" icon={FlaskConical}>
+   376→            <div className="overflow-hidden rounded-lg border border-white/10">
+   377→              <table className="w-full text-sm">
+   378→                <thead>
+   379→                  <tr className="border-b border-white/10 bg-white/[0.02]">
+   380→                    <th className="px-3 py-2 text-left text-xs uppercase tracking-wider text-muted-foreground">Q#</th>
+   381→                    <th className="px-3 py-2 text-left text-xs uppercase tracking-wider text-muted-foreground">Topic</th>
+   382→                    <th className="px-3 py-2 text-left text-xs uppercase tracking-wider text-muted-foreground">Accuracy</th>
+   383→                    <th className="px-3 py-2 text-left text-xs uppercase tracking-wider text-muted-foreground">Depth</th>
+   384→                  </tr>
+   385→                </thead>
+   386→                <tbody>
+   387→                  {[
+   388→                    { q: 1, t: "REST vs gRPC", a: 95, d: "Deep" },
+   389→                    { q: 2, t: "DB Indexing", a: 88, d: "Deep" },
+   390→                    { q: 3, t: "Idempotency", a: 92, d: "Medium" },
+   391→                    { q: 4, t: "Connection Pooling", a: 70, d: "Medium" },
+   392→                    { q: 5, t: "CAP Theorem", a: 100, d: "Deep" },
+   393→                    { q: 6, t: "Redis Use Cases", a: 85, d: "Medium" },
+   394→                    { q: 7, t: "Async vs Threading", a: 65, d: "Shallow" },
+   395→                    { q: 8, t: "Message Queues", a: 78, d: "Medium" },
+   396→                    { q: 9, t: "Observability", a: 88, d: "Deep" },
+   397→                    { q: 10, t: "Trade-offs", a: 80, d: "Medium" },
+   398→                  ].map((r) => (
+   399→                    <tr key={r.q} className="border-b border-white/5 last:border-0">
+   400→                      <td className="px-3 py-2 font-mono">Q{r.q}</td>
+   401→                      <td className="px-3 py-2">{r.t}</td>
+   402→                      <td className="px-3 py-2 font-mono">
+   403→                        <span className={cn("font-semibold", r.a >= 85 ? "text-emerald-300" : r.a >= 70 ? "text-amber-300" : "text-rose-300")}>{r.a}%</span>
+   404→                      </td>
+   405→                      <td className="px-3 py-2">
+   406→                        <Badge className="border-white/10 bg-white/5 text-white/70">{r.d}</Badge>
+   407→                      </td>
+   408→                    </tr>
+   409→                  ))}
+   410→                </tbody>
+   411→              </table>
+   412→            </div>
+   413→          </SectionCard>
+   414→
+   415→          {/* 9. HR/Behavioral Analysis */}
+   416→          <SectionCard n={9} title="HR / Behavioral Analysis" icon={User}>
+   417→            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+   418→              <ScoreStat label="STAR Usage" value="70%" tone="text-amber-300" />
+   419→              <ScoreStat label="Motivation Clarity" value="82%" tone="text-emerald-300" />
+   420→              <ScoreStat label="Culture Fit" value="78%" tone="text-violet-300" />
+   421→            </div>
+   422→            <p className="mt-4 text-sm text-foreground/80">
+   423→              Priya&apos;s behavioral answers were structured but skipped the &lsquo;Result&rsquo; step in 3 of 6 STAR stories. Motivation was clear — she connected her FastAPI experience directly to the role&apos;s API ownership requirement. Culture-fit signals included collaborative language and explicit ownership of failures.
+   424→            </p>
+   425→          </SectionCard>
+   426→
+   427→          {/* 10. Communication Analysis */}
+   428→          <SectionCard n={10} title="Communication Analysis" icon={Mic}>
+   429→            <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+   430→              <ScoreStat label="Clarity" value="82" tone="text-emerald-300" />
+   431→              <ScoreStat label="Structure" value="70" tone="text-amber-300" />
+   432→              <ScoreStat label="Filler Words" value="34" tone="text-rose-300" />
+   433→              <ScoreStat label="Pacing (wpm)" value="142" tone="text-sky-300" />
+   434→            </div>
+   435→            <p className="mt-4 text-sm text-foreground/80">
+   436→              Pacing is in the ideal range (140-160 wpm). Filler words (&lsquo;um&apos; 23×, &lsquo;like&apos; 11×) appeared most in Q1 (nerves) and Q8 (system design). Structure score is lower than peers — apply the STAR-L framework and close each answer with a one-line summary.
+   437→            </p>
+   438→          </SectionCard>
+   439→
+   440→          {/* 11. CV/Emotion Analysis */}
+   441→          <SectionCard n={11} title="CV / Emotion Analysis" icon={Eye}>
+   442→            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+   443→              <ScoreStat label="Dominant Emotion" value="Neutral" tone="text-sky-300" />
+   444→              <ScoreStat label="Avg Eye Contact" value="78%" tone="text-emerald-300" />
+   445→              <ScoreStat label="Posture Consistency" value="71%" tone="text-amber-300" />
+   446→            </div>
+   447→            <p className="mt-4 text-sm text-foreground/80">
+   448→              The dominant emotion across the interview was <em>Neutral</em> (avg 52%), with notable <em>Happy</em> peaks at Q4, Q6, and Q10. Sad/Concerned emotion spiked at Q8 (25%) — coincides with the weakest answer (cross-team conflict). Posture warnings: 4 (after Q6). Eye contact breaks: 7 (up-left lookups while thinking).
+   449→            </p>
+   450→          </SectionCard>
+   451→
+   452→          {/* 12. Emotion Timeline Chart */}
+   453→          <SectionCard n={12} title="Emotion Timeline Chart" icon={Heart}>
+   454→            <p className="text-sm text-muted-foreground">
+   455→              Emotion scores per question over the 28-minute session. X-axis = question number; Y-axis = % of frames tagged with each emotion.
+   456→            </p>
+   457→            <div className="mt-4 h-[260px] w-full">
+   458→              <ResponsiveContainer width="100%" height="100%">
+   459→                <LineChart data={EMOTION_TIMELINE} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+   460→                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+   461→                  <XAxis dataKey="q" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `Q${v}`} />
+   462→                  <YAxis tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} axisLine={false} tickLine={false} />
+   463→                  <Tooltip
+   464→                    contentStyle={{
+   465→                      background: "rgba(15,12,25,0.95)",
+   466→                      border: "1px solid rgba(255,255,255,0.1)",
+   467→                      borderRadius: 12,
+   468→                      fontSize: 12,
+   469→                    }}
+   470→                    labelFormatter={(v) => `Question ${v}`}
+   471→                  />
+   472→                  <Line type="monotone" dataKey="neutral" stroke="#94a3b8" strokeWidth={2} dot={false} />
+   473→                  <Line type="monotone" dataKey="happy" stroke="#10b981" strokeWidth={2} dot={false} />
+   474→                  <Line type="monotone" dataKey="surprised" stroke="#f59e0b" strokeWidth={2} dot={false} />
+   475→                  <Line type="monotone" dataKey="sad" stroke="#f43f5e" strokeWidth={2} dot={false} />
+   476→                </LineChart>
+   477→              </ResponsiveContainer>
+   478→            </div>
+   479→            <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px]">
+   480→              <LegendDot color="#94a3b8" label="Neutral" />
+   481→              <LegendDot color="#10b981" label="Happy" />
+   482→              <LegendDot color="#f59e0b" label="Surprised" />
+   483→              <LegendDot color="#f43f5e" label="Sad" />
+   484→            </div>
+   485→          </SectionCard>
+   486→
+   487→          {/* 13. Session Highlights */}
+   488→          <SectionCard n={13} title="Session Highlights" icon={Star}>
+   489→            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+   490→              {HIGHLIGHTS.map((h) => (
+   491→                <div key={h.q} className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+   492→                  <div className="flex items-center justify-between">
+   493→                    <Badge className="border-violet-400/30 bg-violet-500/10 text-violet-200">Q{h.q}</Badge>
+   494→                    <span className="text-[11px] font-mono text-muted-foreground">{h.t}</span>
+   495→                  </div>
+   496→                  <p className="mt-2 text-sm font-medium">{h.title}</p>
+   497→                  <p className="mt-1 text-xs text-muted-foreground">{h.desc}</p>
+   498→                </div>
+   499→              ))}
+   500→            </div>
+   501→          </SectionCard>
+   502→
+   503→          {/* 14. Top 7 Strengths */}
+   504→          <SectionCard n={14} title="Top 7 Strengths" icon={CheckCircle2}>
+   505→            <ul className="space-y-2">
+   506→              {STRENGTHS.map((s, i) => (
+   507→                <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
+   508→                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+   509→                  <span dangerouslySetInnerHTML={{ __html: s }} />
+   510→                </li>
+   511→              ))}
+   512→            </ul>
+   513→          </SectionCard>
+   514→
+   515→          {/* 15. Top 7 Improvements */}
+   516→          <SectionCard n={15} title="Top 7 Improvements" icon={AlertTriangle}>
+   517→            <ul className="space-y-2">
+   518→              {IMPROVEMENTS.map((s, i) => (
+   519→                <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
+   520→                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+   521→                  <span dangerouslySetInnerHTML={{ __html: s }} />
+   522→                </li>
+   523→              ))}
+   524→            </ul>
+   525→          </SectionCard>
+   526→
+   527→          {/* 16. 6-Week Learning Roadmap */}
+   528→          <SectionCard n={16} title="6-Week Learning Roadmap" icon={Calendar}>
+   529→            <Accordion type="single" collapsible defaultValue="week-1">
+   530→              {ROADMAP_WEEKS.map((w, i) => (
+   531→                <AccordionItem key={w.theme} value={`week-${i + 1}`} className="border-white/10">
+   532→                  <AccordionTrigger className="text-sm font-medium hover:no-underline">
+   533→                    <div className="flex items-center gap-2">
+   534→                      <span className="grid h-6 w-6 place-items-center rounded-full bg-violet-500/15 text-violet-300 text-[11px] ring-1 ring-inset ring-violet-400/30">{i + 1}</span>
+   535→                      {w.theme}
+   536→                    </div>
+   537→                  </AccordionTrigger>
+   538→                  <AccordionContent className="text-sm text-muted-foreground">
+   539→                    <p className="mt-1"><span className="font-medium text-foreground/80">Daily goal:</span> {w.goal}</p>
+   540→                    <p className="mt-2"><span className="font-medium text-foreground/80">Free resources:</span></p>
+   541→                    <ul className="mt-1 space-y-1">
+   542→                      {w.resources.map((r) => (
+   543→                        <li key={r} className="flex items-start gap-2">
+   544→                          <Layers className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-300" />
+   545→                          {r}
+   546→                        </li>
+   547→                      ))}
+   548→                    </ul>
+   549→                    <p className="mt-3 rounded-md border border-emerald-400/20 bg-emerald-500/[0.04] px-3 py-2 text-xs text-emerald-200">
+   550→                      <Milestone className="mr-1 inline h-3.5 w-3.5" /> Milestone: {w.milestone}
+   551→                    </p>
+   552→                  </AccordionContent>
+   553→                </AccordionItem>
+   554→              ))}
+   555→            </Accordion>
+   556→          </SectionCard>
+   557→
+   558→          {/* 17. Final Recommendation */}
+   559→          <SectionCard n={17} title="Final Recommendation" icon={Target}>
+   560→            <div className="relative overflow-hidden rounded-xl border border-violet-400/30 bg-violet-500/10 p-6">
+   561→              <div className="absolute inset-0 -z-10 bg-gradient-to-br from-violet-500/15 to-fuchsia-500/15" />
+   562→              <Quote className="h-6 w-6 text-violet-300/50" />
+   563→              <p className="mt-3 text-pretty text-sm text-foreground/85">
+   564→                Priya is a <strong>Recommend</strong> for the Backend Developer (Junior-Mid) role. To convert this into an offer, focus on the two highest-impact improvements: <em>reduce filler words</em> and <em>close STAR answers with a Result line</em>. Pair this with the 6-week roadmap — specifically Week 3 (Backend Deep Dive) and Week 5 (STAR Stories) — and you should comfortably clear 85 in your next mock.
+   565→              </p>
+   566→              <p className="mt-3 text-sm text-foreground/85">
+   567→                We suggest re-taking the Technical — Role-Specific interview in <strong>10-14 days</strong> after completing Weeks 1-2 of the roadmap. Until then, prioritize 30 minutes of daily practice. Your trajectory (52 → 78 in 10 weeks) shows strong, consistent improvement.
+   568→              </p>
+   569→              <div className="mt-5 flex flex-wrap items-center gap-3">
+   570→                <Button onClick={() => set("interview")} className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0">
+   571→                  <Video className="mr-2 h-4 w-4" /> Take Another Interview
+   572→                </Button>
+   573→                <Button onClick={() => set("dashboard")} variant="outline" className="rounded-full border-white/15 bg-white/5 hover:bg-white/10">
+   574→                  <TrendingUp className="mr-2 h-4 w-4" /> Back to Dashboard
+   575→                </Button>
+   576→              </div>
+   577→            </div>
+   578→          </SectionCard>
+   579→        </StaggeredReveal>
+   580→
+   581→        <div className="mt-10 flex flex-col items-center gap-3 border-t border-white/5 pt-6 text-center sm:flex-row sm:justify-between sm:text-left">
+   582→          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+   583→            <Info className="h-3.5 w-3.5" /> This report was generated by Gemini 1.5 Flash + Whisper + MediaPipe. © 2025 InterviewAI.
+   584→          </div>
+   585→          <Button onClick={download} disabled={downloading} className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0">
+   586→            <Download className="mr-2 h-4 w-4" /> {downloading ? "Generating…" : "Download PDF"}
+   587→          </Button>
+   588→        </div>
+   589→
+   590→      </PageWrap>
+   591→    </AuroraBackground>
+   592→  );
+   593→}
+   594→
+   595→/* -------------------------------------------------------------------------- */
+   596→
+   597→function SectionCard({
+   598→  n,
+   599→  title,
+   600→  icon: Icon,
+   601→  children,
+   602→}: {
+   603→  n: number;
+   604→  title: string;
+   605→  icon: React.ComponentType<{ className?: string }>;
+   606→  children: React.ReactNode;
+   607→}) {
+   608→  return (
+   609→    <motion.div variants={revealItem}>
+   610→      <GlowCard className="p-6">
+   611→        <div className="flex items-center gap-3">
+   612→          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-violet-500/15 text-violet-300 ring-1 ring-inset ring-violet-400/30">
+   613→            <Icon className="h-4 w-4" />
+   614→          </span>
+   615→          <div className="flex items-center gap-2">
+   616→            <span className="font-mono text-xs text-muted-foreground">{String(n).padStart(2, "0")}</span>
+   617→            <h3 className="text-base font-semibold tracking-tight sm:text-lg">{title}</h3>
+   618→          </div>
+   619→        </div>
+   620→        <div className="mt-4">{children}</div>
+   621→      </GlowCard>
+   622→    </motion.div>
+   623→  );
+   624→}
+   625→
+   626→function ScoreStat({ label, value, tone }: { label: string; value: string; tone: string }) {
+   627→  return (
+   628→    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-center">
+   629→      <p className={cn("text-2xl font-semibold tracking-tight", tone)}>{value}</p>
+   630→      <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+   631→    </div>
+   632→  );
+   633→}
+   634→
+   635→function InsightBox({ tone, title, items }: { tone: "emerald" | "rose"; title: string; items: string[] }) {
+   636→  const tones: Record<string, string> = {
+   637→    emerald: "border-emerald-400/20 bg-emerald-500/[0.04] text-emerald-300",
+   638→    rose: "border-rose-400/20 bg-rose-500/[0.04] text-rose-300",
+   639→  };
+   640→  return (
+   641→    <div className={cn("rounded-lg border p-3", tones[tone])}>
+   642→      <p className="text-xs font-medium">{title}</p>
+   643→      <ul className="mt-2 space-y-1 text-xs text-foreground/80">
+   644→        {items.map((i, idx) => (
+   645→          <li key={idx} className="flex items-start gap-1.5">
+   646→            <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", tone === "emerald" ? "bg-emerald-400" : "bg-rose-400")} />
+   647→            {i}
+   648→          </li>
+   649→        ))}
+   650→      </ul>
+   651→    </div>
+   652→  );
+   653→}
+   654→
+   655→function LegendDot({ color, label }: { color: string; label: string }) {
+   656→  return (
+   657→    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+   658→      <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+   659→      {label}
+   660→    </span>
+   661→  );
+   662→}
+   663→
+   664→/* keep imports referenced */
+   665→export const __icons = {
+   666→  ListChecks, Lightbulb, RefreshCw, Sparkles, TrendingUp, Trophy, Zap, Clock, GraduationCap, Smile,
+   667→};
+   668→

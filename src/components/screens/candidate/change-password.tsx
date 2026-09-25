@@ -12,13 +12,12 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import {
-  AuroraBackground,
   GlowCard,
-  MagneticButton,
-  PulseBadge,
   revealItem,
   StaggeredReveal,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -83,7 +82,7 @@ export function ForcePasswordChange() {
     }
 
     setLoading(true);
-    // Mock backend — hashes & stores new password, clears requirePasswordChange.
+    // Mock backend. Hashes & stores new password, clears requirePasswordChange.
     setTimeout(() => {
       setLoading(false);
       set("candidate-system-check");
@@ -91,7 +90,7 @@ export function ForcePasswordChange() {
   };
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <section className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col items-center justify-center px-4 py-12 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -99,7 +98,9 @@ export function ForcePasswordChange() {
           transition={{ duration: 0.5 }}
           className="flex justify-center"
         >
-          <PulseBadge color="amber">First Login · Mandatory</PulseBadge>
+          <Badge variant="outline" className="rounded-full border-amber-400/40 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300">
+            First Login · Mandatory
+          </Badge>
         </motion.div>
 
         <motion.h1
@@ -108,7 +109,7 @@ export function ForcePasswordChange() {
           transition={{ duration: 0.6, delay: 0.08 }}
           className="mt-5 text-center text-3xl font-semibold tracking-tight text-balance"
         >
-          Set Your <span className="gradient-text text-glow">New Password</span>
+          Set Your <span className="text-violet-500 dark:text-violet-400">New Password</span>
         </motion.h1>
 
         <motion.p
@@ -135,7 +136,7 @@ export function ForcePasswordChange() {
                     damping: 16,
                     delay: 0.1,
                   }}
-                  className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 text-violet-100 ring-1 ring-inset ring-white/10"
+                  className="grid h-16 w-16 place-items-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-300 ring-1 ring-inset ring-black/10 dark:ring-white/10"
                 >
                   <Lock className="h-7 w-7" />
                 </motion.div>
@@ -160,7 +161,7 @@ export function ForcePasswordChange() {
                     <button
                       type="button"
                       onClick={() => setShowNew((s) => !s)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-white"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5 dark:hover:text-white"
                       aria-label={showNew ? "Hide password" : "Show password"}
                     >
                       {showNew ? (
@@ -208,7 +209,7 @@ export function ForcePasswordChange() {
                     <button
                       type="button"
                       onClick={() => setShowConfirm((s) => !s)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-white"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5 dark:hover:text-white"
                       aria-label={
                         showConfirm ? "Hide password" : "Show password"
                       }
@@ -269,14 +270,14 @@ export function ForcePasswordChange() {
                   </div>
                 )}
 
-                <MagneticButton
+                <Button
                   type="submit"
                   disabled={
                     loading ||
                     newPw.length < 8 ||
                     newPw !== confirmPw
                   }
-                  className="h-11 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-7 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
+                  className="h-11 w-full rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600"
                 >
                   {loading ? (
                     <>
@@ -289,7 +290,7 @@ export function ForcePasswordChange() {
                       Update Password
                     </>
                   )}
-                </MagneticButton>
+                </Button>
               </form>
 
               <Separator className="my-5 bg-white/5" />
@@ -303,6 +304,6 @@ export function ForcePasswordChange() {
         </StaggeredReveal>
 
       </section>
-    </AuroraBackground>
+    </div>
   );
 }

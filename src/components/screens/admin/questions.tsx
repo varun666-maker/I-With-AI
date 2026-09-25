@@ -1,30 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
   Brain,
+  Check,
   ChevronLeft,
   Code2,
   Database,
   FileText,
   Pencil,
   Plus,
-  Save,
   ShieldQuestion,
   Terminal,
   Trash2,
   Upload,
-  X,
 } from "lucide-react";
-import {
-  AuroraBackground,
-  GlowCard,
-  MagneticButton,
-  PageWrap,
-  PulseBadge,
-  SectionHeading,
-} from "@/components/shared/primitives";
+import { PageWrap } from "@/components/shared/primitives";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -95,7 +86,7 @@ const APT_QUESTIONS: AptQuestion[] = [
     options: ["40", "42", "44", "46"],
     correct: "B",
     explanation:
-      "Differences: 4, 6, 8, 10, 12 → next term = 30 + 12 = 42.",
+      "Differences: 4, 6, 8, 10, 12. Next term = 30 + 12 = 42.",
   },
   {
     id: "q3",
@@ -123,7 +114,7 @@ const APT_QUESTIONS: AptQuestion[] = [
     category: "DI",
     subTopic: "Bar charts",
     difficulty: "Medium",
-    text: "If a bar chart shows Q1=40, Q2=60, Q3=80 — what is the % growth from Q1 to Q3?",
+    text: "If a bar chart shows Q1=40, Q2=60, Q3=80. What is the % growth from Q1 to Q3?",
     options: ["50%", "75%", "100%", "120%"],
     correct: "C",
     explanation: "Growth = (80-40)/40 × 100 = 100%.",
@@ -178,26 +169,31 @@ export function QuestionManager() {
   const [tab, setTab] = useState<"aptitude" | "coding">("aptitude");
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap className="pt-8">
         <button
           onClick={() => set("admin-dashboard")}
-          className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-white"
+          className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
           Back to dashboard
         </button>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeading
-            align="left"
-            eyebrow="Campaign · backend-sde-1"
-            title="Question Set Manager"
-            description="Aptitude MCQs and coding problems. Questions are scoped to this campaign only."
-          />
-          <PulseBadge color="sky">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">
+              Campaign. backend-sde-1
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+              Question Set Manager
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              Aptitude MCQs and coding problems. Questions are scoped to this campaign only.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-black/15 bg-muted/30 px-3 py-1 text-xs font-medium text-muted-foreground dark:border-white/15">
             {APT_QUESTIONS.length + CODING_PROBLEMS.length} questions
-          </PulseBadge>
+          </span>
         </div>
 
         <Tabs
@@ -205,24 +201,24 @@ export function QuestionManager() {
           onValueChange={(v) => setTab(v as typeof tab)}
           className="mt-6"
         >
-          <TabsList className="h-auto bg-white/[0.03] p-1">
+          <TabsList className="h-auto bg-muted/40 p-1">
             <TabsTrigger
               value="aptitude"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white px-4 py-1.5 text-sm"
+              className="data-[state=active]:bg-violet-500 data-[state=active]:text-white px-4 py-1.5 text-sm"
             >
               <Brain className="mr-1.5 h-3.5 w-3.5" />
               Aptitude Questions
             </TabsTrigger>
             <TabsTrigger
               value="coding"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white px-4 py-1.5 text-sm"
+              className="data-[state=active]:bg-violet-500 data-[state=active]:text-white px-4 py-1.5 text-sm"
             >
               <Code2 className="mr-1.5 h-3.5 w-3.5" />
               Coding Problems
             </TabsTrigger>
           </TabsList>
 
-          {/* TAB 1 — Aptitude */}
+          {/* TAB 1. Aptitude */}
           <TabsContent value="aptitude" className="mt-5">
             <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
               <AptitudeForm />
@@ -230,7 +226,7 @@ export function QuestionManager() {
             </div>
           </TabsContent>
 
-          {/* TAB 2 — Coding */}
+          {/* TAB 2. Coding */}
           <TabsContent value="coding" className="mt-5">
             <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
               <CodingForm />
@@ -240,7 +236,7 @@ export function QuestionManager() {
         </Tabs>
 
       </PageWrap>
-    </AuroraBackground>
+    </div>
   );
 }
 
@@ -259,9 +255,9 @@ function AptitudeForm() {
     cat && diff && sub.trim() && text.trim() && opts.every((o) => o.trim());
 
   return (
-    <GlowCard className="p-6">
+    <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
       <div className="flex items-center gap-2">
-        <ShieldQuestion className="h-4 w-4 text-violet-300" />
+        <ShieldQuestion className="h-4 w-4 text-violet-600 dark:text-violet-300" />
         <h3 className="text-sm font-medium">Add a question</h3>
       </div>
 
@@ -314,13 +310,13 @@ function AptitudeForm() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={3}
-          placeholder="Type the question…"
+          placeholder="Type the question..."
         />
       </div>
 
       <div className="mt-4 space-y-2">
         <p className="text-xs uppercase tracking-wider text-muted-foreground">
-          Options · select correct
+          Options. Select correct
         </p>
         <RadioGroup
           value={correct}
@@ -336,13 +332,13 @@ function AptitudeForm() {
                   "flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors",
                   correct === letter
                     ? "border-violet-400/40 bg-violet-500/10"
-                    : "border-white/10 bg-white/[0.02]",
+                    : "border-black/10 bg-muted/30 dark:border-white/10",
                 )}
               >
                 <RadioGroupItem value={letter} id={`opt-${letter}`} />
                 <Label
                   htmlFor={`opt-${letter}`}
-                  className="w-6 text-center font-semibold text-violet-200"
+                  className="w-6 text-center font-semibold text-violet-700 dark:text-violet-300"
                 >
                   {letter}
                 </Label>
@@ -373,16 +369,16 @@ function AptitudeForm() {
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <MagneticButton
+        <Button
           disabled={!valid}
-          className="h-10 rounded-full border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 px-5 text-white hover:from-violet-400 hover:to-fuchsia-400 disabled:opacity-50"
+          className="h-10 rounded-full bg-violet-500 px-5 text-white hover:bg-violet-600 disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-600"
         >
           <Plus className="mr-1.5 h-4 w-4" />
           Add Question
-        </MagneticButton>
+        </Button>
         <Button
           variant="outline"
-          className="h-10 rounded-full border-white/15 bg-white/5 hover:bg-white/10"
+          className="h-10 rounded-full"
         >
           <Upload className="mr-1.5 h-4 w-4" />
           Bulk Upload CSV
@@ -395,39 +391,41 @@ function AptitudeForm() {
           Download template
         </Button>
       </div>
-    </GlowCard>
+    </div>
   );
 }
 
 function AptitudeList() {
   return (
-    <GlowCard className="p-0">
-      <div className="flex items-center justify-between border-b border-white/5 px-5 py-3">
+    <div className="overflow-hidden rounded-lg border border-black/10 bg-background shadow-sm dark:border-white/10">
+      <div className="flex items-center justify-between border-b border-black/5 px-5 py-3 dark:border-white/5">
         <div>
           <p className="text-sm font-medium">Added questions</p>
           <p className="text-xs text-muted-foreground">
             {APT_QUESTIONS.length} questions in this campaign
           </p>
         </div>
-        <PulseBadge color="violet">{APT_QUESTIONS.length} total</PulseBadge>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-700 dark:text-violet-300">
+          {APT_QUESTIONS.length} total
+        </span>
       </div>
       <div className="max-h-[680px] overflow-y-auto scrollbar-custom">
         {APT_QUESTIONS.map((q) => (
           <div
             key={q.id}
-            className="border-b border-white/5 px-5 py-4 transition-colors hover:bg-white/[0.02]"
+            className="border-b border-black/5 px-5 py-4 transition-colors hover:bg-muted/30 dark:border-white/5"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge tag={q.category} tone="violet" />
-                <Badge tag={q.subTopic} tone="slate" />
-                <Badge tag={q.difficulty} tone={difficultyTone(q.difficulty)} />
+                <Tag tag={q.category} tone="violet" />
+                <Tag tag={q.subTopic} tone="slate" />
+                <Tag tag={q.difficulty} tone={difficultyTone(q.difficulty)} />
               </div>
               <div className="flex items-center gap-1">
-                <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-violet-200">
+                <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-violet-700 dark:hover:text-violet-300">
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
-                <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-rose-300">
+                <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-rose-600 dark:hover:text-rose-300">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -445,25 +443,30 @@ function AptitudeList() {
                     className={cn(
                       "flex items-center gap-2 rounded-md px-2 py-1 text-xs",
                       isCorrect
-                        ? "bg-emerald-500/10 text-emerald-200"
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                         : "text-muted-foreground",
                     )}
                   >
                     <span className="font-mono font-semibold">{letter}.</span>
                     {o}
-                    {isCorrect && <span className="ml-auto">✓ correct</span>}
+                    {isCorrect && (
+                      <span className="ml-auto inline-flex items-center gap-1">
+                        <Check className="h-3 w-3" />
+                        correct
+                      </span>
+                    )}
                   </div>
                 );
               })}
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              <span className="text-violet-200">Explanation:</span>{" "}
+              <span className="text-violet-700 dark:text-violet-300">Explanation:</span>{" "}
               {q.explanation}
             </p>
           </div>
         ))}
       </div>
-    </GlowCard>
+    </div>
   );
 }
 
@@ -485,9 +488,9 @@ function CodingForm() {
     title.trim() && diff && statement.trim() && signatures.trim();
 
   return (
-    <GlowCard className="p-6">
+    <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
       <div className="flex items-center gap-2">
-        <Terminal className="h-4 w-4 text-violet-300" />
+        <Terminal className="h-4 w-4 text-violet-600 dark:text-violet-300" />
         <h3 className="text-sm font-medium">Add a coding problem</h3>
       </div>
 
@@ -534,8 +537,8 @@ function CodingForm() {
               className={cn(
                 "flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm transition-colors",
                 type === o.v
-                  ? "border-violet-400/40 bg-violet-500/10 text-violet-100"
-                  : "border-white/10 bg-white/[0.02] hover:bg-white/[0.04]",
+                  ? "border-violet-400/40 bg-violet-500/10 text-violet-700 dark:text-violet-200"
+                  : "border-black/10 bg-muted/30 hover:bg-muted/50 dark:border-white/10",
               )}
             >
               <RadioGroupItem value={o.v} />
@@ -554,7 +557,7 @@ function CodingForm() {
           value={statement}
           onChange={(e) => setStatement(e.target.value)}
           rows={5}
-          placeholder="Describe the problem, constraints, examples…"
+          placeholder="Describe the problem, constraints, examples..."
           className="font-mono text-sm"
         />
       </div>
@@ -642,33 +645,35 @@ function CodingForm() {
       )}
 
       <div className="mt-5">
-        <MagneticButton
+        <Button
           disabled={!valid}
-          className="h-10 rounded-full border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 px-5 text-white hover:from-violet-400 hover:to-fuchsia-400 disabled:opacity-50"
+          className="h-10 rounded-full bg-violet-500 px-5 text-white hover:bg-violet-600 disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-600"
         >
           <Plus className="mr-1.5 h-4 w-4" />
           Add Coding Problem
-        </MagneticButton>
+        </Button>
       </div>
-    </GlowCard>
+    </div>
   );
 }
 
 function CodingList() {
   return (
-    <GlowCard className="p-0">
-      <div className="flex items-center justify-between border-b border-white/5 px-5 py-3">
+    <div className="overflow-hidden rounded-lg border border-black/10 bg-background shadow-sm dark:border-white/10">
+      <div className="flex items-center justify-between border-b border-black/5 px-5 py-3 dark:border-white/5">
         <div>
           <p className="text-sm font-medium">Added problems</p>
           <p className="text-xs text-muted-foreground">
             {CODING_PROBLEMS.length} problems in this campaign
           </p>
         </div>
-        <PulseBadge color="sky">{CODING_PROBLEMS.length} total</PulseBadge>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-700 dark:text-sky-300">
+          {CODING_PROBLEMS.length} total
+        </span>
       </div>
       <Table>
         <TableHeader>
-          <TableRow className="border-white/10 hover:bg-transparent">
+          <TableRow className="border-black/10 hover:bg-transparent dark:border-white/10">
             <TableHead className="pl-5">Title</TableHead>
             <TableHead className="hidden sm:table-cell">Type</TableHead>
             <TableHead>Difficulty</TableHead>
@@ -680,7 +685,7 @@ function CodingList() {
           {CODING_PROBLEMS.map((p) => (
             <TableRow
               key={p.id}
-              className="border-white/5 hover:bg-white/[0.02]"
+              className="border-black/5 hover:bg-muted/30 dark:border-white/5"
             >
               <TableCell className="pl-5 py-3">
                 <p className="text-sm font-medium">{p.title}</p>
@@ -689,7 +694,7 @@ function CodingList() {
                 </p>
               </TableCell>
               <TableCell className="hidden sm:table-cell">
-                <Badge
+                <Tag
                   tag={p.type}
                   tone={p.type === "SQL" ? "amber" : "violet"}
                   icon={
@@ -702,7 +707,7 @@ function CodingList() {
                 />
               </TableCell>
               <TableCell>
-                <Badge
+                <Tag
                   tag={p.difficulty}
                   tone={difficultyTone(p.difficulty)}
                 />
@@ -712,10 +717,10 @@ function CodingList() {
               </TableCell>
               <TableCell className="pr-5 text-right">
                 <div className="flex items-center justify-end gap-1">
-                  <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-violet-200">
+                  <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-violet-700 dark:hover:text-violet-300">
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
-                  <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-rose-300">
+                  <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-rose-600 dark:hover:text-rose-300">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -724,7 +729,7 @@ function CodingList() {
           ))}
         </TableBody>
       </Table>
-    </GlowCard>
+    </div>
   );
 }
 
@@ -736,7 +741,7 @@ function difficultyTone(d: string) {
   return "rose" as const;
 }
 
-function Badge({
+function Tag({
   tag,
   tone,
   icon,
@@ -746,12 +751,12 @@ function Badge({
   icon?: React.ReactNode;
 }) {
   const tones: Record<string, string> = {
-    violet: "border-violet-400/30 bg-violet-500/10 text-violet-200",
-    emerald: "border-emerald-400/30 bg-emerald-500/10 text-emerald-200",
-    amber: "border-amber-400/30 bg-amber-500/10 text-amber-200",
-    rose: "border-rose-400/30 bg-rose-500/10 text-rose-200",
-    sky: "border-sky-400/30 bg-sky-500/10 text-sky-200",
-    slate: "border-white/15 bg-white/5 text-white/80",
+    violet: "border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+    emerald: "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    amber: "border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    rose: "border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+    sky: "border-sky-400/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+    slate: "border-black/15 bg-muted/40 text-muted-foreground dark:border-white/15",
   };
   return (
     <span

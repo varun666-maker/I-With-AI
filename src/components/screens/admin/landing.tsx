@@ -4,7 +4,6 @@ import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
-  ArrowDown,
   BarChart3,
   Bell,
   Bot,
@@ -13,7 +12,6 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock,
-  Download,
   FileSearch,
   FileText,
   Filter,
@@ -24,29 +22,21 @@ import {
   Mail,
   Mailbox,
   Megaphone,
-  Plug,
   Quote,
   ScanFace,
   Send,
   Shield,
   ShieldCheck,
-  Sparkles,
-  Star,
   Target,
   TrendingDown,
   TrendingUp,
-  Trophy,
   Users,
   Video,
   Zap,
 } from "lucide-react";
 import {
-  AuroraBackground,
-  BorderBeam,
   GlowCard,
-  MagneticButton,
   Marquee,
-  PulseBadge,
   SectionHeading,
   StaggeredReveal,
   revealItem,
@@ -95,7 +85,7 @@ const FEATURES = [
   {
     icon: Link2,
     title: "One public apply link per campaign",
-    desc: "Share on LinkedIn, Naukri, or email. Resumes flow in automatically — no manual data entry, no spreadsheet tracking.",
+    desc: "Share on LinkedIn, Naukri, or email. Resumes flow in automatically. No manual data entry, no spreadsheet tracking.",
     span: "lg:col-span-2",
   },
   {
@@ -143,7 +133,7 @@ const PIPELINE_STEPS = [
 const COMPARISON = [
   { label: "Time per 500 applicants (first round)", manual: "~40 hours", automated: "1 hour", winner: "automated" },
   { label: "Scheduling conflicts", manual: "30% no-show rate", automated: "Zero (async AI)", winner: "automated" },
-  { label: "Interviewer bias", manual: "High — gut feel", automated: "Standardized AI scoring", winner: "automated" },
+  { label: "Interviewer bias", manual: "High. Gut feel", automated: "Standardized AI scoring", winner: "automated" },
   { label: "Proctoring integrity", manual: "None", automated: "3-strike + webcam frames", winner: "automated" },
   { label: "Cross-candidate comparison", manual: "Spreadsheet + notes", automated: "Ranked leaderboard + scores", winner: "automated" },
   { label: "Cost per hire (first round)", manual: "$2,400+ (eng hours)", automated: "$180 (platform fee)", winner: "automated" },
@@ -154,17 +144,15 @@ const TESTIMONIALS = [
     name: "Vikram Rao",
     role: "Head of Talent · Acme Corp",
     quote:
-      "We ran a 500-applicant campus drive in a single afternoon. The AI shortlist was tighter than our senior engineers' manual filter — and we saved 38 engineering hours that week.",
+      "We ran a 500-applicant campus drive in a single afternoon. The AI shortlist was tighter than our senior engineers' manual filter, and we saved 38 engineering hours that week.",
     metric: "38 eng hours saved",
-    accent: "from-violet-500/20 to-fuchsia-500/20",
   },
   {
     name: "Anjali Mehta",
     role: "Talent Acquisition Lead · TechStart",
     quote:
-      "The proctoring caught 3 candidates using phones off-screen. That alone paid for the platform — we would have hired one of them otherwise.",
+      "The proctoring caught 3 candidates using phones off-screen. That alone paid for the platform. We would have hired one of them otherwise.",
     metric: "3 integrity flags caught",
-    accent: "from-sky-500/20 to-emerald-500/20",
   },
   {
     name: "Rohit Sharma",
@@ -172,7 +160,6 @@ const TESTIMONIALS = [
     quote:
       "One-click shortlist + auto invite emails is the killer feature. I used to spend 2 hours per drive copy-pasting credentials. Now it's one button.",
     metric: "2 hrs → 1 click",
-    accent: "from-amber-500/20 to-rose-500/20",
   },
   {
     name: "Sneha Krishnan",
@@ -180,7 +167,6 @@ const TESTIMONIALS = [
     quote:
       "The 17-section report gives us a defensible audit trail for every hire. Legal loves it. Candidates who didn't make it get concrete feedback instead of silence.",
     metric: "100% auditable",
-    accent: "from-emerald-500/20 to-violet-500/20",
   },
   {
     name: "Karthik Iyer",
@@ -188,7 +174,6 @@ const TESTIMONIALS = [
     quote:
       "Went from 12% offer-accept to 21% after switching. The AI scores role-fit way better than our 30-min phone screens ever did.",
     metric: "+9% accept rate",
-    accent: "from-fuchsia-500/20 to-sky-500/20",
   },
 ];
 
@@ -245,7 +230,7 @@ const PRICING = [
 const FAQ = [
   {
     q: "How does the AI rank candidates without bias?",
-    a: "Gemini 1.5 Flash evaluates each resume against the job description you provide. Scores are based on skill-match, experience relevance, and project depth — never name, gender, photo, or college. The 17-section report is fully auditable, so you can defend every hire.",
+    a: "Gemini 1.5 Flash evaluates each resume against the job description you provide. Scores are based on skill-match, experience relevance, and project depth. Never name, gender, photo, or college. The 17-section report is fully auditable, so you can defend every hire.",
   },
   {
     q: "What happens if a candidate's internet drops mid-interview?",
@@ -261,11 +246,11 @@ const FAQ = [
   },
   {
     q: "Can we use our own question bank?",
-    a: "Yes. Each campaign has its own Question Set Manager — add aptitude questions one-by-one or bulk-upload CSV. Coding problems support DSA + SQL with per-language function signatures and 10 test cases (3 visible + 7 hidden).",
+    a: "Yes. Each campaign has its own Question Set Manager. Add aptitude questions one-by-one or bulk-upload CSV. Coding problems support DSA + SQL with per-language function signatures and 10 test cases (3 visible + 7 hidden).",
   },
   {
     q: "How does pricing scale?",
-    a: "Starter is free forever for a single drive. Growth is $299/mo for up to 500 candidates. Enterprise is custom — talk to us for high-volume campus drives, on-prem, or SSO.",
+    a: "Starter is free forever for a single drive. Growth is $299/mo for up to 500 candidates. Enterprise is custom. Talk to us for high-volume campus drives, on-prem, or SSO.",
   },
 ];
 
@@ -275,7 +260,7 @@ export function CompanyLanding() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       {/* ───────── HERO ───────── */}
       <section className="relative px-4 pt-20 pb-24 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl text-center">
@@ -285,9 +270,9 @@ export function CompanyLanding() {
             transition={{ duration: 0.5 }}
             className="flex justify-center"
           >
-            <PulseBadge color="emerald">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
               <Building2 className="h-3 w-3" /> For Companies · Hiring Mode
-            </PulseBadge>
+            </span>
           </motion.div>
 
           <motion.h1
@@ -298,7 +283,7 @@ export function CompanyLanding() {
           >
             Run your next campus drive
             <br className="hidden sm:block" />{" "}
-            <span className="gradient-text text-glow">in an afternoon.</span>
+            <span className="text-violet-500 dark:text-violet-400">in an afternoon.</span>
           </motion.h1>
 
           <motion.p
@@ -310,7 +295,7 @@ export function CompanyLanding() {
             One public apply link. AI ranks every resume. One click shortlists
             the top 10 and sends invite emails. Candidates take proctored
             aptitude, coding, and AI interview rounds async. You pick from a
-            ranked leaderboard — no scheduling, no phone screens, no gut-feel.
+            ranked leaderboard. No scheduling, no phone screens, no gut-feel.
           </motion.p>
 
           <motion.div
@@ -319,26 +304,26 @@ export function CompanyLanding() {
             transition={{ duration: 0.6, delay: 0.24 }}
             className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
-            <MagneticButton
+            <Button
               size="lg"
-              className="h-12 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-7 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
+              className="h-12 rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
               onClick={() => set("company-register")}
             >
               <Building2 className="mr-2 h-4 w-4" />
               Start Hiring Free
               <ArrowRight className="ml-2 h-4 w-4" />
-            </MagneticButton>
-            <MagneticButton
+            </Button>
+            <Button
               size="lg"
               variant="outline"
-              className="h-12 rounded-full px-7 border-white/15 bg-white/5 backdrop-blur hover:bg-white/10"
+              className="h-12 rounded-full px-7"
               onClick={() => {
                 document.getElementById("pipeline")?.scrollIntoView({ behavior: "smooth" });
               }}
             >
               <Video className="mr-2 h-4 w-4" />
               See How It Works
-            </MagneticButton>
+            </Button>
           </motion.div>
 
           <motion.div
@@ -348,16 +333,16 @@ export function CompanyLanding() {
             className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground"
           >
             <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Free for 1 campaign
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Free for 1 campaign
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> No credit card
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> No credit card
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> GDPR-ready
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> GDPR-ready
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Audit-trail reports
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Audit-trail reports
             </span>
           </motion.div>
         </div>
@@ -367,7 +352,7 @@ export function CompanyLanding() {
       </section>
 
       {/* ───────── ROI STATS ───────── */}
-      <section className="relative px-4 py-16 sm:px-6 lg:px-8 border-y border-white/5 bg-white/[0.01]">
+      <section className="relative px-4 py-16 sm:px-6 lg:px-8 border-y border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.02]">
         <div className="mx-auto max-w-7xl">
           <p className="mb-8 text-center text-xs uppercase tracking-widest text-muted-foreground">
             What companies actually get
@@ -379,13 +364,13 @@ export function CompanyLanding() {
                   <s.icon
                     className={cn(
                       "mx-auto h-6 w-6",
-                      s.tone === "violet" && "text-violet-300",
-                      s.tone === "amber" && "text-amber-300",
-                      s.tone === "emerald" && "text-emerald-300",
-                      s.tone === "sky" && "text-sky-300",
+                      s.tone === "violet" && "text-violet-500 dark:text-violet-300",
+                      s.tone === "amber" && "text-amber-500 dark:text-amber-300",
+                      s.tone === "emerald" && "text-emerald-500 dark:text-emerald-300",
+                      s.tone === "sky" && "text-sky-500 dark:text-sky-300",
                     )}
                   />
-                  <p className="mt-3 text-3xl font-semibold tracking-tight gradient-text">
+                  <p className="mt-3 text-3xl font-semibold tracking-tight text-violet-500 dark:text-violet-400">
                     {s.value}
                   </p>
                   <p className="mt-1 text-sm font-medium">{s.label}</p>
@@ -402,7 +387,7 @@ export function CompanyLanding() {
         <div className="mx-auto max-w-7xl">
           <SectionHeading
             eyebrow="The problem"
-            title={<>First-round screening is <span className="gradient-text">broken</span></>}
+            title={<>First-round screening is <span className="text-violet-500 dark:text-violet-400">broken</span></>}
             description="Recruiters and engineering managers waste dozens of hours per drive on work the AI can do better, faster, and with audit trail."
           />
           <div className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -415,7 +400,7 @@ export function CompanyLanding() {
                 transition={{ delay: i * 0.08, duration: 0.5 }}
               >
                 <GlowCard className="h-full p-6">
-                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-rose-500/10 text-rose-300 ring-1 ring-inset ring-rose-400/20">
+                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-rose-500/10 text-rose-500 ring-1 ring-inset ring-rose-400/20 dark:text-rose-300">
                     <p.icon className="h-5 w-5" />
                   </div>
                   <h3 className="mt-5 font-semibold">{p.title}</h3>
@@ -432,14 +417,14 @@ export function CompanyLanding() {
         <div className="mx-auto max-w-7xl">
           <SectionHeading
             eyebrow="The platform"
-            title={<>Built for <span className="gradient-text">high-volume hiring</span></>}
-            description="Six pillars that take you from a job description to a final shortlist — without scheduling a single phone screen."
+            title={<>Built for <span className="text-violet-500 dark:text-violet-400">high-volume hiring</span></>}
+            description="Six pillars that take you from a job description to a final shortlist. Without scheduling a single phone screen."
           />
           <StaggeredReveal className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f) => (
               <motion.div key={f.title} variants={revealItem} className={cn("relative", f.span)}>
                 <GlowCard className="h-full p-6">
-                  <div className="relative grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 text-violet-300 ring-1 ring-inset ring-white/10">
+                  <div className="relative grid h-12 w-12 place-items-center rounded-xl bg-violet-500/10 text-violet-500 ring-1 ring-inset ring-black/10 dark:text-violet-300 dark:ring-white/10">
                     <f.icon className="h-5 w-5" />
                   </div>
                   <h3 className="mt-5 text-lg font-semibold tracking-tight">{f.title}</h3>
@@ -456,7 +441,7 @@ export function CompanyLanding() {
         <div className="mx-auto max-w-7xl">
           <SectionHeading
             eyebrow="How it works"
-            title={<>From job description to <span className="gradient-text">final shortlist</span> in 7 steps</>}
+            title={<>From job description to <span className="text-violet-500 dark:text-violet-400">final shortlist</span> in 7 steps</>}
             description="One recruiter. One afternoon. Zero engineering interviews scheduled."
           />
           <div className="mt-14 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -473,7 +458,7 @@ export function CompanyLanding() {
                     <span className="font-mono text-[10px] text-muted-foreground">
                       STEP 0{i + 1}
                     </span>
-                    <div className="grid h-9 w-9 place-items-center rounded-full bg-violet-500/15 text-violet-300 ring-1 ring-inset ring-white/10">
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-violet-500/15 text-violet-500 ring-1 ring-inset ring-black/10 dark:text-violet-300 dark:ring-white/10">
                       <s.icon className="h-4 w-4" />
                     </div>
                   </div>
@@ -493,32 +478,30 @@ export function CompanyLanding() {
             className="mt-10"
           >
             <GlowCard className="relative overflow-hidden p-8 md:p-10">
-              <BorderBeam size={260} duration={14} />
-              <div className="absolute inset-0 -z-10 bg-gradient-to-br from-violet-500/10 via-transparent to-fuchsia-500/10" />
               <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:items-center">
                 <div className="md:col-span-2">
-                  <PulseBadge color="emerald">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
                     <Zap className="h-3 w-3" /> The killer automation
-                  </PulseBadge>
+                  </span>
                   <h3 className="mt-4 text-2xl font-semibold tracking-tight md:text-3xl">
                     Admin shares link →{" "}
-                    <span className="gradient-text">candidates auto-appear</span> →{" "}
+                    <span className="text-violet-500 dark:text-violet-400">candidates auto-appear</span> →{" "}
                     one click shortlists 10 →{" "}
-                    <span className="gradient-text">emails auto-sent.</span>
+                    <span className="text-violet-500 dark:text-violet-400">emails auto-sent.</span>
                   </h3>
                   <p className="mt-4 text-sm text-muted-foreground md:text-base">
                     No CSV exports. No copy-pasting credentials. No scheduling
                     individual invite emails. The system generates unique
-                    Candidate IDs (e.g. <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">BACKEN-3FA82C</code>),
+                    Candidate IDs (e.g. <code className="rounded bg-black/10 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">BACKEN-3FA82C</code>),
                     temporary passwords, and sends branded invite emails with
-                    the login URL + deadline — all in 2 seconds.
+                    the login URL + deadline. All in 2 seconds.
                   </p>
                 </div>
                 <div className="md:justify-self-end">
                   <Button
                     size="lg"
                     onClick={() => set("candidate-leaderboard")}
-                    className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
+                    className="rounded-full bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
                   >
                     See the leaderboard
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -535,29 +518,29 @@ export function CompanyLanding() {
         <div className="mx-auto max-w-5xl">
           <SectionHeading
             eyebrow="Manual vs InterviewAI"
-            title={<>The math is <span className="gradient-text">uncomfortable</span></>}
+            title={<>The math is <span className="text-violet-500 dark:text-violet-400">uncomfortable</span></>}
             description="Run the numbers on your last hiring drive. Then run them with InterviewAI."
           />
           <GlowCard className="mt-12 overflow-hidden p-0">
-            <div className="grid grid-cols-3 border-b border-white/10 bg-white/[0.03] text-xs uppercase tracking-wider text-muted-foreground">
+            <div className="grid grid-cols-3 border-b border-black/10 bg-black/[0.03] text-xs uppercase tracking-wider text-muted-foreground dark:border-white/10 dark:bg-white/[0.03]">
               <div className="p-4">Metric</div>
-              <div className="p-4 text-rose-300">Manual process</div>
-              <div className="p-4 text-emerald-300">With InterviewAI</div>
+              <div className="p-4 text-rose-500 dark:text-rose-300">Manual process</div>
+              <div className="p-4 text-emerald-500 dark:text-emerald-300">With InterviewAI</div>
             </div>
             {COMPARISON.map((row, i) => (
               <div
                 key={row.label}
                 className={cn(
                   "grid grid-cols-3 items-start gap-2 p-4 text-sm",
-                  i % 2 === 1 && "bg-white/[0.015]",
+                  i % 2 === 1 && "bg-black/[0.015] dark:bg-white/[0.015]",
                 )}
               >
                 <div className="font-medium">{row.label}</div>
-                <div className="flex items-start gap-1.5 text-rose-300/80">
+                <div className="flex items-start gap-1.5 text-rose-500/80 dark:text-rose-300/80">
                   <TrendingDown className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <span>{row.manual}</span>
                 </div>
-                <div className="flex items-start gap-1.5 text-emerald-300">
+                <div className="flex items-start gap-1.5 text-emerald-500 dark:text-emerald-300">
                   <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <span className="font-medium">{row.automated}</span>
                 </div>
@@ -572,16 +555,16 @@ export function CompanyLanding() {
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
             <div>
-              <PulseBadge color="amber">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
                 <Shield className="h-3 w-3" /> Proctoring &amp; integrity
-              </PulseBadge>
+              </span>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
-                Catch the cheaters. <span className="gradient-text">Defend every hire.</span>
+                Catch the cheaters. <span className="text-violet-500 dark:text-violet-400">Defend every hire.</span>
               </h2>
               <p className="mt-4 text-muted-foreground">
                 Every candidate round runs in fullscreen with mandatory camera.
-                Three strikes — tab switch, fullscreen exit, or detected
-                anomaly — and the test auto-submits with a 20% score penalty.
+                Three strikes: tab switch, fullscreen exit, or detected
+                anomaly, and the test auto-submits with a 20% score penalty.
                 Every flagged webcam frame is stored to Cloudinary for your
                 post-hire audit.
               </p>
@@ -590,17 +573,17 @@ export function CompanyLanding() {
                   { icon: ScanFace, label: "COCO-SSD detects phones & extra persons in frame" },
                   { icon: ShieldCheck, label: "3-strike auto-submit + integrity flag" },
                   { icon: FileText, label: "Every flag stored with webcam frame for review" },
-                  { icon: Gauge, label: "Integrity column on leaderboard — ✅ Clean / ⚠️ Flags / 🚫 Penalty" },
+                  { icon: Gauge, label: "Integrity column on leaderboard. Clean / Flags / Penalty" },
                 ].map((item) => (
                   <li key={item.label} className="flex items-start gap-2.5 text-sm">
-                    <item.icon className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                    <item.icon className="mt-0.5 h-4 w-4 shrink-0 text-amber-500 dark:text-amber-300" />
                     <span className="text-foreground/80">{item.label}</span>
                   </li>
                 ))}
               </ul>
               <Button
                 variant="outline"
-                className="mt-6 rounded-full border-white/15 bg-white/5 hover:bg-white/10"
+                className="mt-6 rounded-full"
                 onClick={() => set("proctoring-review")}
               >
                 See the proctoring review screen
@@ -614,7 +597,7 @@ export function CompanyLanding() {
                   <p className="text-xs text-muted-foreground">Candidate: Priya Sharma</p>
                   <p className="font-mono text-[10px] text-muted-foreground">BACKEN-3FA82C</p>
                 </div>
-                <Badge className="border-amber-400/30 bg-amber-500/10 text-amber-200">
+                <Badge className="border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-200">
                   <Shield className="mr-1 h-3 w-3" /> 2 flags
                 </Badge>
               </div>
@@ -638,7 +621,7 @@ export function CompanyLanding() {
                     <span
                       className={cn(
                         "flex-1",
-                        e.sev === "warn" ? "text-amber-200" : "text-rose-200",
+                        e.sev === "warn" ? "text-amber-700 dark:text-amber-200" : "text-rose-700 dark:text-rose-200",
                       )}
                     >
                       {e.event}
@@ -647,8 +630,8 @@ export function CompanyLanding() {
                       className={cn(
                         "rounded-full px-2 py-0.5 font-mono text-[9px] uppercase",
                         e.sev === "warn"
-                          ? "bg-amber-500/15 text-amber-200"
-                          : "bg-rose-500/15 text-rose-200",
+                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-200"
+                          : "bg-rose-500/15 text-rose-700 dark:text-rose-200",
                       )}
                     >
                       {e.sev === "warn" ? "Warning" : "Critical"}
@@ -656,10 +639,10 @@ export function CompanyLanding() {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.02] p-3 text-xs">
+              <div className="mt-4 rounded-lg border border-black/10 bg-black/[0.02] p-3 text-xs dark:border-white/10 dark:bg-white/[0.02]">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Integrity score</span>
-                  <span className="font-mono text-rose-300">🚫 20% penalty applied</span>
+                  <span className="font-mono text-rose-500 dark:text-rose-300">20% penalty applied</span>
                 </div>
               </div>
             </GlowCard>
@@ -668,7 +651,7 @@ export function CompanyLanding() {
       </section>
 
       {/* ───────── LOGO CLOUD ───────── */}
-      <section className="relative py-12 border-y border-white/5 bg-white/[0.01]">
+      <section className="relative py-12 border-y border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.02]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <p className="mb-6 text-center text-xs uppercase tracking-widest text-muted-foreground">
             Hiring teams who switched to InterviewAI
@@ -677,7 +660,7 @@ export function CompanyLanding() {
             {COMPANY_LOGOS.map((logo) => (
               <span
                 key={logo}
-                className="text-xl font-semibold tracking-tight text-white/40 transition-colors hover:text-white/80"
+                className="text-xl font-semibold tracking-tight text-foreground/40 transition-colors hover:text-foreground/80"
               >
                 {logo}
               </span>
@@ -691,23 +674,23 @@ export function CompanyLanding() {
         <div className="mx-auto max-w-7xl">
           <SectionHeading
             eyebrow="From the recruiters using it"
-            title={<>They're not going back to <span className="gradient-text">spreadsheets</span></>}
+            title={<>They're not going back to <span className="text-violet-500 dark:text-violet-400">spreadsheets</span></>}
             description="Real stories from talent teams who ran their last drive on InterviewAI."
           />
           <Marquee className="mt-14" pauseOnHover>
             {TESTIMONIALS.map((t) => (
               <article key={t.name} className="w-[340px] shrink-0">
-                <GlowCard className={cn("h-full p-6 bg-gradient-to-br", t.accent)}>
+                <GlowCard className="h-full p-6">
                   <div className="flex items-center justify-between">
-                    <Quote className="h-6 w-6 text-white/30" />
-                    <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-200">
+                    <Quote className="h-6 w-6 text-foreground/30" />
+                    <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">
                       <TrendingUp className="mr-1 h-3 w-3" />
                       {t.metric}
                     </Badge>
                   </div>
                   <p className="mt-3 text-sm text-pretty text-foreground/90">{t.quote}</p>
                   <div className="mt-5 flex items-center gap-3">
-                    <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-xs font-semibold text-white">
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-violet-500 text-xs font-semibold text-white">
                       {t.name.charAt(0)}
                     </div>
                     <div>
@@ -731,21 +714,21 @@ export function CompanyLanding() {
             description="Starter is free forever for a single campaign. Upgrade when you're running multiple drives a month."
           />
           <div className="mt-10 flex justify-center">
-            <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1">
+            <div className="inline-flex rounded-full border border-black/10 bg-black/[0.03] p-1 dark:border-white/10 dark:bg-white/[0.03]">
               {(["monthly", "yearly"] as const).map((b) => (
                 <button
                   key={b}
                   onClick={() => setBilling(b)}
                   className={cn(
                     "relative rounded-full px-4 py-1.5 text-xs font-medium capitalize transition-colors",
-                    billing === b ? "text-white" : "text-muted-foreground hover:text-white",
+                    billing === b ? "text-white" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {b}
                   {billing === b && (
                     <motion.span
                       layoutId="billing-pill-co"
-                      className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                      className="absolute inset-0 -z-10 rounded-full bg-violet-500"
                     />
                   )}
                 </button>
@@ -762,10 +745,9 @@ export function CompanyLanding() {
                     p.popular && "border-violet-400/40 bg-violet-500/[0.06]",
                   )}
                 >
-                  {p.popular && <BorderBeam size={220} duration={12} />}
                   {p.popular && (
-                    <Badge className="mb-4 w-fit border-violet-400/30 bg-violet-500/15 text-violet-200">
-                      <Sparkles className="mr-1 h-3 w-3" /> Most popular
+                    <Badge className="mb-4 w-fit border-violet-400/30 bg-violet-500/15 text-violet-700 dark:text-violet-200">
+                      Most popular
                     </Badge>
                   )}
                   <h3 className="text-lg font-semibold">{p.name}</h3>
@@ -783,14 +765,14 @@ export function CompanyLanding() {
                     )}
                   </div>
                   {billing === "yearly" && p.monthly !== null && (
-                    <p className="mt-1 text-[11px] text-emerald-300">
+                    <p className="mt-1 text-[11px] text-emerald-500 dark:text-emerald-300">
                       Billed annually · 20% off
                     </p>
                   )}
                   <ul className="mt-6 space-y-2.5">
                     {p.features.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-sm text-foreground/80">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                         {f}
                       </li>
                     ))}
@@ -799,8 +781,8 @@ export function CompanyLanding() {
                     className={cn(
                       "mt-7 w-full rounded-full",
                       p.popular
-                        ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
-                        : "bg-white/10 hover:bg-white/15 border border-white/10",
+                        ? "bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
+                        : "bg-black/10 hover:bg-black/15 dark:bg-white/10 dark:hover:bg-white/15",
                     )}
                     onClick={() => set(p.monthly === null ? "company-landing" : "company-register")}
                   >
@@ -819,7 +801,7 @@ export function CompanyLanding() {
           <SectionHeading
             eyebrow="FAQ"
             title="What talent teams ask before switching"
-            description="Still have a question? Hit us up — we'll get back within a working day."
+            description="Still have a question? Hit us up. We'll get back within a working day."
           />
           <div className="mt-12 space-y-3">
             {FAQ.map((item, i) => (
@@ -859,12 +841,10 @@ export function CompanyLanding() {
       <section className="relative px-4 py-24 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl">
           <GlowCard className="relative overflow-hidden p-10 text-center md:p-16">
-            <BorderBeam size={260} duration={14} />
-            <div className="absolute inset-0 -z-10 bg-gradient-to-br from-violet-500/20 via-transparent to-fuchsia-500/20" />
-            <Megaphone className="mx-auto h-10 w-10 text-violet-300" />
+            <Megaphone className="mx-auto h-10 w-10 text-violet-500 dark:text-violet-300" />
             <h2 className="mt-5 text-3xl font-semibold tracking-tight text-balance md:text-5xl">
               Your next drive could be{" "}
-              <span className="gradient-text">next Tuesday.</span>
+              <span className="text-violet-500 dark:text-violet-400">next Tuesday.</span>
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-pretty text-muted-foreground">
               Create a free company account, generate your apply link, and
@@ -872,14 +852,14 @@ export function CompanyLanding() {
               card, no sales call, no commitment.
             </p>
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <MagneticButton
+              <Button
                 size="lg"
-                className="h-12 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-7 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
+                className="h-12 rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
                 onClick={() => set("company-register")}
               >
                 <Building2 className="mr-2 h-4 w-4" />
                 Create Company Account
-              </MagneticButton>
+              </Button>
               <Button
                 size="lg"
                 variant="ghost"
@@ -895,21 +875,21 @@ export function CompanyLanding() {
       </section>
 
       {/* ───────── FOOTER ───────── */}
-      <footer className="relative border-t border-white/5 bg-white/[0.01]">
+      <footer className="relative border-t border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.02]">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2">
-                <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+                <div className="grid h-8 w-8 place-items-center rounded-lg bg-violet-500 text-white">
                   <Building2 className="h-4 w-4" />
                 </div>
                 <span className="font-semibold">
-                  Interview<span className="gradient-text">AI</span>
+                  Interview<span className="text-violet-500 dark:text-violet-400">AI</span>
                 </span>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
                 AI-powered hiring platform for high-volume recruiting. From
-                apply link to final shortlist — automated.
+                apply link to final shortlist. Automated.
               </p>
             </div>
             <FooterCol
@@ -928,7 +908,7 @@ export function CompanyLanding() {
               onClick={() => set("company-landing")}
             />
           </div>
-          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-6 sm:flex-row">
+          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-black/10 pt-6 sm:flex-row dark:border-white/10">
             <p className="text-xs text-muted-foreground">
               © 2025 InterviewAI. All rights reserved.
             </p>
@@ -936,11 +916,11 @@ export function CompanyLanding() {
               <input
                 type="email"
                 placeholder="hr@company.com"
-                className="h-9 w-full max-w-xs rounded-full border border-white/10 bg-white/5 px-4 text-xs outline-none focus:border-violet-400/40 focus:ring-2 focus:ring-violet-400/20"
+                className="h-9 w-full max-w-xs rounded-full border border-black/10 bg-black/[0.03] px-4 text-xs outline-none focus:border-violet-400/40 focus:ring-2 focus:ring-violet-400/20 dark:border-white/10 dark:bg-white/[0.03]"
               />
               <Button
                 size="sm"
-                className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0"
+                className="rounded-full bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
               >
                 <Mailbox className="mr-1 h-3 w-3" />
                 Get Sales
@@ -950,7 +930,7 @@ export function CompanyLanding() {
         </div>
       </footer>
 
-    </AuroraBackground>
+    </div>
   );
 }
 
@@ -973,7 +953,7 @@ function FooterCol({
           <li key={l}>
             <button
               onClick={onClick}
-              className="text-sm text-foreground/70 transition-colors hover:text-white"
+              className="text-sm text-foreground/70 transition-colors hover:text-foreground"
             >
               {l}
             </button>
@@ -985,8 +965,8 @@ function FooterCol({
 }
 
 /**
- * A floating animated dashboard mockup showing what the recruiter sees —
- * leaderboard with ranked candidates, integrity column, and a
+ * A floating animated dashboard mockup showing what the recruiter sees.
+ * Leaderboard with ranked candidates, integrity column, and a
  * "Shortlist & Send Invites" CTA.
  */
 function CompanyMockup() {
@@ -999,16 +979,15 @@ function CompanyMockup() {
       className="relative mx-auto mt-16 max-w-5xl"
     >
       <GlowCard className="relative overflow-hidden p-2 md:p-3">
-        <BorderBeam size={280} duration={14} />
         {/* Window chrome */}
-        <div className="flex items-center gap-1.5 border-b border-white/5 px-4 py-2.5">
+        <div className="flex items-center gap-1.5 border-b border-black/10 px-4 py-2.5 dark:border-white/10">
           <span className="h-2.5 w-2.5 rounded-full bg-rose-500/70" />
           <span className="h-2.5 w-2.5 rounded-full bg-amber-500/70" />
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/70" />
           <div className="ml-3 flex-1">
-            <div className="h-5 max-w-xs rounded-md bg-white/5" />
+            <div className="h-5 max-w-xs rounded-md bg-black/5 dark:bg-white/5" />
           </div>
-          <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-200">
+          <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">
             <Bell className="mr-1 h-3 w-3" /> 3 new applicants
           </Badge>
         </div>
@@ -1018,12 +997,12 @@ function CompanyMockup() {
           {/* Stats row */}
           <div className="col-span-12 grid grid-cols-2 gap-3 md:grid-cols-4">
             {[
-              { label: "Total", value: "47", tone: "text-violet-300", icon: Users },
-              { label: "Shortlisted", value: "10", tone: "text-emerald-300", icon: ListChecks },
-              { label: "Invited", value: "10", tone: "text-sky-300", icon: Mail },
-              { label: "Completed", value: "6", tone: "text-amber-300", icon: CheckCircle2 },
+              { label: "Total", value: "47", tone: "text-violet-500 dark:text-violet-300", icon: Users },
+              { label: "Shortlisted", value: "10", tone: "text-emerald-500 dark:text-emerald-300", icon: ListChecks },
+              { label: "Invited", value: "10", tone: "text-sky-500 dark:text-sky-300", icon: Mail },
+              { label: "Completed", value: "6", tone: "text-amber-500 dark:text-amber-300", icon: CheckCircle2 },
             ].map((s) => (
-              <div key={s.label} className="rounded-xl bg-white/[0.02] p-3">
+              <div key={s.label} className="rounded-xl bg-black/[0.02] p-3 dark:bg-white/[0.02]">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[11px]">{s.label}</span>
                   <s.icon className={cn("h-3.5 w-3.5", s.tone)} />
@@ -1035,7 +1014,7 @@ function CompanyMockup() {
 
           {/* Leaderboard table preview */}
           <div className="col-span-12">
-            <div className="rounded-xl bg-white/[0.02] p-3">
+            <div className="rounded-xl bg-black/[0.02] p-3 dark:bg-white/[0.02]">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs font-semibold">Backend SDE-1 · Candidate leaderboard</p>
                 <div className="flex items-center gap-1.5">
@@ -1053,13 +1032,13 @@ function CompanyMockup() {
                 ].map((c) => (
                   <div
                     key={c.rank}
-                    className="grid grid-cols-12 items-center gap-2 rounded-md border border-white/5 bg-white/[0.02] px-2.5 py-2 text-[11px]"
+                    className="grid grid-cols-12 items-center gap-2 rounded-md border border-black/5 bg-black/[0.02] px-2.5 py-2 text-[11px] dark:border-white/5 dark:bg-white/[0.02]"
                   >
                     <span className="col-span-1 font-mono text-muted-foreground">
                       #{c.rank}
                     </span>
                     <div className="col-span-4 flex items-center gap-2">
-                      <div className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[10px] font-semibold text-white">
+                      <div className="grid h-6 w-6 place-items-center rounded-full bg-violet-500 text-[10px] font-semibold text-white">
                         {c.name.charAt(0)}
                       </div>
                       <span className="truncate font-medium">{c.name}</span>
@@ -1069,17 +1048,17 @@ function CompanyMockup() {
                         className={cn(
                           "rounded-full px-1.5 py-0.5 text-[9px] font-medium",
                           c.src === "Apply Link"
-                            ? "bg-emerald-500/15 text-emerald-200"
-                            : "bg-sky-500/15 text-sky-200",
+                            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-200"
+                            : "bg-sky-500/15 text-sky-700 dark:text-sky-200",
                         )}
                       >
                         {c.src}
                       </span>
                     </span>
                     <div className="col-span-3 flex items-center gap-1.5 md:col-span-2">
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                          className="h-full rounded-full bg-violet-500"
                           style={{ width: `${c.fit}%` }}
                         />
                       </div>
@@ -1090,9 +1069,9 @@ function CompanyMockup() {
                     </span>
                     <span className="col-span-2 flex items-center justify-end gap-1 md:col-span-1">
                       {c.integrity === "clean" ? (
-                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
                       ) : (
-                        <Shield className="h-3.5 w-3.5 text-amber-400" />
+                        <Shield className="h-3.5 w-3.5 text-amber-500" />
                       )}
                     </span>
                   </div>
@@ -1102,7 +1081,7 @@ function CompanyMockup() {
                 <span className="text-[10px] text-muted-foreground">
                   + 42 more candidates
                 </span>
-                <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-3 py-1.5 text-[10px] font-medium text-white">
+                <div className="flex items-center gap-1.5 rounded-full bg-violet-500 px-3 py-1.5 text-[10px] font-medium text-white">
                   <Send className="h-3 w-3" />
                   Shortlist &amp; Send Invites · 10
                 </div>
@@ -1114,19 +1093,19 @@ function CompanyMockup() {
         {/* Floating UI elements */}
         <FloatingChip
           className="left-2 top-1/3"
-          icon={<Link2 className="h-3 w-3 text-violet-300" />}
+          icon={<Link2 className="h-3 w-3 text-violet-500 dark:text-violet-300" />}
           label="Apply link live · 23 clicks"
         />
         <FloatingChip
           className="right-2 top-1/4"
-          icon={<Bot className="h-3 w-3 text-emerald-300" />}
+          icon={<Bot className="h-3 w-3 text-emerald-500 dark:text-emerald-300" />}
           label="47 resumes auto-analyzed"
           delay={0.8}
         />
         <FloatingChip
           className="right-1/4 bottom-2"
-          icon={<Mail className="h-3 w-3 text-amber-300" />}
-          label="10 invite emails sent ✅"
+          icon={<Mail className="h-3 w-3 text-amber-500 dark:text-amber-300" />}
+          label="10 invite emails sent"
           delay={1.4}
         />
       </GlowCard>
@@ -1162,7 +1141,7 @@ function FloatingChip({
           : { repeat: Infinity, duration: 4, ease: "easeInOut", delay: delay + 1 },
       }}
       className={cn(
-        "absolute hidden md:flex items-center gap-1.5 rounded-full border border-white/15 bg-card/90 px-2.5 py-1.5 text-[11px] backdrop-blur-xl shadow-2xl",
+        "absolute hidden md:flex items-center gap-1.5 rounded-full border border-black/10 bg-card/90 px-2.5 py-1.5 text-[11px] backdrop-blur-xl shadow-sm dark:border-white/15",
         className,
       )}
     >

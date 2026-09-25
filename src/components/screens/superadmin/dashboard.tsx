@@ -11,21 +11,19 @@ import {
   ListChecks,
   ScrollText,
   Settings2,
-  Sparkles,
   Users,
   Zap,
 } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
 import {
-  AuroraBackground,
   GlowCard,
   PageWrap,
-  PulseBadge,
   SectionHeading,
   StatCard,
   StaggeredReveal,
   revealItem,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -80,7 +78,7 @@ const NAV_CARDS = [
   {
     id: "superadmin-audit" as const,
     title: "Audit Logs",
-    desc: "Every admin action across the platform — searchable.",
+    desc: "Every admin action across the platform. Searchable.",
     icon: ScrollText,
     tone: "rose" as const,
   },
@@ -94,19 +92,19 @@ const NAV_CARDS = [
 ];
 
 const TONE_RING: Record<string, string> = {
-  violet: "from-violet-500/20 to-fuchsia-500/20 text-violet-300",
-  sky: "from-sky-500/20 to-cyan-500/20 text-sky-300",
-  emerald: "from-emerald-500/20 to-teal-500/20 text-emerald-300",
-  amber: "from-amber-500/20 to-orange-500/20 text-amber-300",
-  rose: "from-rose-500/20 to-pink-500/20 text-rose-300",
-  slate: "from-white/10 to-white/5 text-white/80",
+  violet: "bg-violet-500/10 text-violet-600 dark:text-violet-300",
+  sky: "bg-sky-500/10 text-sky-600 dark:text-sky-300",
+  emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+  amber: "bg-amber-500/10 text-amber-600 dark:text-amber-300",
+  rose: "bg-rose-500/10 text-rose-600 dark:text-rose-300",
+  slate: "bg-black/5 text-foreground dark:bg-white/10 dark:text-white/80",
 };
 
 export function SuperAdminDashboard() {
   const { set } = useNav();
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap>
         {/* Header */}
         <motion.header
@@ -116,26 +114,23 @@ export function SuperAdminDashboard() {
           className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
         >
           <div>
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-violet-300" />
-              <p className="text-xs uppercase tracking-widest text-violet-300/80">
-                Super Admin · Platform Overview
-              </p>
-            </div>
+            <p className="text-xs uppercase tracking-widest text-violet-600 dark:text-violet-300/80">
+              Super Admin · Platform Overview
+            </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">
-              Mission control for <span className="gradient-text">InterviewAI</span>
+              Mission control for <span className="text-violet-500 dark:text-violet-400">InterviewAI</span>
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
               Full cross-tenant visibility. Manage companies, users, AI quota,
               questions, infrastructure and audit trails from a single console.
             </p>
           </div>
-          <PulseBadge color="emerald" className="self-start sm:self-end">
+          <Badge variant="outline" className="self-start rounded-full border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300 sm:self-end">
             All systems operational
-          </PulseBadge>
+          </Badge>
         </motion.header>
 
-        {/* Stat cards — 4×2 grid (2×4 on mobile) */}
+        {/* Stat cards. 4×2 grid (2×4 on mobile) */}
         <StaggeredReveal
           className="grid grid-cols-2 gap-4 lg:grid-cols-4"
           delay={0.05}
@@ -199,7 +194,7 @@ export function SuperAdminDashboard() {
               label="DB Health"
               value={
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="text-emerald-300">✅</span> Good
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" /> Good
                 </span>
               }
               hint="PostgreSQL · 12ms"
@@ -212,7 +207,7 @@ export function SuperAdminDashboard() {
               label="Redis Health"
               value={
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="text-emerald-300">✅</span> Good
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" /> Good
                 </span>
               }
               hint="Upstash · 3ms"
@@ -222,7 +217,7 @@ export function SuperAdminDashboard() {
           </motion.div>
         </StaggeredReveal>
 
-        {/* Platform pulse — mini chart */}
+        {/* Platform pulse. Mini chart */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -301,7 +296,7 @@ export function SuperAdminDashboard() {
                   >
                     <div
                       className={cn(
-                        "grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br ring-1 ring-inset ring-white/10 transition-transform group-hover:scale-110",
+                        "grid h-11 w-11 place-items-center rounded-lg ring-1 ring-inset ring-black/10 transition-transform group-hover:scale-110 dark:ring-white/10",
                         TONE_RING[c.tone],
                       )}
                     >
@@ -322,6 +317,6 @@ export function SuperAdminDashboard() {
         </section>
 
       </PageWrap>
-    </AuroraBackground>
+    </div>
   );
 }

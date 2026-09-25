@@ -12,16 +12,9 @@ import {
   Lock,
   Mail,
   ShieldCheck,
-  Sparkles,
   User,
 } from "lucide-react";
-import {
-  AuroraBackground,
-  GlowCard,
-  MagneticButton,
-  PageWrap,
-  PulseBadge,
-} from "@/components/shared/primitives";
+import { PageWrap } from "@/components/shared/primitives";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,7 +58,6 @@ export function CompanyRegister() {
     e.preventDefault();
     if (!canSubmit) return;
     setLoading(true);
-    // mock — simulate API + redirect
     setTimeout(() => {
       setLoading(false);
       set("admin-dashboard");
@@ -73,28 +65,30 @@ export function CompanyRegister() {
   };
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap className="pt-10 sm:pt-16">
         <button
           onClick={() => set("landing")}
-          className="mb-6 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-white"
+          className="mb-6 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
           Back to home
         </button>
 
         <div className="grid items-start gap-8 lg:grid-cols-[1.05fr_1fr]">
-          {/* LEFT — pitch */}
+          {/* LEFT. pitch */}
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="hidden lg:block"
           >
-            <PulseBadge color="sky">For Companies · Hiring Mode</PulseBadge>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-700 dark:text-violet-300">
+              For Companies. Hiring Mode.
+            </span>
             <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-balance md:text-5xl">
-              Hire 100 candidates in a week —{" "}
-              <span className="gradient-text text-glow">not a quarter.</span>
+              Hire 100 candidates in a week.{" "}
+              <span className="text-violet-600 dark:text-violet-400">Not a quarter.</span>
             </h1>
             <p className="mt-5 max-w-xl text-base text-pretty text-muted-foreground md:text-lg">
               Share one apply link, and our pipeline auto-collects resumes,
@@ -110,9 +104,9 @@ export function CompanyRegister() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
-                  className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3"
+                  className="flex items-center gap-3 rounded-lg border border-black/10 bg-background p-3 dark:border-white/10"
                 >
-                  <div className="grid h-8 w-8 place-items-center rounded-md bg-emerald-500/10 text-emerald-300">
+                  <div className="grid h-8 w-8 place-items-center rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
                     <Check className="h-4 w-4" />
                   </div>
                   <span className="text-sm text-foreground/90">{t}</span>
@@ -120,13 +114,13 @@ export function CompanyRegister() {
               ))}
             </div>
 
-            <div className="mt-8 flex items-center gap-4 rounded-xl border border-white/10 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 p-5">
-              <div className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
-                <Sparkles className="h-5 w-5" />
+            <div className="mt-8 flex items-center gap-4 rounded-lg border border-black/10 bg-violet-500/5 p-5 dark:border-white/10 dark:bg-violet-500/10">
+              <div className="grid h-12 w-12 place-items-center rounded-lg bg-violet-500 text-white">
+                <Building2 className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground">
-                  One-time setup · 2 minutes
+                  One-time setup. 2 minutes.
                 </p>
                 <p className="text-xs text-muted-foreground">
                   No credit card. Free for 14 days.
@@ -135,15 +129,15 @@ export function CompanyRegister() {
             </div>
           </motion.div>
 
-          {/* RIGHT — form */}
+          {/* RIGHT. form */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <GlowCard className="p-6 sm:p-8">
+            <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10 sm:p-8">
               <div className="flex items-center gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_24px_-4px_rgba(168,85,247,0.6)]">
+                <div className="grid h-11 w-11 place-items-center rounded-lg bg-violet-500 text-white">
                   <Building2 className="h-5 w-5" />
                 </div>
                 <div>
@@ -160,7 +154,7 @@ export function CompanyRegister() {
                 <Field
                   label="Company Name"
                   icon={<Building2 className="h-4 w-4" />}
-                  placeholder="e.g. Acme Labs Pvt Ltd"
+                  placeholder="e.g. Northwind Labs Pvt Ltd"
                   value={form.company}
                   onChange={(v) => setForm({ ...form, company: v })}
                   required
@@ -177,7 +171,7 @@ export function CompanyRegister() {
                   label="Admin Email"
                   icon={<Mail className="h-4 w-4" />}
                   type="email"
-                  placeholder="priya@acme.com"
+                  placeholder="priya@northwind.com"
                   value={form.email}
                   onChange={(v) => setForm({ ...form, email: v })}
                   error={
@@ -210,7 +204,7 @@ export function CompanyRegister() {
                     <button
                       type="button"
                       onClick={() => setShowPw(!showPw)}
-                      className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:text-white"
+                      className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
                       aria-label={showPw ? "Hide password" : "Show password"}
                     >
                       {showPw ? (
@@ -221,7 +215,7 @@ export function CompanyRegister() {
                     </button>
                   </div>
                   {pwTooShort && (
-                    <p className="text-xs text-rose-300">
+                    <p className="text-xs text-rose-600 dark:text-rose-300">
                       Password must be at least 8 characters
                     </p>
                   )}
@@ -252,7 +246,8 @@ export function CompanyRegister() {
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:text-white"
+                      className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
+                      aria-label={showConfirm ? "Hide password" : "Show password"}
                     >
                       {showConfirm ? (
                         <EyeOff className="h-4 w-4" />
@@ -262,14 +257,14 @@ export function CompanyRegister() {
                     </button>
                   </div>
                   {pwMismatch && (
-                    <p className="text-xs text-rose-300">
+                    <p className="text-xs text-rose-600 dark:text-rose-300">
                       Passwords do not match
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-start gap-2 rounded-lg border border-white/5 bg-white/[0.02] p-3 text-xs text-muted-foreground">
-                  <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" />
+                <div className="flex items-start gap-2 rounded-lg border border-black/5 bg-muted/30 p-3 text-xs text-muted-foreground dark:border-white/5">
+                  <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-300" />
                   <span>
                     By registering you agree to the{" "}
                     <span className="text-foreground/80">Terms of Service</span>{" "}
@@ -279,19 +274,19 @@ export function CompanyRegister() {
                   </span>
                 </div>
 
-                <MagneticButton
+                <Button
                   type="submit"
                   disabled={!canSubmit || loading}
                   className={cn(
-                    "h-11 w-full rounded-lg border-0 text-white",
-                    "bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400",
+                    "h-11 w-full rounded-full text-white",
+                    "bg-violet-500 hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600",
                     "disabled:opacity-50 disabled:cursor-not-allowed",
                   )}
                 >
                   {loading ? (
                     <>
                       <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                      Creating account…
+                      Creating account...
                     </>
                   ) : (
                     <>
@@ -299,25 +294,25 @@ export function CompanyRegister() {
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </>
                   )}
-                </MagneticButton>
+                </Button>
 
                 <p className="text-center text-xs text-muted-foreground">
                   Already have an account?{" "}
                   <button
                     type="button"
                     onClick={() => set("landing")}
-                    className="font-medium text-violet-300 hover:text-violet-200"
+                    className="font-medium text-violet-600 hover:text-violet-700 dark:text-violet-300 dark:hover:text-violet-200"
                   >
                     Sign in
                   </button>
                 </p>
               </form>
-            </GlowCard>
+            </div>
           </motion.div>
         </div>
 
       </PageWrap>
-    </AuroraBackground>
+    </div>
   );
 }
 
@@ -345,7 +340,7 @@ function Field({
   return (
     <div className="space-y-1.5">
       <Label className="text-xs text-muted-foreground">
-        {label} {required && <span className="text-rose-300">*</span>}
+        {label} {required && <span className="text-rose-600 dark:text-rose-300">*</span>}
       </Label>
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -362,7 +357,7 @@ function Field({
           )}
         />
       </div>
-      {error && <p className="text-xs text-rose-300">{error}</p>}
+      {error && <p className="text-xs text-rose-600 dark:text-rose-300">{error}</p>}
     </div>
   );
 }

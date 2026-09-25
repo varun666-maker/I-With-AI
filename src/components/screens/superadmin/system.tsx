@@ -4,21 +4,20 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
+  CheckCircle2,
   Eye,
   EyeOff,
   KeyRound,
   Save,
   Settings2,
-  Sparkles,
   Wrench,
 } from "lucide-react";
 import {
-  AuroraBackground,
   GlowCard,
   PageWrap,
-  PulseBadge,
   SectionHeading,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -129,7 +128,7 @@ function MaskedKeyField({ prefix }: { prefix: string }) {
             </Button>
             <Button
               size="sm"
-              className="h-8 border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-xs text-white"
+              className="h-8 bg-violet-500 text-xs text-white hover:bg-violet-600"
               onClick={() => {
                 setSaved(value);
                 setValue("");
@@ -163,7 +162,7 @@ export function SystemConfig() {
     setFeatures((s) => ({ ...s, [id]: on }));
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap>
         <motion.header
           initial={{ opacity: 0, y: 16 }}
@@ -173,28 +172,28 @@ export function SystemConfig() {
         >
           <div>
             <div className="flex items-center gap-2">
-              <Settings2 className="h-4 w-4 text-violet-300" />
-              <p className="text-xs uppercase tracking-widest text-violet-300/80">
+              <Settings2 className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+              <p className="text-xs uppercase tracking-widest text-violet-600 dark:text-violet-300/80">
                 Super Admin · System Config
               </p>
             </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">
-              Platform <span className="gradient-text">configuration</span>
+              Platform <span className="text-violet-500 dark:text-violet-400">configuration</span>
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
               One console for every platform-wide switch. Maintenance mode,
               proctoring strictness, email provider, masked API keys and
-              feature toggles — all here.
+              feature toggles. All here.
             </p>
           </div>
           {maintenance ? (
-            <PulseBadge color="rose" className="self-start sm:self-end">
+            <Badge variant="outline" className="self-start rounded-full border-rose-400/40 bg-rose-500/10 px-3 py-1 text-rose-700 dark:text-rose-300 sm:self-end">
               Maintenance ON
-            </PulseBadge>
+            </Badge>
           ) : (
-            <PulseBadge color="emerald" className="self-start sm:self-end">
+            <Badge variant="outline" className="self-start rounded-full border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300 sm:self-end">
               All systems live
-            </PulseBadge>
+            </Badge>
           )}
         </motion.header>
 
@@ -213,7 +212,6 @@ export function SystemConfig() {
                 title="Platform-wide configuration"
                 description="Affects every tenant on the platform."
               />
-              <Sparkles className="h-5 w-5 text-violet-300/60" />
             </div>
             <div className="overflow-x-auto scrollbar-custom">
               <Table>
@@ -240,9 +238,9 @@ export function SystemConfig() {
                     </TableCell>
                     <TableCell>
                       {maintenance ? (
-                        <PulseBadge color="rose">ON</PulseBadge>
+                        <Badge variant="outline" className="rounded-full border-rose-400/40 bg-rose-500/10 px-2.5 py-0.5 text-rose-700 dark:text-rose-300">ON</Badge>
                       ) : (
-                        <PulseBadge color="slate">OFF</PulseBadge>
+                        <Badge variant="outline" className="rounded-full border-black/10 bg-black/5 px-2.5 py-0.5 text-muted-foreground dark:border-white/10 dark:bg-white/5">OFF</Badge>
                       )}
                     </TableCell>
                     <TableCell className="pr-5">
@@ -270,9 +268,9 @@ export function SystemConfig() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <PulseBadge color="violet" className="capitalize">
+                      <Badge variant="outline" className="rounded-full border-violet-400/40 bg-violet-500/10 px-2.5 py-0.5 capitalize text-violet-700 dark:text-violet-300">
                         {proctoring}
-                      </PulseBadge>
+                      </Badge>
                     </TableCell>
                     <TableCell className="pr-5">
                       <Select value={proctoring} onValueChange={setProctoring}>
@@ -300,9 +298,9 @@ export function SystemConfig() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <PulseBadge color="sky" className="uppercase">
+                      <Badge variant="outline" className="rounded-full border-sky-400/40 bg-sky-500/10 px-2.5 py-0.5 uppercase text-sky-700 dark:text-sky-300">
                         {emailProvider}
-                      </PulseBadge>
+                      </Badge>
                     </TableCell>
                     <TableCell className="pr-5">
                       <Select value={emailProvider} onValueChange={setEmailProvider}>
@@ -435,18 +433,19 @@ export function SystemConfig() {
             <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-300" />
             <p>
               Changes apply instantly across all tenants. Toggling Hiring Mode
-              off will hide every company & campaign route — but in-flight
+              off will hide every company & campaign route. In-flight
               candidate sessions continue.
             </p>
           </div>
           <div className="flex items-center gap-3">
             {savedAt && (
-              <span className="text-xs text-emerald-300">
-                ✅ Saved at {savedAt}
+              <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-300">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Saved at {savedAt}
               </span>
             )}
             <Button
-              className="border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white hover:from-violet-400 hover:to-fuchsia-400"
+              className="bg-violet-500 text-white hover:bg-violet-600"
               onClick={() => {
                 const now = new Date();
                 setSavedAt(
@@ -461,6 +460,6 @@ export function SystemConfig() {
         </motion.div>
 
       </PageWrap>
-    </AuroraBackground>
+    </div>
   );
 }

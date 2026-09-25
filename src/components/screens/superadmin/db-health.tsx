@@ -15,15 +15,14 @@ import {
   Zap,
 } from "lucide-react";
 import {
-  AuroraBackground,
   GlowCard,
   PageWrap,
-  PulseBadge,
   SectionHeading,
   StatCard,
   StaggeredReveal,
   revealItem,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -168,7 +167,7 @@ export function DatabaseHealth() {
   const totalRows = TABLE_SIZES.reduce((a, t) => a + t.rows, 0);
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap>
         <motion.header
           initial={{ opacity: 0, y: 16 }}
@@ -178,23 +177,23 @@ export function DatabaseHealth() {
         >
           <div>
             <div className="flex items-center gap-2">
-              <Database className="h-4 w-4 text-violet-300" />
-              <p className="text-xs uppercase tracking-widest text-violet-300/80">
+              <Database className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+              <p className="text-xs uppercase tracking-widest text-violet-600 dark:text-violet-300/80">
                 Super Admin · Database Health
               </p>
             </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">
-              Infrastructure <span className="gradient-text">health</span>
+              Infrastructure <span className="text-violet-500 dark:text-violet-400">health</span>
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
-              Live status for every backend dependency — relational, document,
+              Live status for every backend dependency. Relational, document,
               cache, media, sandbox and worker. Run a full health check any
               time.
             </p>
           </div>
-          <PulseBadge color="emerald" className="self-start sm:self-end">
+          <Badge variant="outline" className="self-start rounded-full border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300 sm:self-end">
             {okCount}/{components.length} healthy
-          </PulseBadge>
+          </Badge>
         </motion.header>
 
         {/* Top summary cards */}
@@ -207,7 +206,7 @@ export function DatabaseHealth() {
               label="Components"
               value={
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="text-emerald-300">✅</span> {okCount}
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" /> {okCount}
                 </span>
               }
               hint={`of ${components.length} up`}
@@ -256,7 +255,7 @@ export function DatabaseHealth() {
             align="left"
             eyebrow="Components"
             title="Per-service status"
-            description="If any component is down it shows ❌ with an actionable error message."
+            description="If any component is down it shows a red Down badge with an actionable error message."
           />
           <StaggeredReveal
             className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
@@ -268,20 +267,20 @@ export function DatabaseHealth() {
                   <div className="flex items-start justify-between gap-3">
                     <div
                       className={cn(
-                        "grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br ring-1 ring-inset ring-white/10",
-                        c.tone === "violet" && "from-violet-500/20 to-fuchsia-500/20 text-violet-300",
-                        c.tone === "emerald" && "from-emerald-500/20 to-teal-500/20 text-emerald-300",
-                        c.tone === "sky" && "from-sky-500/20 to-cyan-500/20 text-sky-300",
-                        c.tone === "amber" && "from-amber-500/20 to-orange-500/20 text-amber-300",
-                        c.tone === "rose" && "from-rose-500/20 to-pink-500/20 text-rose-300",
+                        "grid h-11 w-11 place-items-center rounded-lg ring-1 ring-inset ring-black/10 dark:ring-white/10",
+                        c.tone === "violet" && "bg-violet-500/10 text-violet-600 dark:text-violet-300",
+                        c.tone === "emerald" && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+                        c.tone === "sky" && "bg-sky-500/10 text-sky-600 dark:text-sky-300",
+                        c.tone === "amber" && "bg-amber-500/10 text-amber-600 dark:text-amber-300",
+                        c.tone === "rose" && "bg-rose-500/10 text-rose-600 dark:text-rose-300",
                       )}
                     >
                       <c.icon className="h-5 w-5" />
                     </div>
                     {c.status === "ok" ? (
-                      <PulseBadge color="emerald">Healthy</PulseBadge>
+                      <Badge variant="outline" className="rounded-full border-emerald-400/40 bg-emerald-500/10 px-2.5 py-0.5 text-emerald-700 dark:text-emerald-300">Healthy</Badge>
                     ) : (
-                      <PulseBadge color="rose">Down</PulseBadge>
+                      <Badge variant="outline" className="rounded-full border-rose-400/40 bg-rose-500/10 px-2.5 py-0.5 text-rose-700 dark:text-rose-300">Down</Badge>
                     )}
                   </div>
                   <h3 className="mt-4 text-base font-semibold tracking-tight">
@@ -296,7 +295,7 @@ export function DatabaseHealth() {
                         c.status === "ok" ? ROW_TONE[c.tone] : "text-rose-300",
                       )}
                     >
-                      {c.status === "ok" ? c.latency ?? "—" : "—"}
+                      {c.status === "ok" ? c.latency ?? "-" : "-"}
                     </span>
                   </div>
                 </GlowCard>
@@ -419,7 +418,7 @@ export function DatabaseHealth() {
               </div>
               <Button
                 size="lg"
-                className="border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white hover:from-violet-400 hover:to-fuchsia-400"
+                className="bg-violet-500 text-white hover:bg-violet-600"
                 onClick={runHealthCheck}
                 disabled={checking}
               >
@@ -471,7 +470,7 @@ export function DatabaseHealth() {
                   </span>
                   <p className="flex-1 text-sm">
                     <span className="font-medium">{e.who}</span>
-                    <span className="text-muted-foreground"> — {e.result}</span>
+                    <span className="text-muted-foreground"> · {e.result}</span>
                   </p>
                 </li>
               ))}
@@ -480,6 +479,6 @@ export function DatabaseHealth() {
         </motion.div>
 
       </PageWrap>
-    </AuroraBackground>
+    </div>
   );
 }

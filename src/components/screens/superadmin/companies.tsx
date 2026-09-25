@@ -9,17 +9,15 @@ import {
   Eye,
   PauseCircle,
   PlayCircle,
-  Sparkles,
   TrendingUp,
 } from "lucide-react";
 import {
-  AuroraBackground,
   GlowCard,
   PageWrap,
-  PulseBadge,
   SectionHeading,
   StatCard,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -136,7 +134,7 @@ export function CompanyManagement() {
   const totalCandidates = companies.reduce((a, c) => a + c.candidates, 0);
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap>
         <motion.header
           initial={{ opacity: 0, y: 16 }}
@@ -146,22 +144,22 @@ export function CompanyManagement() {
         >
           <div>
             <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-violet-300" />
-              <p className="text-xs uppercase tracking-widest text-violet-300/80">
+              <Building2 className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+              <p className="text-xs uppercase tracking-widest text-violet-600 dark:text-violet-300/80">
                 Super Admin · Companies
               </p>
             </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">
-              Company <span className="gradient-text">management</span>
+              Company <span className="text-violet-500 dark:text-violet-400">management</span>
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
               Suspend or reactivate any tenant. When a company is suspended,
               its campaign apply links return a “company suspended” notice.
             </p>
           </div>
-          <PulseBadge color="violet" className="self-start sm:self-end">
+          <Badge variant="outline" className="self-start rounded-full border-violet-400/40 bg-violet-500/10 px-3 py-1 text-violet-700 dark:text-violet-300 sm:self-end">
             {companies.length} tenants
-          </PulseBadge>
+          </Badge>
         </motion.header>
 
         {/* Quick stats */}
@@ -205,7 +203,6 @@ export function CompanyManagement() {
                 title="All registered companies"
                 description="Searchable directory of every company on the platform."
               />
-              <Sparkles className="h-5 w-5 text-violet-300/60" />
             </div>
             <div className="overflow-x-auto scrollbar-custom">
               <Table>
@@ -227,7 +224,7 @@ export function CompanyManagement() {
                     >
                       <TableCell className="pl-5">
                         <div className="flex items-center gap-3">
-                          <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 text-sm font-semibold text-violet-200 ring-1 ring-inset ring-white/10">
+                          <div className="grid h-9 w-9 place-items-center rounded-lg bg-violet-500/10 text-sm font-semibold text-violet-700 dark:text-violet-300 ring-1 ring-inset ring-black/10 dark:ring-white/10">
                             {c.name.charAt(0)}
                           </div>
                           <div>
@@ -249,9 +246,9 @@ export function CompanyManagement() {
                       </TableCell>
                       <TableCell>
                         {c.status === "active" ? (
-                          <PulseBadge color="emerald">Active</PulseBadge>
+                          <Badge variant="outline" className="rounded-full border-emerald-400/40 bg-emerald-500/10 px-2.5 py-0.5 text-emerald-700 dark:text-emerald-300">Active</Badge>
                         ) : (
-                          <PulseBadge color="rose">Suspended</PulseBadge>
+                          <Badge variant="outline" className="rounded-full border-rose-400/40 bg-rose-500/10 px-2.5 py-0.5 text-rose-700 dark:text-rose-300">Suspended</Badge>
                         )}
                       </TableCell>
                       <TableCell className="pr-5">
@@ -325,7 +322,7 @@ export function CompanyManagement() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm">
                       <span className="font-medium">{a.who}</span>
-                      <span className="text-muted-foreground"> — {a.what}</span>
+                      <span className="text-muted-foreground"> · {a.what}</span>
                     </p>
                   </div>
                 </li>
@@ -345,7 +342,7 @@ export function CompanyManagement() {
                 "Disables the company admin's login immediately.",
                 "All campaign apply links return a “company suspended” page.",
                 "In-flight candidate sessions are allowed to finish.",
-                "Existing data is preserved — reactivation is one click.",
+                "Existing data is preserved. Reactivation is one click.",
                 "Logged in the audit trail as COMPANY_SUSPENDED.",
               ].map((p, i) => (
                 <li key={i} className="flex items-start gap-2.5">
@@ -387,8 +384,8 @@ export function CompanyManagement() {
             <Button
               className={
                 pendingAction?.status === "active"
-                  ? "border-0 bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-400 hover:to-pink-400"
-                  : "border-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400"
+                  ? "bg-rose-500 text-white hover:bg-rose-600"
+                  : "bg-emerald-500 text-white hover:bg-emerald-600"
               }
               onClick={confirmToggle}
             >
@@ -397,6 +394,6 @@ export function CompanyManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AuroraBackground>
+    </div>
   );
 }

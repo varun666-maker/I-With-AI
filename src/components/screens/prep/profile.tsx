@@ -1,29 +1,26 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import {
   AtSign,
   Briefcase,
   Calendar,
   CheckCircle2,
   Code2,
+  Globe,
   GraduationCap,
+  Info,
   Loader2,
   MapPin,
   Phone,
   Plus,
   Save,
-  Sparkles,
   Upload,
   User,
   X,
 } from "lucide-react";
 import {
-  AuroraBackground,
-  GlowCard,
   PageWrap,
-  PulseBadge,
   SectionHeading,
 } from "@/components/shared/primitives";
 import { BackToHome } from "@/components/shared/top-nav";
@@ -74,29 +71,29 @@ const CITY_SUGGESTIONS = ["Bengaluru", "Mumbai", "Delhi NCR", "Hyderabad", "Pune
 
 export function StudentProfile() {
   return (
-    <AuroraBackground showGrid={false}>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap>
         <BackToHome />
         <SectionHeading
           eyebrow="Student Profile"
-          title={<>Your <span className="gradient-text">profile</span></>}
-          description="This data personalizes your AI interview questions, resume analysis, and learning roadmap. Keep it current — the more accurate your profile, the more targeted your prep."
+          title={<>Your <span className="text-violet-500 dark:text-violet-400">profile</span></>}
+          description="This data personalizes your AI interview questions, resume analysis, and learning roadmap. Keep it current. The more accurate your profile, the more targeted your prep."
           align="left"
         />
 
         <div className="mt-6">
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="flex w-full flex-wrap justify-start gap-1 rounded-full border border-white/10 bg-white/5 p-1 h-auto">
-              <TabsTrigger value="personal" className="rounded-full data-[state=active]:bg-violet-500/15 data-[state=active]:text-violet-100">
+            <TabsList className="flex w-full flex-wrap justify-start gap-1 rounded-full border border-black/10 bg-black/[0.02] p-1 h-auto dark:border-white/10 dark:bg-white/5">
+              <TabsTrigger value="personal" className="rounded-full data-[state=active]:bg-violet-500/15 data-[state=active]:text-violet-700 dark:data-[state=active]:text-violet-100">
                 <User className="mr-1.5 h-3.5 w-3.5" /> Personal Info
               </TabsTrigger>
-              <TabsTrigger value="education" className="rounded-full data-[state=active]:bg-violet-500/15 data-[state=active]:text-violet-100">
+              <TabsTrigger value="education" className="rounded-full data-[state=active]:bg-violet-500/15 data-[state=active]:text-violet-700 dark:data-[state=active]:text-violet-100">
                 <GraduationCap className="mr-1.5 h-3.5 w-3.5" /> Education
               </TabsTrigger>
-              <TabsTrigger value="skills" className="rounded-full data-[state=active]:bg-violet-500/15 data-[state=active]:text-violet-100">
+              <TabsTrigger value="skills" className="rounded-full data-[state=active]:bg-violet-500/15 data-[state=active]:text-violet-700 dark:data-[state=active]:text-violet-100">
                 <Code2 className="mr-1.5 h-3.5 w-3.5" /> Skills
               </TabsTrigger>
-              <TabsTrigger value="prefs" className="rounded-full data-[state=active]:bg-violet-500/15 data-[state=active]:text-violet-100">
+              <TabsTrigger value="prefs" className="rounded-full data-[state=active]:bg-violet-500/15 data-[state=active]:text-violet-700 dark:data-[state=active]:text-violet-100">
                 <Briefcase className="mr-1.5 h-3.5 w-3.5" /> Job Preferences
               </TabsTrigger>
             </TabsList>
@@ -117,7 +114,7 @@ export function StudentProfile() {
         </div>
 
       </PageWrap>
-    </AuroraBackground>
+    </div>
   );
 }
 
@@ -133,7 +130,7 @@ function SaveButton({ saved }: { saved: boolean }) {
     <Button
       onClick={handle}
       disabled={loading || saved}
-      className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 disabled:opacity-60"
+      className="rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-60"
     >
       {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : saved ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
       {loading ? "Saving…" : saved ? "Saved" : "Save Changes"}
@@ -143,7 +140,7 @@ function SaveButton({ saved }: { saved: boolean }) {
 
 function TabShell({ title, desc, children, saved }: { title: string; desc: string; children: React.ReactNode; saved?: boolean }) {
   return (
-    <GlowCard className="p-6 sm:p-8">
+    <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm sm:p-8 dark:border-white/10">
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
@@ -152,7 +149,7 @@ function TabShell({ title, desc, children, saved }: { title: string; desc: strin
         <SaveButton saved={!!saved} />
       </div>
       <div className="mt-6">{children}</div>
-    </GlowCard>
+    </div>
   );
 }
 
@@ -168,14 +165,14 @@ function PersonalTab() {
         {/* Avatar */}
         <div className="lg:col-span-1">
           <Label className="text-xs text-muted-foreground">Avatar</Label>
-          <div className="mt-2 flex flex-col items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-6">
-            <div className="relative grid h-28 w-28 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-3xl font-semibold text-white shadow-2xl">
+          <div className="mt-2 flex flex-col items-center gap-3 rounded-lg border border-black/10 bg-black/[0.02] p-6 dark:border-white/10 dark:bg-white/[0.03]">
+            <div className="relative grid h-28 w-28 place-items-center rounded-full bg-violet-500 text-3xl font-semibold text-white shadow-sm">
               PS
-              <span className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full border border-white/15 bg-card/90 backdrop-blur-xl">
-                <Upload className="h-3.5 w-3.5 text-violet-300" />
+              <span className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full border border-black/10 bg-card dark:border-white/15">
+                <Upload className="h-3.5 w-3.5 text-violet-500 dark:text-violet-400" />
               </span>
             </div>
-            <Button variant="outline" size="sm" className="rounded-full border-white/15 bg-white/5 hover:bg-white/10">
+            <Button variant="outline" size="sm" className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10">
               <Upload className="mr-2 h-3.5 w-3.5" /> Upload Image
             </Button>
             <p className="text-center text-[11px] text-muted-foreground">
@@ -194,31 +191,31 @@ function PersonalTab() {
             <Field label="Email (read-only)" icon={AtSign} value="priya@email.com" disabled />
             <Field label="LinkedIn (optional)" icon={AtSign} value="linkedin.com/in/priya" />
             <Field label="GitHub (optional)" icon={Code2} value="github.com/priya" />
-            <Field label="Portfolio (optional)" icon={Sparkles} value="priya.dev" />
+            <Field label="Portfolio (optional)" icon={Globe} value="priya.dev" />
           </div>
 
           <div>
             <Label className="text-xs text-muted-foreground">Short Bio</Label>
             <textarea
               defaultValue="Backend engineer with 3 years of experience building FastAPI services that handle 2M+ requests/day. Strong with Postgres, Redis, and Kafka. Looking for SDE-2 backend roles."
-              className="mt-1 h-24 w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none focus:border-violet-400/40 focus:ring-2 focus:ring-violet-400/20"
+              className="mt-1 h-24 w-full resize-none rounded-lg border border-black/10 bg-black/[0.02] px-3 py-2 text-sm outline-none focus:border-violet-400/40 focus:ring-2 focus:ring-violet-400/20 dark:border-white/10 dark:bg-white/5"
             />
             <p className="mt-1 text-[11px] text-muted-foreground">
               Used by the AI to personalize interview questions. Aim for 50-200 words.
             </p>
           </div>
 
-          <div className="rounded-md border border-amber-400/20 bg-amber-500/[0.04] p-3 text-xs text-amber-200">
-            <PulseBadge color="amber" className="mb-1 text-[10px] uppercase tracking-widest">
+          <div className="rounded-md border border-amber-400/20 bg-amber-500/[0.04] p-3 text-xs text-amber-700 dark:text-amber-200">
+            <Badge variant="outline" className="mb-1 border-amber-400/30 bg-amber-500/10 text-[10px] uppercase tracking-widest text-amber-700 dark:text-amber-200">
               Why we ask
-            </PulseBadge>
+            </Badge>
             <p>
-              Your city and DOB are used to align job recommendations with local eligibility (age + work authorization). This data never appears on reports shared with companies — only on your personal dashboard.
+              Your city and DOB are used to align job recommendations with local eligibility (age + work authorization). This data never appears on reports shared with companies. Only on your personal dashboard.
             </p>
           </div>
 
           <div className="flex justify-end">
-            <Button onClick={() => setSaved(true)} className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0">
+            <Button onClick={() => setSaved(true)} className="rounded-full bg-violet-500 text-white hover:bg-violet-600">
               <Save className="mr-2 h-4 w-4" /> Save Changes
             </Button>
           </div>
@@ -245,11 +242,11 @@ function EducationTab() {
     >
       <div className="space-y-3">
         {rows.map((r, i) => (
-          <div key={i} className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+          <div key={i} className="rounded-lg border border-black/10 bg-black/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.02]">
             <div className="flex items-center justify-between">
               <span className="text-xs uppercase tracking-wider text-muted-foreground">Entry {i + 1}</span>
               {rows.length > 1 && (
-                <button onClick={() => remove(i)} className="text-muted-foreground hover:text-rose-300" aria-label="Remove">
+                <button onClick={() => remove(i)} className="text-muted-foreground hover:text-rose-500" aria-label="Remove">
                   <X className="h-4 w-4" />
                 </button>
               )}
@@ -258,7 +255,7 @@ function EducationTab() {
               <div>
                 <Label className="text-[11px] text-muted-foreground">Degree</Label>
                 <Select value={r.degree} onValueChange={(v) => update(i, "degree", v)}>
-                  <SelectTrigger className="mt-1 w-full rounded-lg bg-white/5 border-white/10">
+                  <SelectTrigger className="mt-1 w-full rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -274,7 +271,7 @@ function EducationTab() {
                   value={r.institution}
                   onChange={(e) => update(i, "institution", e.target.value)}
                   placeholder="e.g. IIT Bombay"
-                  className="mt-1 rounded-lg bg-white/5 border-white/10"
+                  className="mt-1 rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10"
                 />
               </div>
               <div>
@@ -283,7 +280,7 @@ function EducationTab() {
                   value={r.year}
                   onChange={(e) => update(i, "year", e.target.value)}
                   placeholder="2024"
-                  className="mt-1 rounded-lg bg-white/5 border-white/10"
+                  className="mt-1 rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10"
                 />
               </div>
               <div>
@@ -292,7 +289,7 @@ function EducationTab() {
                   value={r.field}
                   onChange={(e) => update(i, "field", e.target.value)}
                   placeholder="Computer Science"
-                  className="mt-1 rounded-lg bg-white/5 border-white/10"
+                  className="mt-1 rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10"
                 />
               </div>
             </div>
@@ -302,14 +299,14 @@ function EducationTab() {
 
       <button
         onClick={add}
-        className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-xs font-medium text-violet-200 hover:bg-violet-500/15"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-xs font-medium text-violet-700 hover:bg-violet-500/15 dark:text-violet-200"
       >
         <Plus className="h-3.5 w-3.5" /> Add Education Row
       </button>
 
-      <div className="mt-6 rounded-md border border-white/10 bg-white/[0.02] p-4 text-xs text-muted-foreground">
-        <Sparkles className="mr-1 inline h-3.5 w-3.5 text-violet-300" />
-        Tip: Include any MOOC certifications or bootcamp programs too — they affect your AI-driven question difficulty.
+      <div className="mt-6 rounded-md border border-black/10 bg-black/[0.02] p-4 text-xs text-muted-foreground dark:border-white/10 dark:bg-white/[0.02]">
+        <Info className="mr-1 inline h-3.5 w-3.5 text-violet-500 dark:text-violet-400" />
+        Tip: Include any MOOC certifications or bootcamp programs too. They affect your AI-driven question difficulty.
       </div>
     </TabShell>
   );
@@ -343,9 +340,9 @@ function SkillsTab() {
     >
       <div>
         <Label className="text-xs text-muted-foreground">Your Skills</Label>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 p-2">
+        <div className="mt-1 flex flex-wrap items-center gap-1.5 rounded-lg border border-black/10 bg-black/[0.02] p-2 dark:border-white/10 dark:bg-white/5">
           {skills.map((s) => (
-            <Badge key={s} className="border-violet-400/30 bg-violet-500/15 text-violet-200">
+            <Badge key={s} className="border-violet-400/30 bg-violet-500/15 text-violet-700 dark:text-violet-200">
               {s}
               <button onClick={() => remove(s)} className="ml-1" aria-label={`Remove ${s}`}>
                 <X className="h-3 w-3" />
@@ -370,7 +367,7 @@ function SkillsTab() {
               <button
                 key={s}
                 onClick={() => add(s)}
-                className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-muted-foreground hover:border-violet-400/30 hover:text-violet-200"
+                className="rounded-full border border-black/10 bg-black/[0.02] px-2.5 py-1 text-[11px] text-muted-foreground hover:border-violet-400/30 hover:text-violet-700 dark:border-white/10 dark:bg-white/5 dark:hover:text-violet-300"
               >
                 + {s}
               </button>
@@ -380,18 +377,18 @@ function SkillsTab() {
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <SkillStat label="Total skills" value={String(skills.length)} tone="text-violet-300" />
-        <SkillStat label="Backend" value="4" tone="text-emerald-300" />
-        <SkillStat label="Frontend" value="1" tone="text-amber-300" />
-        <SkillStat label="Infra" value="1" tone="text-sky-300" />
+        <SkillStat label="Total skills" value={String(skills.length)} tone="text-violet-500 dark:text-violet-300" />
+        <SkillStat label="Backend" value="4" tone="text-emerald-600 dark:text-emerald-300" />
+        <SkillStat label="Frontend" value="1" tone="text-amber-600 dark:text-amber-300" />
+        <SkillStat label="Infra" value="1" tone="text-sky-600 dark:text-sky-300" />
       </div>
 
-      <div className="mt-6 rounded-md border border-emerald-400/20 bg-emerald-500/[0.04] p-4 text-xs text-emerald-200">
-        <PulseBadge color="emerald" className="mb-1 text-[10px] uppercase tracking-widest">
+      <div className="mt-6 rounded-md border border-emerald-400/20 bg-emerald-500/[0.04] p-4 text-xs text-emerald-700 dark:text-emerald-200">
+        <Badge variant="outline" className="mb-1 border-emerald-400/30 bg-emerald-500/10 text-[10px] uppercase tracking-widest text-emerald-700 dark:text-emerald-200">
           Profile completeness
-        </PulseBadge>
+        </Badge>
         <p>
-          Your profile is <strong>82% complete</strong>. Adding 2 more backend skills (Docker, CI/CD) would push you to 100% — unlocking more granular interview question sets.
+          Your profile is <strong>82% complete</strong>. Adding 2 more backend skills (Docker, CI/CD) would push you to 100%, unlocking more granular interview question sets.
         </p>
       </div>
     </TabShell>
@@ -441,10 +438,10 @@ function PreferencesTab() {
                   key={r}
                   onClick={() => toggleRole(r)}
                   className={cn(
-                    "rounded-lg border px-3 py-2 text-xs font-medium transition-all",
+                    "rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
                     sel
-                      ? "border-violet-400/50 bg-violet-500/15 text-violet-100"
-                      : "border-white/10 bg-white/[0.02] text-muted-foreground hover:border-white/20 hover:text-white",
+                      ? "border-violet-400/50 bg-violet-500/15 text-violet-700 dark:text-violet-100"
+                      : "border-black/10 bg-black/[0.02] text-muted-foreground hover:border-black/20 hover:text-foreground dark:border-white/10 dark:bg-white/[0.02]",
                   )}
                 >
                   {sel && <CheckCircle2 className="mr-1 inline h-3 w-3" />}
@@ -460,7 +457,7 @@ function PreferencesTab() {
           <div>
             <Label className="text-xs text-muted-foreground">Experience Level</Label>
             <Select value={exp} onValueChange={setExp}>
-              <SelectTrigger className="mt-1 w-full rounded-lg bg-white/5 border-white/10">
+              <SelectTrigger className="mt-1 w-full rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -476,7 +473,7 @@ function PreferencesTab() {
               value={salary}
               onChange={(e) => setSalary(e.target.value)}
               placeholder="e.g. 18-25 LPA"
-              className="mt-1 rounded-lg bg-white/5 border-white/10"
+              className="mt-1 rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10"
             />
           </div>
         </div>
@@ -484,9 +481,9 @@ function PreferencesTab() {
         {/* Locations */}
         <div>
           <Label className="text-xs text-muted-foreground">Preferred Locations</Label>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 p-2">
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 rounded-lg border border-black/10 bg-black/[0.02] p-2 dark:border-white/10 dark:bg-white/5">
             {locations.map((l) => (
-              <Badge key={l} className="border-sky-400/30 bg-sky-500/10 text-sky-200">
+              <Badge key={l} className="border-sky-400/30 bg-sky-500/10 text-sky-700 dark:text-sky-200">
                 <MapPin className="mr-1 h-3 w-3" />
                 {l}
                 <button onClick={() => removeLoc(l)} className="ml-1" aria-label={`Remove ${l}`}>
@@ -511,7 +508,7 @@ function PreferencesTab() {
                 <button
                   key={c}
                   onClick={() => addLoc(c)}
-                  className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-muted-foreground hover:border-sky-400/30 hover:text-sky-200"
+                  className="rounded-full border border-black/10 bg-black/[0.02] px-2.5 py-1 text-[11px] text-muted-foreground hover:border-sky-400/30 hover:text-sky-700 dark:border-white/10 dark:bg-white/5 dark:hover:text-sky-300"
                 >
                   + {c}
                 </button>
@@ -525,7 +522,7 @@ function PreferencesTab() {
           <div>
             <Label className="text-xs text-muted-foreground">Notice Period</Label>
             <Select defaultValue="30">
-              <SelectTrigger className="mt-1 w-full rounded-lg bg-white/5 border-white/10">
+              <SelectTrigger className="mt-1 w-full rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -540,7 +537,7 @@ function PreferencesTab() {
           <div>
             <Label className="text-xs text-muted-foreground">Open to Remote?</Label>
             <Select defaultValue="hybrid">
-              <SelectTrigger className="mt-1 w-full rounded-lg bg-white/5 border-white/10">
+              <SelectTrigger className="mt-1 w-full rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -553,7 +550,7 @@ function PreferencesTab() {
           <div>
             <Label className="text-xs text-muted-foreground">Shift Preference</Label>
             <Select defaultValue="day">
-              <SelectTrigger className="mt-1 w-full rounded-lg bg-white/5 border-white/10">
+              <SelectTrigger className="mt-1 w-full rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -565,8 +562,8 @@ function PreferencesTab() {
           </div>
         </div>
 
-        <div className="rounded-md border border-violet-400/20 bg-violet-500/[0.04] p-4 text-xs text-violet-200">
-          <Sparkles className="mr-1 inline h-3.5 w-3.5" />
+        <div className="rounded-md border border-violet-400/20 bg-violet-500/[0.04] p-4 text-xs text-violet-700 dark:text-violet-200">
+          <Info className="mr-1 inline h-3.5 w-3.5" />
           Saved preferences are visible to recruiters in Hiring Mode. You can opt out anytime under <em>Settings → Visibility</em>.
         </div>
       </div>
@@ -599,7 +596,7 @@ function Field({
           defaultValue={value}
           disabled={disabled}
           className={cn(
-            "rounded-lg bg-white/5 pl-9 border-white/10",
+            "rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10",
             disabled && "opacity-60",
           )}
         />
@@ -610,7 +607,7 @@ function Field({
 
 function SkillStat({ label, value, tone }: { label: string; value: string; tone: string }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-center">
+    <div className="rounded-lg border border-black/10 bg-black/[0.02] p-3 text-center dark:border-white/10 dark:bg-white/[0.03]">
       <p className={cn("text-2xl font-semibold tracking-tight", tone)}>{value}</p>
       <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
     </div>

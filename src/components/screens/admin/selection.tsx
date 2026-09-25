@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
   Check,
   ChevronDown,
@@ -12,19 +11,13 @@ import {
   FileText,
   Save,
   Shield,
+  ShieldAlert,
   Trophy,
   UserCheck,
   UserX,
   Users,
 } from "lucide-react";
-import {
-  AuroraBackground,
-  GlowCard,
-  MagneticButton,
-  PageWrap,
-  PulseBadge,
-  SectionHeading,
-} from "@/components/shared/primitives";
+import { PageWrap } from "@/components/shared/primitives";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -78,7 +71,7 @@ const INITIAL: Row[] = [
     overall: 61,
     integrity: "penalty",
     decision: "Waitlisted",
-    notes: "Borderline. Reserve list — proctoring penalty applied.",
+    notes: "Borderline. Reserve list. Proctoring penalty applied.",
   },
   {
     rank: 3,
@@ -108,7 +101,7 @@ const INITIAL: Row[] = [
     overall: 0,
     integrity: "dq",
     decision: "Rejected",
-    notes: "Disqualified — phone detected in frame + 3 tab switches.",
+    notes: "Disqualified. Phone detected in frame + 3 tab switches.",
   },
   {
     rank: 6,
@@ -161,26 +154,31 @@ export function FinalSelection() {
   };
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap className="pt-8">
         <button
           onClick={() => set("admin-dashboard")}
-          className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-white"
+          className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
           Back to dashboard
         </button>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeading
-            align="left"
-            eyebrow="Campaign · backend-sde-1"
-            title="Final selection"
-            description="Lock hiring decisions. Per-candidate dropdown + notes. Export full report when ready."
-          />
-          <PulseBadge color="amber">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">
+              Campaign. backend-sde-1
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+              Final selection
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              Lock hiring decisions. Per-candidate dropdown + notes. Export full report when ready.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
             {summary.pending} pending · {summary.selected} selected
-          </PulseBadge>
+          </span>
         </div>
 
         {/* Summary chips */}
@@ -212,11 +210,11 @@ export function FinalSelection() {
         </div>
 
         {/* Table */}
-        <GlowCard className="mt-6 overflow-hidden p-0">
+        <div className="mt-6 overflow-hidden rounded-lg border border-black/10 bg-background shadow-sm dark:border-white/10">
           <div className="max-h-[640px] overflow-auto scrollbar-custom">
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
+                <TableRow className="border-black/10 hover:bg-transparent dark:border-white/10">
                   <TableHead className="w-12 pl-5">#</TableHead>
                   <TableHead>Candidate</TableHead>
                   <TableHead className="hidden md:table-cell">Source</TableHead>
@@ -231,7 +229,7 @@ export function FinalSelection() {
                   <TableRow
                     key={r.id}
                     className={cn(
-                      "border-white/5 hover:bg-white/[0.03]",
+                      "border-black/5 hover:bg-muted/30 dark:border-white/5",
                       r.decision === "Selected" && "bg-emerald-500/[0.04]",
                       r.decision === "Rejected" && "opacity-70",
                     )}
@@ -241,7 +239,7 @@ export function FinalSelection() {
                     </TableCell>
                     <TableCell className="py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-500/30 to-fuchsia-500/20 text-xs font-semibold text-violet-100">
+                        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-violet-500/10 text-xs font-semibold text-violet-700 dark:text-violet-300">
                           {r.name.split(" ").map((n) => n[0]).join("")}
                         </div>
                         <div className="min-w-0">
@@ -256,9 +254,13 @@ export function FinalSelection() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {r.source === "Apply Link" ? (
-                        <PulseBadge color="emerald">Apply Link</PulseBadge>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                          Apply Link
+                        </span>
                       ) : (
-                        <PulseBadge color="sky">Bulk Upload</PulseBadge>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/30 bg-sky-500/10 px-2.5 py-0.5 text-xs font-medium text-sky-700 dark:text-sky-300">
+                          Bulk Upload
+                        </span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -267,12 +269,12 @@ export function FinalSelection() {
                           className={cn(
                             "text-sm font-semibold",
                             r.overall === 0
-                              ? "text-rose-300"
+                              ? "text-rose-600 dark:text-rose-300"
                               : r.overall >= 80
-                                ? "text-emerald-300"
+                                ? "text-emerald-600 dark:text-emerald-300"
                                 : r.overall >= 60
-                                  ? "text-amber-300"
-                                  : "text-rose-300",
+                                  ? "text-amber-600 dark:text-amber-300"
+                                  : "text-rose-600 dark:text-rose-300",
                           )}
                         >
                           {r.overall === 0 ? "DQ" : `${r.overall}%`}
@@ -293,7 +295,7 @@ export function FinalSelection() {
                         value={r.notes}
                         onChange={(e) => setNotes(r.id, e.target.value)}
                         rows={2}
-                        placeholder="Add a note for this candidate…"
+                        placeholder="Add a note for this candidate..."
                         className="min-w-[200px] resize-none text-xs"
                       />
                     </TableCell>
@@ -302,13 +304,13 @@ export function FinalSelection() {
               </TableBody>
             </Table>
           </div>
-        </GlowCard>
+        </div>
 
         {/* Export actions */}
         <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Shield className="h-3.5 w-3.5 text-violet-300" />
-            Decisions are versioned — every change is logged with timestamp &amp;
+            <Shield className="h-3.5 w-3.5 text-violet-600 dark:text-violet-300" />
+            Decisions are versioned. Every change is logged with timestamp &amp;
             admin name.
           </div>
           <div className="flex flex-wrap gap-2">
@@ -318,30 +320,30 @@ export function FinalSelection() {
                 setSaved(true);
                 setTimeout(() => setSaved(false), 1800);
               }}
-              className="h-10 rounded-full border-white/15 bg-white/5 hover:bg-white/10"
+              className="h-10 rounded-full"
             >
               <Save className="mr-2 h-4 w-4" />
               {saved ? "Saved!" : "Save decisions"}
             </Button>
             <Button
               variant="outline"
-              className="h-10 rounded-full border-white/15 bg-white/5 hover:bg-white/10"
+              className="h-10 rounded-full"
             >
               <Download className="mr-2 h-4 w-4" />
               Export CSV
             </Button>
-            <MagneticButton className="h-11 rounded-full border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 px-6 text-white hover:from-violet-400 hover:to-fuchsia-400">
+            <Button className="h-11 rounded-full bg-violet-500 px-6 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600">
               <FileArchive className="mr-2 h-4 w-4" />
               Export PDF ZIP
-            </MagneticButton>
+            </Button>
           </div>
         </div>
 
         {/* Footer card */}
-        <GlowCard className="mt-6 p-5">
+        <div className="mt-6 rounded-lg border border-black/10 bg-background p-5 shadow-sm dark:border-white/10">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 text-violet-300">
+              <div className="grid h-10 w-10 place-items-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-300">
                 <Trophy className="h-4 w-4" />
               </div>
               <div>
@@ -363,10 +365,10 @@ export function FinalSelection() {
               Preview PDF report sample
             </Button>
           </div>
-        </GlowCard>
+        </div>
 
       </PageWrap>
-    </AuroraBackground>
+    </div>
   );
 }
 
@@ -382,22 +384,22 @@ function DecisionSelect({
   const opts: { label: Decision; tone: string; icon: React.ReactNode }[] = [
     {
       label: "Selected",
-      tone: "border-emerald-400/40 bg-emerald-500/10 text-emerald-200",
+      tone: "border-emerald-400/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200",
       icon: <UserCheck className="h-3.5 w-3.5" />,
     },
     {
       label: "Waitlisted",
-      tone: "border-amber-400/40 bg-amber-500/10 text-amber-200",
+      tone: "border-amber-400/40 bg-amber-500/10 text-amber-700 dark:text-amber-200",
       icon: <Clock className="h-3.5 w-3.5" />,
     },
     {
       label: "Rejected",
-      tone: "border-rose-400/40 bg-rose-500/10 text-rose-200",
+      tone: "border-rose-400/40 bg-rose-500/10 text-rose-700 dark:text-rose-200",
       icon: <UserX className="h-3.5 w-3.5" />,
     },
     {
       label: "Pending",
-      tone: "border-white/15 bg-white/5 text-white/70",
+      tone: "border-black/15 bg-muted/40 text-muted-foreground dark:border-white/15",
       icon: <Clock className="h-3.5 w-3.5" />,
     },
   ];
@@ -421,15 +423,15 @@ function DecisionSelect({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="w-44 border-white/10 bg-card/95 backdrop-blur-xl"
+        className="w-44 border-black/10 bg-card dark:border-white/10"
       >
         <DropdownMenuLabel>Set decision</DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuSeparator className="bg-black/10 dark:bg-white/10" />
         {opts.map((o) => (
           <DropdownMenuItem
             key={o.label}
             onClick={() => onChange(o.label)}
-            className="gap-2 text-sm focus:bg-white/5"
+            className="gap-2 text-sm focus:bg-muted"
           >
             <span className={cn("rounded p-1", o.tone)}>{o.icon}</span>
             <span className="flex-1">{o.label}</span>
@@ -448,25 +450,25 @@ function IntegrityTag({
 }) {
   if (state === "clean")
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-200">
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-700 dark:text-emerald-300">
         <Check className="h-3 w-3" /> Clean
       </span>
     );
   if (state === "flags")
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-0.5 text-xs text-amber-200">
-        ⚠️ 2 flags
+      <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">
+        <ShieldAlert className="h-3 w-3" /> 2 flags
       </span>
     );
   if (state === "penalty")
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-rose-400/30 bg-rose-500/10 px-2.5 py-0.5 text-xs text-rose-200">
+      <span className="inline-flex items-center gap-1 rounded-full border border-rose-400/30 bg-rose-500/10 px-2.5 py-0.5 text-xs text-rose-700 dark:text-rose-300">
         -20% penalty
       </span>
     );
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-rose-400/40 bg-rose-500/15 px-2.5 py-0.5 text-xs text-rose-200">
-      🚫 Auto-DQ
+    <span className="inline-flex items-center gap-1 rounded-full border border-rose-400/40 bg-rose-500/15 px-2.5 py-0.5 text-xs text-rose-700 dark:text-rose-300">
+      <ShieldAlert className="h-3 w-3" /> Auto-DQ
     </span>
   );
 }
@@ -483,14 +485,14 @@ function SummaryCard({
   icon: React.ReactNode;
 }) {
   const tones: Record<string, string> = {
-    violet: "text-violet-300",
-    emerald: "text-emerald-300",
-    amber: "text-amber-300",
-    rose: "text-rose-300",
-    slate: "text-white/80",
+    violet: "text-violet-600 dark:text-violet-300",
+    emerald: "text-emerald-600 dark:text-emerald-300",
+    amber: "text-amber-600 dark:text-amber-300",
+    rose: "text-rose-600 dark:text-rose-300",
+    slate: "text-foreground/80",
   };
   return (
-    <GlowCard className="p-4">
+    <div className="rounded-lg border border-black/10 bg-background p-4 shadow-sm dark:border-white/10">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -500,10 +502,10 @@ function SummaryCard({
             {value}
           </p>
         </div>
-        <div className={cn("rounded-lg border border-white/10 bg-white/5 p-2", tones[tone])}>
+        <div className={cn("rounded-lg border border-black/10 bg-muted/40 p-2 dark:border-white/10", tones[tone])}>
           {icon}
         </div>
       </div>
-    </GlowCard>
+    </div>
   );
 }

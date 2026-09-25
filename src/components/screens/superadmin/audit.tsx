@@ -8,18 +8,16 @@ import {
   Filter,
   ScrollText,
   Search,
-  Sparkles,
 } from "lucide-react";
 import {
-  AuroraBackground,
   GlowCard,
   PageWrap,
-  PulseBadge,
   SectionHeading,
   StatCard,
   StaggeredReveal,
   revealItem,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -105,20 +103,20 @@ const AUDIT: AuditRow[] = [
     user: "admin@platform.com",
     role: "super_admin",
     action: "USER_DELETED",
-    details: "rahul@student.com — GDPR job queued",
+    details: "rahul@student.com. GDPR job queued",
   },
 ];
 
 const ACTION_COLOR: Record<
   AuditRow["action"],
-  "violet" | "emerald" | "amber" | "rose" | "sky" | "slate"
+  string
 > = {
-  CAMPAIGN_CREATED: "violet",
-  BULK_SHORTLIST: "sky",
-  COMPANY_SUSPENDED: "amber",
-  QUESTION_RESEED: "rose",
-  USER_DELETED: "rose",
-  LOGIN: "slate",
+  CAMPAIGN_CREATED: "border-violet-400/40 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+  BULK_SHORTLIST: "border-sky-400/40 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  COMPANY_SUSPENDED: "border-amber-400/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  QUESTION_RESEED: "border-rose-400/40 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  USER_DELETED: "border-rose-400/40 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  LOGIN: "border-black/10 bg-black/5 text-muted-foreground dark:border-white/10 dark:bg-white/5",
 };
 
 export function AuditLogs() {
@@ -169,7 +167,7 @@ export function AuditLogs() {
   };
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap>
         <motion.header
           initial={{ opacity: 0, y: 16 }}
@@ -179,22 +177,22 @@ export function AuditLogs() {
         >
           <div>
             <div className="flex items-center gap-2">
-              <ScrollText className="h-4 w-4 text-violet-300" />
-              <p className="text-xs uppercase tracking-widest text-violet-300/80">
+              <ScrollText className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+              <p className="text-xs uppercase tracking-widest text-violet-600 dark:text-violet-300/80">
                 Super Admin · Audit Logs
               </p>
             </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">
-              The platform <span className="gradient-text">audit trail</span>
+              The platform <span className="text-violet-500 dark:text-violet-400">audit trail</span>
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
-              Every admin action across every tenant — immutable, filterable,
+              Every admin action across every tenant. Immutable, filterable,
               exportable. Search by user, role, action type or date range.
             </p>
           </div>
-          <PulseBadge color="emerald" className="self-start sm:self-end">
+          <Badge variant="outline" className="self-start rounded-full border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300 sm:self-end">
             {AUDIT.length} events today
-          </PulseBadge>
+          </Badge>
         </motion.header>
 
         {/* Top stats */}
@@ -225,7 +223,7 @@ export function AuditLogs() {
               label="Super-admin acts"
               value={AUDIT.filter((r) => r.role === "super_admin").length}
               hint="Platform-level changes"
-              icon={<Sparkles className="h-4 w-4" />}
+              icon={<Filter className="h-4 w-4" />}
               tone="amber"
             />
           </motion.div>
@@ -253,7 +251,7 @@ export function AuditLogs() {
               align="left"
               eyebrow="Filters"
               title="Refine the audit feed"
-              description="Stack as many filters as you like — the table updates instantly."
+              description="Stack as many filters as you like. The table updates instantly."
             />
             <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-1.5">
@@ -346,9 +344,9 @@ export function AuditLogs() {
                 title="Audit entries"
                 description="Sorted newest-first."
               />
-              <PulseBadge color="slate" className="capitalize">
+              <Badge variant="outline" className={cn("rounded-full capitalize px-2.5 py-0.5", role === "all" ? "border-black/10 bg-black/5 text-muted-foreground dark:border-white/10 dark:bg-white/5" : "border-violet-400/40 bg-violet-500/10 text-violet-700 dark:text-violet-300")}>
                 {role === "all" ? "All roles" : role}
-              </PulseBadge>
+              </Badge>
             </div>
             <div className="overflow-x-auto scrollbar-custom">
               <Table>
@@ -375,9 +373,9 @@ export function AuditLogs() {
                         {r.role}
                       </TableCell>
                       <TableCell>
-                        <PulseBadge color={ACTION_COLOR[r.action]}>
+                        <Badge variant="outline" className={cn("rounded-full px-2.5 py-0.5", ACTION_COLOR[r.action])}>
                           {r.action}
-                        </PulseBadge>
+                        </Badge>
                       </TableCell>
                       <TableCell className="pr-5 text-sm text-foreground/80">
                         {r.details}
@@ -414,6 +412,6 @@ export function AuditLogs() {
         </motion.div>
 
       </PageWrap>
-    </AuroraBackground>
+    </div>
   );
 }

@@ -468,3 +468,316 @@ import { FlowNav } from "@/components/shared/flow-nav";
   - `src/components/shared/flow-nav.tsx:43` (JSDoc) + `src/components/shared/flow-nav.tsx:54` (`export function FlowNav()`)
 
 **Agent work record:** `/home/z/my-project/agent-ctx/FLOWNAV-CLEANUP-flownav-cleanup.md`
+
+---
+
+## Task DESIGN-ADMIN · design-admin · 2025
+
+**Agent:** design-admin
+**Scope:** Apply professional design edits to 8 Company Admin screen files to match the redesigned landing page (prep/landing.tsx) quality bar.
+
+**Files edited (8):**
+1. `src/components/screens/admin/register.tsx` → `CompanyRegister`
+2. `src/components/screens/admin/dashboard.tsx` → `AdminDashboard`
+3. `src/components/screens/admin/campaign-new.tsx` → `CampaignCreate`
+4. `src/components/screens/admin/questions.tsx` → `QuestionManager`
+5. `src/components/screens/admin/candidates.tsx` → `CandidateLeaderboard`
+6. `src/components/screens/admin/bulk-upload.tsx` → `BulkUpload`
+7. `src/components/screens/admin/proctoring.tsx` → `ProctoringReview`
+8. `src/components/screens/admin/selection.tsx` → `FinalSelection`
+
+**Surgical edits applied per file:**
+
+A. **AuroraBackground removed** — replaced `<AuroraBackground>` wrapper with `<div className="min-h-screen bg-background text-foreground">`. Removed import.
+
+B. **Emojis removed from copy** — verified zero matches for the emoji character class `[✅🔄🔒📋🚀⚠️❌✨🎯🔥💡📥📤📊👥🟢🔴]` across all 8 files. Replaced the inline `✓` text character in questions.tsx with the `<Check>` icon, and the `✗`/`🚫`/`⚠️` indicators in selection.tsx with `<X>` and `<ShieldAlert>` icons respectively.
+
+C. **Em dashes removed** — replaced `—` with `.` (in copy) or `-` (in placeholders and JSX comments). All em dashes in rendered copy converted: e.g. "in a week — not a quarter." → "in a week. Not a quarter.", "auto-submitted — 3+ tab" → "Auto-submitted. 3+ tab", "Disqualified — phone detected" → "Disqualified. Phone detected", "versioned — every change" → "versioned. Every change". Table-cell null placeholders (`—`) replaced with regular hyphen `-`.
+
+D. **Sparkles icon removed** — import and all JSX usages deleted from every file (was used in register.tsx pitch card, dashboard.tsx Active Campaigns stat icon, and campaign-new.tsx Create button).
+
+E. **Harsh button gradients removed** — all `bg-gradient-to-r from-violet-500 to-fuchsia-500` (and br/to-fuchsia-400 hover variants) replaced with solid `bg-violet-500 hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600`. Same treatment applied to slider range fills, progress bars, and avatar backgrounds (now `bg-violet-500/10 text-violet-700 dark:text-violet-300`).
+
+F. **Glow shadows removed** — `shadow-[0_0_24px_-4px_rgba(168,85,247,0.6)]` and similar glow box-shadows replaced with `shadow-sm`. Verified zero `shadow-[` custom-class matches remain across the 8 files.
+
+G. **BorderBeam removed** — was not present in any of the 8 edited files (only in admin/landing.tsx, which was off-limits).
+
+H. **MagneticButton removed** — replaced with plain `<Button>` and removed import. All `onClick`, `disabled`, `className`, `type`, and `variant` props preserved.
+
+I. **PulseBadge removed** — replaced with native `<span>` elements using the same color tokens (`border-X-400/30 bg-X-500/10 text-X-700 dark:text-X-300`). For the dashboard header label and candidates.tsx eyebrow, used simpler `border-black/15 dark:border-white/15` muted pills (eyebrow restraint: max 1 per 3 sections, most converted to plain eyebrow text).
+
+J. **Shape consistency fixed** — all card containers now use `rounded-lg` (GlowCard used `rounded-xl`); all action buttons now use `rounded-full`. Inner pills/badges stay `rounded-full`. The pseudo-QR code box, dropzone, avatar circles, and form inputs retain their appropriate radii.
+
+K. **"it's not X, it's Y" copy removed** — verified zero matches for `it's not|It's not` across all 8 files.
+
+L. **Filler verbs removed** — verified zero matches for `Elevate|Unleash|Seamless|Next-Gen|Revolutionize`.
+
+M. **Functionality preserved** — all tabs, tables, forms, modals, QR placeholder generator, dropzone handlers, processing animation, dropdown menus, score sliders, integrity timeline, screenshot dialog, decision select, and state hooks left intact. No features removed.
+
+N. **Named exports preserved** — every `export function <Name>()` kept with the original name (verified via `rg "^export function"` across all 8 files).
+
+O. **useNav navigation preserved** — every file still imports `useNav` from `@/lib/store` and calls `set(...)` for navigation. Verified via `rg -c "useNav"` (each file shows 2: 1 import + 1 usage).
+
+**Additional refinements:**
+- Realistic company name: `Acme Labs Pvt Ltd` → `Northwind Labs Pvt Ltd` in dashboard.tsx and register.tsx (sample placeholder email `priya@acme.com` → `priya@northwind.com`).
+- `Plan: "Teams · 50 seats"` → `"Teams. 50 seats"` (middot preserved; would have failed em-dash rule otherwise — but middots are allowed per spec).
+- Light-mode contrast: all `text-X-200/300` accent text classes paired with `dark:` variants using `text-X-700/600` so accents are readable on white backgrounds (works in conjunction with the existing globals.css `:root:not(.dark)` overrides).
+- `border-white/10` → `border-black/10 dark:border-white/10` and `bg-white/[0.03]` → `bg-muted/30` on cards/containers for native light-mode visibility without relying solely on the globals.css overrides.
+- `hover:text-white` → `hover:text-foreground` on text-only buttons.
+- All removed `motion` imports from candidates.tsx, questions.tsx, proctoring.tsx, and selection.tsx (those files no longer use framer-motion after edits, and unused imports would trip ESLint).
+- Faux webcam frame in proctoring.tsx dialog converted from gradient fills to solid slate shades; the bobbing motion on the phone overlay was removed (the spec's "hover animations → minimal color changes" spirit applies — and the bob was infinite, not hover-driven, but still removed for restraint).
+
+**Verification (all passing):**
+- `bun run lint` → exit code 0, 0 errors, 0 warnings ✅
+- `rg "[✅🔄🔒📋🚀⚠️❌✨🎯🔥💡📥📤📊👥🟢🔴]" src/components/screens/admin/{8 files}` → no matches ✅
+- `rg "—" src/components/screens/admin/{8 files}` → no matches ✅ (JSX comments cleaned too)
+- `rg "AuroraBackground|Sparkles|MagneticButton|BorderBeam" src/components/screens/admin/{8 files}` → no matches ✅ (only `admin/landing.tsx` retains these, per the "do not touch" instruction)
+- `rg "bg-gradient-to-(r|br|b)" src/components/screens/admin/{8 files}` → no matches ✅
+- `rg "shadow-\[" src/components/screens/admin/{8 files}` → no matches ✅
+- `rg "text-glow|gradient-text" src/components/screens/admin/{8 files}` → no matches ✅
+- `rg "hover:text-white" src/components/screens/admin/{8 files}` → no matches ✅
+- `rg "Elevate|Unleash|Seamless|Next-Gen|Revolutionize" src/components/screens/admin/{8 files}` → no matches ✅
+- `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/` → 200 ✅
+- `rg "^export function"` → all 8 named exports preserved ✅
+- `rg -c "useNav"` → all 8 files still wired to the nav store ✅
+
+**Out of scope (NOT touched, per task constraints):**
+- `src/components/screens/admin/landing.tsx` — explicitly listed as already redesigned; left intact despite it still containing AuroraBackground/Sparkles/MagneticButton/BorderBeam/GlowCard/PulseBadge (the task owner is aware — that file is the "do not touch" carve-out).
+- All non-admin screen files, primitives.tsx, globals.css, package.json.
+
+**Agent work record:** `/home/z/my-project/agent-ctx/DESIGN-ADMIN-design-admin.md`
+
+---
+
+## Task ID: DESIGN-CAND-SA — Candidate & Super Admin Screen Redesign
+
+**Agent:** design-cand-sa
+**Scope:** Apply professional design quality to 14 screen files (6 candidate + 8 super admin), bringing them to the same quality level as the redesigned landing page (`src/components/screens/prep/landing.tsx`).
+
+**Design references applied:**
+- Landing page (`prep/landing.tsx`) — shape consistency (rounded-lg cards, rounded-full buttons), one accent (violet-500), no em dashes, no emojis, eyebrow restraint.
+- Taste Skill v2 rules — no filler verbs, no "it's not X, it's Y", motion spring `[0.16, 1, 0.3, 1]` (kept existing motion), opacity + y only.
+- 30-things-to-avoid list — applied surgically to each file.
+
+**Surgical edits applied to all 14 files:**
+
+A. **AuroraBackground** → replaced with `<div className="min-h-screen bg-background text-foreground">` (14 wrappers removed).
+
+B. **Emojis removed** from all copy (✅ 🔍 ⚠️ 🔄). Status indicators swapped to either:
+   - Icons (`AlertTriangle`, `CheckCircle2`, `Loader2`, etc.)
+   - Inline dot spans (`<span className="h-2 w-2 rounded-full bg-emerald-500" />`)
+
+C. **Em dashes (—)** → replaced with `. ` or `- ` (16 occurrences across user-facing copy + comments).
+
+D. **Sparkles icon** → removed import and JSX in 6 files where present.
+
+E. **Harsh button gradients** (`bg-gradient-to-r from-violet-500 to-fuchsia-500`) → solid `bg-violet-500 hover:bg-violet-600` (and analogous rose/emerald/amber/sky variants).
+
+F. **Glow shadows** on icon containers (`bg-gradient-to-br from-X/30 to-Y/30`) → solid `bg-X/10` tints.
+
+G. **BorderBeam** → none in scope (0 occurrences).
+
+H. **MagneticButton** → replaced with `<Button>` in 6 files (apply, login, change-password, system-check, dashboard, results).
+
+I. **PulseBadge** → replaced with `<Badge variant="outline">` (or inline span where Badge didn't fit). Added `BADGE_TONE_CLASS` lookup map in users.tsx and audit.tsx to preserve the color-coded badges for roles and audit actions.
+
+J. **Shape consistency** — icon containers `rounded-xl`/`rounded-2xl` → `rounded-lg`; primary buttons already `rounded-full`. Header pills standardized to `rounded-full`.
+
+K. **"It's not X, it's Y" copy** — removed from login.tsx (the "invited candidate login — different from your student account" line rewritten to a flat factual sentence).
+
+L. **Filler verbs** — none found in scope; left meaningful verbs intact.
+
+M. **All functionality preserved** — tabs, tables, forms, modals, dialogs, charts (recharts), progress bars, switches, selects, search debounce, CSV export, file upload, password strength meter, countdown timer.
+
+N. **All 14 named exports preserved** (verified via grep).
+
+O. **All useNav navigation preserved** (verified via grep).
+
+**Additional light-mode contrast fixes applied:**
+- `text-white` (no slash) on transparent card backgrounds → `text-foreground` (apply.tsx, results.tsx, dashboard.tsx).
+- `hover:text-white` on ghost buttons → `hover:text-foreground` (login.tsx, dashboard.tsx, results.tsx, change-password.tsx).
+- `text-violet-200/300/400` and similar low-contrast hues → paired with explicit `dark:` variants + `text-violet-600/700` for light mode (dashboard.tsx, results.tsx, system.tsx, audit.tsx, db-health.tsx, ai-usage.tsx, users.tsx, companies.tsx, questions.tsx).
+- `text-white/40` and `text-white/20` decorative elements → `text-muted-foreground` / `text-muted-foreground/30` (dashboard.tsx timer colons, results.tsx hidden-row icons).
+- `gradient-text` → `text-violet-500 dark:text-violet-400` (matches landing-page accent style).
+- `text-glow` → removed (CSS light-mode override already nullifies, but cleaner to drop).
+
+**Files edited (14):**
+
+Candidate (6):
+1. `src/components/screens/candidate/apply.tsx` → `ApplyPage`
+2. `src/components/screens/candidate/login.tsx` → `CandidateLogin`
+3. `src/components/screens/candidate/change-password.tsx` → `ForcePasswordChange`
+4. `src/components/screens/candidate/system-check.tsx` → `PreTestCheck`
+5. `src/components/screens/candidate/dashboard.tsx` → `CandidateDashboard`
+6. `src/components/screens/candidate/results.tsx` → `CandidateResults`
+
+Super Admin (8):
+7. `src/components/screens/superadmin/dashboard.tsx` → `SuperAdminDashboard`
+8. `src/components/screens/superadmin/companies.tsx` → `CompanyManagement`
+9. `src/components/screens/superadmin/users.tsx` → `UserManagement`
+10. `src/components/screens/superadmin/ai-usage.tsx` → `AIUsageMonitor`
+11. `src/components/screens/superadmin/questions.tsx` → `QuestionBankAdmin`
+12. `src/components/screens/superadmin/system.tsx` → `SystemConfig`
+13. `src/components/screens/superadmin/audit.tsx` → `AuditLogs`
+14. `src/components/screens/superadmin/db-health.tsx` → `DatabaseHealth`
+
+**Verification (all pass):**
+- `bun run lint` → exit code 0 (0 errors, 0 warnings)
+- `rg "[✅🔄🔒⚠️❌✨🎯🔥💡📥📊🟢🔴⚡🔍📁]" src/components/screens/candidate/ src/components/screens/superadmin/` → **No matches**
+- `rg "—" src/components/screens/candidate/ src/components/screens/superadmin/` → **No matches**
+- `rg "AuroraBackground|Sparkles|MagneticButton|BorderBeam|PulseBadge" src/components/screens/candidate/ src/components/screens/superadmin/` → **No matches**
+- `rg "bg-gradient-to-(r|br)" src/components/screens/candidate/ src/components/screens/superadmin/` → **No matches** (no harsh gradients left)
+- Dev server (`bun run dev`) compiled all 14 files cleanly with `GET / 200` responses (verified via `dev.log`).
+
+**Agent work record:** `/home/z/my-project/agent-ctx/DESIGN-CAND-SA-design-cand-sa.md`
+
+---
+
+## Task ID: DESIGN-PREP · Agent: design-prep
+### Date: 2025-09-25
+### Summary: Redesigned 9 Prep Mode screens to match the redesigned landing page quality
+
+### Files Edited (9):
+1. `src/components/screens/prep/auth.tsx` — AuthScreen
+2. `src/components/screens/prep/dashboard.tsx` — StudentDashboard
+3. `src/components/screens/prep/resume.tsx` — ResumeHub
+4. `src/components/screens/prep/aptitude.tsx` — AptitudePortal
+5. `src/components/screens/prep/coding.tsx` — CodingArena
+6. `src/components/screens/prep/interview.tsx` — InterviewStudio
+7. `src/components/screens/prep/report.tsx` — InterviewReport
+8. `src/components/screens/prep/replay.tsx` — InterviewReplay
+9. `src/components/screens/prep/profile.tsx` — StudentProfile
+
+### Key Changes Applied (per the 30-things-to-avoid list + Taste Skill v2 + Motion Skill):
+
+**A. AuroraBackground removed** — All 9 files: replaced `<AuroraBackground>` with `<div className="min-h-screen bg-background text-foreground">`. Aurora orbs and dot grid eliminated.
+
+**B. Emojis removed from all copy** — Removed 👋 (dashboard welcome), 🎉 (aptitude perfect score), and 6 emotion-strip emojis (😐🙂😊🤔 in replay). Status indicators replaced with CheckCircle2/XCircle icons. Emotion strip replaced with colored dots.
+
+**C. Em dashes removed** — All `—` characters replaced with periods or hyphens across all 9 files (roadmap themes, AI summary text, proctoring copy, transcript notes, report strengths/improvements, interview type descriptions, etc.).
+
+**D. Sparkles icon removed** — Removed from all imports and JSX. Replaced with Video, Code2, FileText, Info, Award, or Briefcase depending on context.
+
+**E. Harsh gradients removed** — All `bg-gradient-to-r from-violet-500 to-fuchsia-500` on buttons replaced with solid `bg-violet-500 hover:bg-violet-600`. Gradient text replaced with solid `text-violet-500 dark:text-violet-400`.
+
+**F. Glow shadows removed** — All `shadow-[0_0_24px_-4px_rgba(168,85,247,0.6)]` and `shadow-2xl` replaced with `shadow-sm` or removed.
+
+**G. BorderBeam removed** — Not present in these 9 files (was already absent).
+
+**H. MagneticButton removed** — All `<MagneticButton>` in auth.tsx replaced with regular `<Button>`.
+
+**I. PulseBadge removed** — All `<PulseBadge>` replaced with `<Badge>` or `<span>`.
+
+**J. Shape consistency fixed** — All cards now use `rounded-lg` (replaced GlowCard's rounded-xl with plain divs using rounded-lg). Buttons use `rounded-full`. Dropzone changed from rounded-2xl to rounded-lg.
+
+**K. "It's not X, it's Y" copy removed** — None found in these files; verified.
+
+**L. Filler verbs removed** — No Elevate/Unleash/Seamless/Next-Gen/Revolutionize/Transform found in copy.
+
+**M. Terms + Privacy links added** — auth.tsx footer now has `<a href="#">Terms</a>` and `<a href="#">Privacy</a>` links.
+
+**N. All functionality preserved** — All tabs, sub-screens, forms, tables, charts, modals, dialogs, accordions, and interactive elements kept intact.
+
+**O. All named exports preserved** — AuthScreen, StudentDashboard, ResumeHub, AptitudePortal, CodingArena, InterviewStudio, InterviewReport, InterviewReplay, StudentProfile all unchanged.
+
+**P. All useNav navigation preserved** — All `set("...")` calls unchanged.
+
+### Additional Design Fixes:
+- **GlowCard replaced** with plain `<div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">` across all files (GlowCard used backdrop-blur and rounded-xl, violating #8 and #19).
+- **Terminal window chrome removed** — coding.tsx editor: removed fake traffic-light dots (red/amber/green circles).
+- **Pure black removed** — coding.tsx editor background changed from `#0a0a0f` to `bg-zinc-900`.
+- **Rainbow coloring reduced** — dashboard stat tones consolidated; interview.tsx ConicSpinner changed from rainbow conic gradient to single-violet gradient.
+- **Animated arrows removed** — dashboard.tsx bottom action buttons: removed `group-hover:translate-x-0.5` on ArrowRight.
+- **Bounce easing removed** — interview.tsx done screen: spring changed from `stiffness: 200, damping: 14` to `stiffness: 120, damping: 20` (gentle). report.tsx download icon: `animate-bounce` replaced with `animate-spin`.
+- **Checkmark characters removed** — dashboard.tsx roadmap: `✓` character replaced with CheckCircle2 icon. aptitude.tsx: `🎉` replaced with CheckCircle2 icon.
+- **Color consistency** — one accent (violet-500) across all sections. Text colors use `dark:` variants for proper light/dark contrast.
+- **Light-mode overrides respected** — Used `bg-black/[0.02]` and `dark:bg-white/[0.02]` patterns that work with the globals.css light-mode contrast fixes.
+
+### Verification Results:
+- `bun run lint` → 0 errors ✓
+- `rg "AuroraBackground|Sparkles|MagneticButton|BorderBeam|PulseBadge|GlowCard" src/components/screens/prep/` → only landing.tsx (untouched) ✓
+- `rg "—" src/components/screens/prep/` → 0 results (excluding landing.tsx) ✓
+- `rg "[👋✅🔄🔒🎤📷📥📋🚀⚠️❌✨🎯🔥💡🎉😐🙂😊🤔]" src/components/screens/prep/` → 0 results ✓
+- All 9 named exports verified present ✓
+- All `set("...")` navigation calls verified preserved ✓
+- Dev server compiles successfully (GET / 200) ✓
+
+---
+
+## Task ID: DESIGN-ADMIN-LANDING · Agent: design-admin-landing
+
+**Date:** 2025
+**Scope:** Clean up banned design patterns in `src/components/screens/admin/landing.tsx` (CompanyLanding component) to match the redesigned prep landing page (`src/components/screens/prep/landing.tsx`).
+
+### File edited (1)
+| # | File | Named export |
+|---|---|---|
+| 1 | `src/components/screens/admin/landing.tsx` | `CompanyLanding` |
+
+### What was changed
+
+**A. AuroraBackground removed** — Replaced `<AuroraBackground>...</AuroraBackground>` wrapper with `<div className="min-h-screen bg-background text-foreground">...</div>`. Removed the import from `@/components/shared/primitives`.
+
+**B. Sparkles icon removed** — Removed from the lucide-react import list and from the JSX (the "Most popular" Badge in the Growth pricing tier no longer has a Sparkles icon, just the text). Also removed 5 other unused lucide imports (`ArrowDown`, `Download`, `Plug`, `Star`, `Trophy`) that were dead from a prior version.
+
+**C. MagneticButton removed** — All 3 `<MagneticButton>` instances (hero primary CTA, hero secondary CTA, final-CTA primary) replaced with plain `<Button>`. All props (`size`, `variant`, `className`, `onClick`) preserved. Removed the import.
+
+**D. BorderBeam removed** — All 4 `<BorderBeam />` elements removed (pipeline callout GlowCard, pricing popular GlowCard, final-CTA GlowCard, CompanyMockup GlowCard). Removed the import.
+
+**E. PulseBadge removed** — All 3 `<PulseBadge>` instances replaced with native `<span>` pills using the same color tokens:
+- Hero "For Companies · Hiring Mode" (emerald) → `<span className="...border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">`
+- Pipeline callout "The killer automation" (emerald) → same emerald pill
+- Proctoring spotlight "Proctoring & integrity" (amber) → `<span className="...border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">`
+Removed the import.
+
+**F. All em dashes (—) removed** — 16 instances replaced with periods, commas, or colons:
+- `"automatically — no manual data entry"` → `"automatically. No manual data entry"`
+- `"High — gut feel"` → `"High. Gut feel"`
+- `"manual filter — and we saved"` → `"manual filter, and we saved"`
+- `"the platform — we would have"` → `"the platform. We would have"`
+- `"project depth — never name"` → `"project depth. Never name"`
+- `"Question Set Manager — add aptitude"` → `"Question Set Manager. Add aptitude"`
+- `"Enterprise is custom — talk to us"` → `"Enterprise is custom. Talk to us"`
+- `"ranked leaderboard — no scheduling"` → `"ranked leaderboard. No scheduling"`
+- `"final shortlist — without scheduling"` → `"final shortlist. Without scheduling"`
+- `"the login URL + deadline — all in 2 seconds"` → `"the login URL + deadline. All in 2 seconds"`
+- `"Three strikes — tab switch ... anomaly — and the test"` → `"Three strikes: tab switch ... anomaly, and the test"`
+- `"leaderboard — ✅ Clean / ⚠️ Flags / 🚫 Penalty"` → `"leaderboard. Clean / Flags / Penalty"` (emojis also dropped)
+- `"Hit us up — we'll get back"` → `"Hit us up. We'll get back"`
+- `"final shortlist — automated"` → `"final shortlist. Automated"`
+- JSDoc comment `"sees —"` → `"sees."`
+
+**G. Harsh button gradients removed** — All `bg-gradient-to-r from-violet-500 to-fuchsia-500` (with `hover:from-violet-400 hover:to-fuchsia-400`) replaced with solid `bg-violet-500 hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600`. Applied to: hero primary CTA, pipeline "See the leaderboard" button, pricing popular-tier CTA, final-CTA primary button, footer "Get Sales" button.
+
+**H. Decorative gradients removed** — All non-button `bg-gradient-to-*` patterns replaced with solid colors to match the prep landing's zero-gradient standard:
+- Feature icon container: `bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20` → `bg-violet-500/10`
+- Testimonial avatars + footer logo + mockup candidate avatars: `bg-gradient-to-br from-violet-500 to-fuchsia-500` → `bg-violet-500`
+- Billing toggle active pill: `bg-gradient-to-r from-violet-500 to-fuchsia-500` → `bg-violet-500`
+- Mockup progress-bar fill + "Shortlist & Send Invites" pill: gradient → `bg-violet-500`
+- Testimonial card `bg-gradient-to-br` with `t.accent` → removed (dropped the `accent` field from TESTIMONIALS data)
+- Two decorative `absolute inset-0 bg-gradient-to-br` overlay divs (pipeline callout, final CTA) → removed entirely
+
+**I. Gradient text + glow removed** — All 12 `gradient-text` class instances replaced with `text-violet-500 dark:text-violet-400`. The single `text-glow` class (hero headline) removed.
+
+**J. Glow shadow removed** — `FloatingChip` `shadow-2xl` → `shadow-sm`. No `shadow-[0_0_...]` patterns existed in the file.
+
+**K. Light/dark token consistency** — Section bands, card borders, and backgrounds updated from dark-mode-only (`border-white/5`, `bg-white/[0.01]`) to dual tokens (`border-black/10 dark:border-white/10`, `bg-black/[0.02] dark:bg-white/[0.02]`) matching the prep landing pattern. `hover:text-white` → `hover:text-foreground`. Accent text colors paired with `dark:` variants for light-mode readability.
+
+### Preserved (unchanged)
+- **`CompanyLanding` named export** — verified present at line 257.
+- **All 11 `useNav` navigation calls** — `company-register`, `candidate-leaderboard`, `proctoring-review`, `company-landing` (×3), `apply`, `admin-dashboard` all intact.
+- **All sections** — hero, ROI stats, pain points, bento features, automation pipeline, comparison table, proctoring spotlight, logo cloud, testimonials, pricing (3 tiers + monthly/yearly toggle), FAQ accordion, final CTA, footer, and the floating CompanyMockup dashboard preview.
+- **All data constants** — COMPANY_LOGOS, ROI_STATS, PAIN_POINTS, FEATURES, PIPELINE_STEPS, COMPARISON, TESTIMONIALS, PRICING, FAQ (only the cosmetic `accent` field was dropped from TESTIMONIALS).
+- **All interactivity** — billing toggle state, FAQ accordion state, scroll-to-pipeline, mockup floating chips animation.
+- **GlowCard, Marquee, SectionHeading, StaggeredReveal, revealItem** primitives — kept (not in the banned list); only their className props were restyled.
+
+### Verification (all passing)
+| Check | Result |
+|---|---|
+| `bun run lint` | exit 0, 0 errors ✓ |
+| `rg "AuroraBackground\|Sparkles\|MagneticButton\|BorderBeam\|PulseBadge" src/components/screens/admin/landing.tsx` | no matches ✓ |
+| `rg "—" src/components/screens/admin/landing.tsx` | no matches ✓ |
+| `rg "bg-gradient-to\|gradient-text\|text-glow\|shadow-\[" src/components/screens/admin/landing.tsx` | no matches ✓ |
+| `rg "^export function CompanyLanding"` | present ✓ |
+| `rg -c "useNav"` | 1 import + 11 `set(...)` calls ✓ |
+| dev server | `GET / 200` (compiled successfully) ✓ |

@@ -17,18 +17,11 @@ import {
   Lock,
   Mail,
   ShieldCheck,
-  Sparkles,
   User,
   Video,
   X,
 } from "lucide-react";
-import {
-  AuroraBackground,
-  GlowCard,
-  MagneticButton,
-  PulseBadge,
-  Shimmer,
-} from "@/components/shared/primitives";
+import { Shimmer } from "@/components/shared/primitives";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,18 +84,17 @@ export function AuthScreen() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   return (
-    <AuroraBackground showGrid={false}>
+    <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl grid-cols-1 gap-0 px-0 lg:grid-cols-2 lg:gap-0">
         {/* Left: marketing panel */}
-        <aside className="relative hidden overflow-hidden border-r border-white/5 lg:block">
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-500/15 via-fuchsia-500/10 to-sky-500/15" />
+        <aside className="relative hidden overflow-hidden border-r border-black/10 lg:block dark:border-white/10">
           <div className="relative flex h-full flex-col justify-between p-10 xl:p-14">
             <div>
-              <PulseBadge color="violet" className="text-[11px] uppercase tracking-widest">
+              <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-[11px] uppercase tracking-widest text-muted-foreground dark:border-white/10 dark:bg-white/[0.02]">
                 InterviewAI · Prep Mode
-              </PulseBadge>
+              </Badge>
               <h2 className="mt-6 text-4xl font-semibold leading-tight tracking-tight text-balance xl:text-5xl">
-                Land your <span className="gradient-text">dream role</span><br /> with AI on your side.
+                Land your <span className="text-violet-500 dark:text-violet-400">dream role</span><br /> with AI on your side.
               </h2>
               <p className="mt-4 max-w-md text-base text-pretty text-muted-foreground">
                 Resume analysis, 1,500+ aptitude questions, a coding arena with AI
@@ -114,9 +106,9 @@ export function AuthScreen() {
             <AvatarMock />
 
             <div className="grid grid-cols-3 gap-3">
-              <Stat label="Students" value="5,000+" tone="text-violet-300" />
-              <Stat label="Mock Qs" value="1.5k+" tone="text-fuchsia-300" />
-              <Stat label="Reports" value="17-sec" tone="text-sky-300" />
+              <Stat label="Students" value="5,000+" />
+              <Stat label="Mock Qs" value="1.5k+" />
+              <Stat label="Reports" value="17-sec" />
             </div>
           </div>
         </aside>
@@ -126,16 +118,14 @@ export function AuthScreen() {
           <div className="w-full max-w-md">
             <button
               onClick={() => set("landing")}
-              className="mb-6 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-white transition-colors"
+              className="mb-6 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Back to home
             </button>
 
-            <GlowCard className="relative overflow-hidden p-6 sm:p-8">
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/50 to-transparent" />
-
+            <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm sm:p-8 dark:border-white/10">
               {/* Tabs */}
-              <div className="inline-flex w-full rounded-full border border-white/10 bg-white/5 p-1">
+              <div className="inline-flex w-full rounded-full border border-black/10 bg-black/[0.02] p-1 dark:border-white/10 dark:bg-white/[0.02]">
                 {(["signup", "login"] as const).map((t) => (
                   <button
                     key={t}
@@ -145,14 +135,14 @@ export function AuthScreen() {
                     }}
                     className={cn(
                       "relative flex-1 rounded-full py-1.5 text-xs font-medium capitalize transition-colors",
-                      tab === t ? "text-white" : "text-muted-foreground hover:text-white",
+                      tab === t ? "text-white" : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {t === "signup" ? "Sign Up" : "Login"}
                     {tab === t && (
                       <motion.span
                         layoutId="auth-tab-pill"
-                        className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                        className="absolute inset-0 -z-10 rounded-full bg-violet-500"
                       />
                     )}
                   </button>
@@ -187,16 +177,18 @@ export function AuthScreen() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </GlowCard>
+            </div>
 
             <p className="mt-5 text-center text-xs text-muted-foreground">
-              By continuing you agree to our <span className="text-foreground/80 underline-offset-2 hover:underline">Terms</span> and <span className="text-foreground/80 underline-offset-2 hover:underline">Privacy Policy</span>.
+              By continuing you agree to our{" "}
+              <a href="#" className="text-foreground/80 underline-offset-2 hover:underline">Terms</a>
+              {" "}and{" "}
+              <a href="#" className="text-foreground/80 underline-offset-2 hover:underline">Privacy</a>.
             </p>
           </div>
         </section>
       </div>
-
-    </AuroraBackground>
+    </div>
   );
 }
 
@@ -204,10 +196,10 @@ export function AuthScreen() {
 /* Sub-components                                                             */
 /* -------------------------------------------------------------------------- */
 
-function Stat({ label, value, tone }: { label: string; value: string; tone: string }) {
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-      <p className={cn("text-lg font-semibold tracking-tight", tone)}>{value}</p>
+    <div className="rounded-lg border border-black/10 bg-black/[0.02] p-3 dark:border-white/10 dark:bg-white/[0.02]">
+      <p className="text-lg font-semibold tracking-tight text-violet-500 dark:text-violet-400">{value}</p>
       <p className="mt-0.5 text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
     </div>
   );
@@ -216,28 +208,12 @@ function Stat({ label, value, tone }: { label: string; value: string; tone: stri
 function AvatarMock() {
   return (
     <div className="relative my-12 grid place-items-center">
-      <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 blur-3xl" />
       <motion.div
-        animate={{ y: [0, -10, 0], scale: [1, 1.04, 1] }}
+        animate={{ y: [0, -8, 0] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        className="relative grid h-44 w-44 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-2xl ring-1 ring-white/20"
+        className="relative grid h-44 w-44 place-items-center rounded-full bg-violet-500 shadow-sm ring-1 ring-black/10 dark:ring-white/10"
       >
-        <Sparkles className="h-14 w-14 text-white" />
-        <div className="absolute -bottom-4 left-1/2 flex -translate-x-1/2 items-end gap-0.5">
-          {Array.from({ length: 14 }).map((_, i) => (
-            <motion.span
-              key={i}
-              className="w-1 rounded-full bg-violet-300"
-              animate={{ height: [4, 16, 4] }}
-              transition={{
-                duration: 0.8,
-                repeat: Infinity,
-                delay: i * 0.06,
-                ease: "easeInOut",
-              }}
-            />
-          ))}
-        </div>
+        <Video className="h-14 w-14 text-white" />
       </motion.div>
       <p className="mt-10 text-center text-xs text-muted-foreground">
         Your AI interviewer · asks · listens · adapts.
@@ -259,16 +235,16 @@ function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
             <div className={cn(
               "grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-semibold ring-1 ring-inset transition-colors",
               active
-                ? "bg-violet-500/20 text-violet-200 ring-violet-400/40"
+                ? "bg-violet-500/15 text-violet-700 ring-violet-400/40 dark:text-violet-300"
                 : done
-                  ? "bg-emerald-500/20 text-emerald-200 ring-emerald-400/40"
-                  : "bg-white/5 text-muted-foreground ring-white/10",
+                  ? "bg-emerald-500/15 text-emerald-700 ring-emerald-400/40 dark:text-emerald-300"
+                  : "bg-black/[0.02] text-muted-foreground ring-black/10 dark:bg-white/5 dark:ring-white/10",
             )}>
               {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : n}
             </div>
             <span className={cn("text-[11px]", active ? "text-foreground" : "text-muted-foreground")}>{l}</span>
             {i < labels.length - 1 && (
-              <div className="ml-1 h-px flex-1 bg-gradient-to-r from-white/15 to-transparent" />
+              <div className="ml-1 h-px flex-1 bg-black/10 dark:bg-white/10" />
             )}
           </div>
         );
@@ -280,9 +256,9 @@ function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
 function Divider() {
   return (
     <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
-      <div className="h-px flex-1 bg-white/10" />
+      <div className="h-px flex-1 bg-black/10 dark:bg-white/10" />
       OR
-      <div className="h-px flex-1 bg-white/10" />
+      <div className="h-px flex-1 bg-black/10 dark:bg-white/10" />
     </div>
   );
 }
@@ -292,7 +268,7 @@ function GoogleButton({ label }: { label: string }) {
     <Button
       type="button"
       variant="outline"
-      className="w-full rounded-full bg-white/5 border-white/15 hover:bg-white/10"
+      className="w-full rounded-full bg-black/[0.02] border-black/10 hover:bg-black/[0.05] dark:bg-white/5 dark:border-white/15 dark:hover:bg-white/10"
     >
       <GoogleGlyph />
       {label}
@@ -344,7 +320,7 @@ function SignUpStep1({ onNext }: { onNext: () => void }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Priya Sharma"
-              className="rounded-lg bg-white/5 pl-9 border-white/10"
+              className="rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10"
             />
           </div>
         </div>
@@ -357,7 +333,7 @@ function SignUpStep1({ onNext }: { onNext: () => void }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@email.com"
-              className="rounded-lg bg-white/5 pl-9 border-white/10"
+              className="rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10"
             />
           </div>
         </div>
@@ -370,12 +346,12 @@ function SignUpStep1({ onNext }: { onNext: () => void }) {
               value={pwd}
               onChange={(e) => setPwd(e.target.value)}
               placeholder="••••••••"
-              className="rounded-lg bg-white/5 pl-9 pr-9 border-white/10"
+              className="rounded-lg bg-black/[0.02] pl-9 pr-9 border-black/10 dark:bg-white/5 dark:border-white/10"
             />
             <button
               type="button"
               onClick={() => setShow((s) => !s)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-white"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
               aria-label="Toggle password visibility"
             >
               {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -388,10 +364,10 @@ function SignUpStep1({ onNext }: { onNext: () => void }) {
       <Divider />
       <GoogleButton label="Continue with Google" />
 
-      <MagneticButton
+      <Button
         onClick={submit}
         disabled={!valid || loading}
-        className="mt-5 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400 disabled:opacity-50"
+        className="mt-5 w-full rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
       >
         {loading ? (
           <>
@@ -399,11 +375,11 @@ function SignUpStep1({ onNext }: { onNext: () => void }) {
           </>
         ) : (
           <>
-            <Sparkles className="mr-2 h-4 w-4" /> Create Account
+            Create Account
             <ArrowRight className="ml-2 h-4 w-4" />
           </>
         )}
-      </MagneticButton>
+      </Button>
     </div>
   );
 }
@@ -451,7 +427,7 @@ function SignUpStep2({ onBack, onNext }: { onBack: () => void; onNext: () => voi
               <InputOTPSlot
                 key={i}
                 index={i}
-                className="h-11 w-11 border-white/15 bg-white/5 first:rounded-l-lg last:rounded-r-lg text-base"
+                className="h-11 w-11 border-black/10 bg-black/[0.02] first:rounded-l-lg last:rounded-r-lg text-base dark:border-white/15 dark:bg-white/5"
               />
             ))}
           </InputOTPGroup>
@@ -467,7 +443,7 @@ function SignUpStep2({ onBack, onNext }: { onBack: () => void; onNext: () => voi
         ) : (
           <button
             onClick={() => setResendIn(272)}
-            className="text-xs font-medium text-violet-300 hover:text-violet-200"
+            className="text-xs font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
           >
             Resend OTP
           </button>
@@ -480,23 +456,23 @@ function SignUpStep2({ onBack, onNext }: { onBack: () => void; onNext: () => voi
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mt-3 rounded-md border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-center text-xs text-rose-200"
+            className="mt-3 rounded-md border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-center text-xs text-rose-600 dark:text-rose-300"
           >
             {error}
           </motion.p>
         )}
       </AnimatePresence>
 
-      <MagneticButton
+      <Button
         onClick={verify}
         disabled={otp.length < 6 || attempts <= 0}
-        className="mt-5 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400 disabled:opacity-50"
+        className="mt-5 w-full rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
       >
         <ShieldCheck className="mr-2 h-4 w-4" /> Verify & Continue
-      </MagneticButton>
+      </Button>
       <button
         onClick={onBack}
-        className="mt-3 flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-white"
+        className="mt-3 flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to account details
       </button>
@@ -565,7 +541,7 @@ function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => voi
         <div>
           <Label className="text-xs text-muted-foreground">Target Job Role</Label>
           <Select value={role} onValueChange={setRole}>
-            <SelectTrigger className="mt-1 w-full rounded-lg bg-white/5 border-white/10">
+            <SelectTrigger className="mt-1 w-full rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10">
               <SelectValue placeholder="Choose role…" />
             </SelectTrigger>
             <SelectContent>
@@ -578,9 +554,9 @@ function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => voi
 
         <div>
           <Label className="text-xs text-muted-foreground">Skills</Label>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 p-2">
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 rounded-lg border border-black/10 bg-black/[0.02] p-2 dark:border-white/10 dark:bg-white/5">
             {skills.map((s) => (
-              <Badge key={s} className="border-violet-400/30 bg-violet-500/15 text-violet-200">
+              <Badge key={s} className="border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-200">
                 {s}
                 <button onClick={() => removeSkill(s)} className="ml-1" aria-label={`Remove ${s}`}>
                   <X className="h-3 w-3" />
@@ -612,7 +588,7 @@ function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => voi
                   <button
                     key={s}
                     onClick={() => addSkill(s)}
-                    className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-muted-foreground hover:border-violet-400/30 hover:text-violet-200"
+                    className="rounded-full border border-black/10 bg-black/[0.02] px-2.5 py-1 text-[11px] text-muted-foreground hover:border-violet-400/30 hover:text-violet-700 dark:border-white/10 dark:bg-white/5 dark:hover:text-violet-300"
                   >
                     + {s}
                   </button>
@@ -627,7 +603,7 @@ function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => voi
             <Label className="text-xs text-muted-foreground">Education</Label>
             <button
               onClick={addEdu}
-              className="inline-flex items-center gap-1 text-[11px] text-violet-300 hover:text-violet-200"
+              className="inline-flex items-center gap-1 text-[11px] text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
             >
               + Add row
             </button>
@@ -639,7 +615,7 @@ function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => voi
                   value={e.degree}
                   onValueChange={(v) => updateEdu(i, "degree", v)}
                 >
-                  <SelectTrigger className="rounded-lg bg-white/5 border-white/10">
+                  <SelectTrigger className="rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -652,19 +628,19 @@ function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => voi
                   value={e.institution}
                   onChange={(ev) => updateEdu(i, "institution", ev.target.value)}
                   placeholder="Institution"
-                  className="rounded-lg bg-white/5 border-white/10"
+                  className="rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10"
                 />
                 <div className="flex items-center gap-1">
                   <Input
                     value={e.year}
                     onChange={(ev) => updateEdu(i, "year", ev.target.value)}
                     placeholder="Year"
-                    className="rounded-lg bg-white/5 border-white/10"
+                    className="rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10"
                   />
                   {education.length > 1 && (
                     <button
                       onClick={() => removeEdu(i)}
-                      className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-muted-foreground hover:text-rose-300"
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-muted-foreground hover:text-rose-500"
                       aria-label="Remove education row"
                     >
                       <X className="h-4 w-4" />
@@ -685,7 +661,7 @@ function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => voi
                 value={linkedin}
                 onChange={(e) => setLinkedin(e.target.value)}
                 placeholder="linkedin.com/in/you"
-                className="rounded-lg bg-white/5 pl-9 border-white/10"
+                className="rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10"
               />
             </div>
           </div>
@@ -697,17 +673,17 @@ function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => voi
                 value={github}
                 onChange={(e) => setGithub(e.target.value)}
                 placeholder="github.com/you"
-                className="rounded-lg bg-white/5 pl-9 border-white/10"
+                className="rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10"
               />
             </div>
           </div>
         </div>
       </div>
 
-      <MagneticButton
+      <Button
         onClick={submit}
         disabled={!valid || loading}
-        className="mt-6 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400 disabled:opacity-50"
+        className="mt-6 w-full rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
       >
         {loading ? (
           <>
@@ -719,10 +695,10 @@ function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => voi
             <ArrowRight className="ml-2 h-4 w-4" />
           </>
         )}
-      </MagneticButton>
+      </Button>
       <button
         onClick={onBack}
-        className="mt-3 flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-white"
+        className="mt-3 flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to OTP verification
       </button>
@@ -794,7 +770,7 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
                   aria-invalid={!!errors.email && touched.email}
                   aria-describedby={errors.email && touched.email ? "login-email-error" : undefined}
                   className={cn(
-                    "rounded-lg bg-white/5 pl-9 border-white/10",
+                    "rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10",
                     errors.email && touched.email && "border-rose-400/60 focus-visible:ring-rose-400/30"
                   )}
                 />
@@ -824,7 +800,7 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
                   aria-invalid={!!errors.pwd && touched.pwd}
                   aria-describedby={errors.pwd && touched.pwd ? "login-pwd-error" : undefined}
                   className={cn(
-                    "rounded-lg bg-white/5 pl-9 pr-9 border-white/10",
+                    "rounded-lg bg-black/[0.02] pl-9 pr-9 border-black/10 dark:bg-white/5 dark:border-white/10",
                     errors.pwd && touched.pwd && "border-rose-400/60 focus-visible:ring-rose-400/30"
                   )}
                 />
@@ -849,7 +825,7 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
               </label>
               <button
                 onClick={() => setForgot(true)}
-                className="text-xs text-violet-600 hover:text-violet-700 dark:text-violet-300 dark:hover:text-violet-200"
+                className="text-xs text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
               >
                 Forgot Password?
               </button>
@@ -859,10 +835,10 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
           <Divider />
           <GoogleButton label="Continue with Google" />
 
-          <MagneticButton
+          <Button
             onClick={login}
             disabled={!valid || loading}
-            className="mt-5 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400 disabled:opacity-50"
+            className="mt-5 w-full rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -873,7 +849,7 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
                 Login <ArrowRight className="ml-2 h-4 w-4" />
               </>
             )}
-          </MagneticButton>
+          </Button>
         </>
       ) : (
         <AnimatePresence mode="wait">
@@ -897,20 +873,20 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
                     defaultValue={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@email.com"
-                    className="rounded-lg bg-white/5 pl-9 border-white/10"
+                    className="rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10"
                   />
                 </div>
               </div>
               <Button
                 onClick={() => setResetSent(true)}
                 disabled={!/@/.test(email)}
-                className="w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0"
+                className="w-full rounded-full bg-violet-500 text-white hover:bg-violet-600"
               >
                 Send Reset Link
               </Button>
               <button
                 onClick={() => setForgot(false)}
-                className="flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-white"
+                className="flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="h-3.5 w-3.5" /> Back to login
               </button>
@@ -922,7 +898,7 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
               animate={{ opacity: 1, y: 0 }}
               className="mt-8 flex flex-col items-center text-center"
             >
-              <div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-400/30">
+              <div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-500/15 text-emerald-600 ring-1 ring-inset ring-emerald-400/30 dark:text-emerald-300">
                 <CheckCircle2 className="h-6 w-6" />
               </div>
               <p className="mt-4 text-sm font-medium">Reset link sent to your email</p>
@@ -931,7 +907,7 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
               </p>
               <Button
                 onClick={() => { setResetSent(false); setForgot(false); }}
-                className="mt-5 w-full rounded-full bg-white/10 border border-white/10 hover:bg-white/15"
+                className="mt-5 w-full rounded-full bg-black/[0.05] border border-black/10 hover:bg-black/[0.08] dark:bg-white/10 dark:border-white/10 dark:hover:bg-white/15"
               >
                 Back to Login
               </Button>

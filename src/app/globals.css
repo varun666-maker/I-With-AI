@@ -667,50 +667,59 @@
 :root:not(.dark) .text-pink-300     { color: var(--color-pink-700) !important; }
 :root:not(.dark) .text-pink-400     { color: var(--color-pink-600) !important; }
 
-/* ─── Backgrounds: increase opacity for visibility on white ─── */
-:root:not(.dark) .bg-violet-500\/5   { background-color: color-mix(in oklab, var(--color-violet-500) 12%, transparent) !important; }
-:root:not(.dark) .bg-violet-500\/10  { background-color: color-mix(in oklab, var(--color-violet-500) 20%, transparent) !important; }
-:root:not(.dark) .bg-violet-500\/15  { background-color: color-mix(in oklab, var(--color-violet-500) 28%, transparent) !important; }
-:root:not(.dark) .bg-violet-500\/20  { background-color: color-mix(in oklab, var(--color-violet-500) 32%, transparent) !important; }
-:root:not(.dark) .bg-fuchsia-500\/5  { background-color: color-mix(in oklab, var(--color-fuchsia-500) 12%, transparent) !important; }
-:root:not(.dark) .bg-fuchsia-500\/10 { background-color: color-mix(in oklab, var(--color-fuchsia-500) 20%, transparent) !important; }
-:root:not(.dark) .bg-fuchsia-500\/15 { background-color: color-mix(in oklab, var(--color-fuchsia-500) 28%, transparent) !important; }
-:root:not(.dark) .bg-fuchsia-500\/20 { background-color: color-mix(in oklab, var(--color-fuchsia-500) 32%, transparent) !important; }
-:root:not(.dark) .bg-sky-500\/5      { background-color: color-mix(in oklab, var(--color-sky-500) 12%, transparent) !important; }
-:root:not(.dark) .bg-sky-500\/10     { background-color: color-mix(in oklab, var(--color-sky-500) 20%, transparent) !important; }
-:root:not(.dark) .bg-sky-500\/15     { background-color: color-mix(in oklab, var(--color-sky-500) 28%, transparent) !important; }
-:root:not(.dark) .bg-sky-500\/20     { background-color: color-mix(in oklab, var(--color-sky-500) 32%, transparent) !important; }
-:root:not(.dark) .bg-emerald-500\/5  { background-color: color-mix(in oklab, var(--color-emerald-500) 12%, transparent) !important; }
-:root:not(.dark) .bg-emerald-500\/10 { background-color: color-mix(in oklab, var(--color-emerald-500) 20%, transparent) !important; }
-:root:not(.dark) .bg-emerald-500\/15 { background-color: color-mix(in oklab, var(--color-emerald-500) 28%, transparent) !important; }
-:root:not(.dark) .bg-emerald-500\/20 { background-color: color-mix(in oklab, var(--color-emerald-500) 32%, transparent) !important; }
-:root:not(.dark) .bg-amber-500\/5    { background-color: color-mix(in oklab, var(--color-amber-500) 12%, transparent) !important; }
-:root:not(.dark) .bg-amber-500\/10   { background-color: color-mix(in oklab, var(--color-amber-500) 20%, transparent) !important; }
-:root:not(.dark) .bg-amber-500\/15   { background-color: color-mix(in oklab, var(--color-amber-500) 28%, transparent) !important; }
-:root:not(.dark) .bg-amber-500\/20   { background-color: color-mix(in oklab, var(--color-amber-500) 32%, transparent) !important; }
-:root:not(.dark) .bg-rose-500\/5     { background-color: color-mix(in oklab, var(--color-rose-500) 12%, transparent) !important; }
-:root:not(.dark) .bg-rose-500\/10    { background-color: color-mix(in oklab, var(--color-rose-500) 20%, transparent) !important; }
-:root:not(.dark) .bg-rose-500\/15    { background-color: color-mix(in oklab, var(--color-rose-500) 28%, transparent) !important; }
-:root:not(.dark) .bg-rose-500\/20    { background-color: color-mix(in oklab, var(--color-rose-500) 32%, transparent) !important; }
-:root:not(.dark) .bg-cyan-500\/10    { background-color: color-mix(in oklab, var(--color-cyan-500) 20%, transparent) !important; }
-:root:not(.dark) .bg-cyan-500\/15    { background-color: color-mix(in oklab, var(--color-cyan-500) 28%, transparent) !important; }
-:root:not(.dark) .bg-teal-500\/10    { background-color: color-mix(in oklab, var(--color-teal-500) 20%, transparent) !important; }
-:root:not(.dark) .bg-orange-500\/10  { background-color: color-mix(in oklab, var(--color-orange-500) 20%, transparent) !important; }
+/* ─── Backgrounds: use solid light tints for clear visibility on white ─── */
+/* In light mode, /10 opacity is invisible on white. Use the -100/-200 solid shades instead. */
+:root:not(.dark) .bg-violet-500\/5   { background-color: var(--color-violet-50) !important; }
+:root:not(.dark) .bg-violet-500\/10  { background-color: var(--color-violet-100) !important; }
+:root:not(.dark) .bg-violet-500\/15  { background-color: var(--color-violet-200) !important; }
+:root:not(.dark) .bg-violet-500\/20  { background-color: var(--color-violet-200) !important; }
+:root:not(.dark) .bg-fuchsia-500\/5  { background-color: var(--color-fuchsia-50) !important; }
+:root:not(.dark) .bg-fuchsia-500\/10 { background-color: var(--color-fuchsia-100) !important; }
+:root:not(.dark) .bg-fuchsia-500\/15 { background-color: var(--color-fuchsia-200) !important; }
+:root:not(.dark) .bg-fuchsia-500\/20 { background-color: var(--color-fuchsia-200) !important; }
+:root:not(.dark) .bg-sky-500\/5      { background-color: var(--color-sky-50) !important; }
+:root:not(.dark) .bg-sky-500\/10     { background-color: var(--color-sky-100) !important; }
+:root:not(.dark) .bg-sky-500\/15     { background-color: var(--color-sky-200) !important; }
+:root:not(.dark) .bg-sky-500\/20     { background-color: var(--color-sky-200) !important; }
+:root:not(.dark) .bg-emerald-500\/5  { background-color: var(--color-emerald-50) !important; }
+:root:not(.dark) .bg-emerald-500\/10 { background-color: var(--color-emerald-100) !important; }
+:root:not(.dark) .bg-emerald-500\/15 { background-color: var(--color-emerald-200) !important; }
+:root:not(.dark) .bg-emerald-500\/20 { background-color: var(--color-emerald-200) !important; }
+:root:not(.dark) .bg-amber-500\/5    { background-color: var(--color-amber-50) !important; }
+:root:not(.dark) .bg-amber-500\/10   { background-color: var(--color-amber-100) !important; }
+:root:not(.dark) .bg-amber-500\/15   { background-color: var(--color-amber-200) !important; }
+:root:not(.dark) .bg-amber-500\/20   { background-color: var(--color-amber-200) !important; }
+:root:not(.dark) .bg-rose-500\/5     { background-color: var(--color-rose-50) !important; }
+:root:not(.dark) .bg-rose-500\/10    { background-color: var(--color-rose-100) !important; }
+:root:not(.dark) .bg-rose-500\/15    { background-color: var(--color-rose-200) !important; }
+:root:not(.dark) .bg-rose-500\/20    { background-color: var(--color-rose-200) !important; }
+:root:not(.dark) .bg-cyan-500\/10    { background-color: var(--color-cyan-100) !important; }
+:root:not(.dark) .bg-cyan-500\/15    { background-color: var(--color-cyan-200) !important; }
+:root:not(.dark) .bg-teal-500\/10    { background-color: var(--color-teal-100) !important; }
+:root:not(.dark) .bg-orange-500\/10  { background-color: var(--color-orange-100) !important; }
 
 /* ─── Borders: increase opacity for visibility on white ─── */
-:root:not(.dark) .border-violet-400\/20  { border-color: color-mix(in oklab, var(--color-violet-400) 45%, transparent) !important; }
-:root:not(.dark) .border-violet-400\/30  { border-color: color-mix(in oklab, var(--color-violet-400) 55%, transparent) !important; }
-:root:not(.dark) .border-violet-400\/40  { border-color: color-mix(in oklab, var(--color-violet-400) 65%, transparent) !important; }
-:root:not(.dark) .border-fuchsia-400\/20 { border-color: color-mix(in oklab, var(--color-fuchsia-400) 45%, transparent) !important; }
-:root:not(.dark) .border-fuchsia-400\/30 { border-color: color-mix(in oklab, var(--color-fuchsia-400) 55%, transparent) !important; }
-:root:not(.dark) .border-sky-400\/20     { border-color: color-mix(in oklab, var(--color-sky-400) 45%, transparent) !important; }
-:root:not(.dark) .border-sky-400\/30     { border-color: color-mix(in oklab, var(--color-sky-400) 55%, transparent) !important; }
-:root:not(.dark) .border-emerald-400\/20 { border-color: color-mix(in oklab, var(--color-emerald-400) 45%, transparent) !important; }
-:root:not(.dark) .border-emerald-400\/30 { border-color: color-mix(in oklab, var(--color-emerald-400) 55%, transparent) !important; }
-:root:not(.dark) .border-amber-400\/20   { border-color: color-mix(in oklab, var(--color-amber-400) 45%, transparent) !important; }
-:root:not(.dark) .border-amber-400\/30   { border-color: color-mix(in oklab, var(--color-amber-400) 55%, transparent) !important; }
-:root:not(.dark) .border-rose-400\/20    { border-color: color-mix(in oklab, var(--color-rose-400) 45%, transparent) !important; }
-:root:not(.dark) .border-rose-400\/30    { border-color: color-mix(in oklab, var(--color-rose-400) 55%, transparent) !important; }
+:root:not(.dark) .border-violet-400\/20  { border-color: color-mix(in oklab, var(--color-violet-400) 55%, transparent) !important; }
+:root:not(.dark) .border-violet-400\/30  { border-color: color-mix(in oklab, var(--color-violet-400) 65%, transparent) !important; }
+:root:not(.dark) .border-violet-400\/40  { border-color: color-mix(in oklab, var(--color-violet-400) 75%, transparent) !important; }
+:root:not(.dark) .border-violet-500\/20  { border-color: color-mix(in oklab, var(--color-violet-500) 55%, transparent) !important; }
+:root:not(.dark) .border-violet-500\/30  { border-color: color-mix(in oklab, var(--color-violet-500) 65%, transparent) !important; }
+:root:not(.dark) .border-violet-500\/40  { border-color: color-mix(in oklab, var(--color-violet-500) 75%, transparent) !important; }
+:root:not(.dark) .border-fuchsia-400\/20 { border-color: color-mix(in oklab, var(--color-fuchsia-400) 55%, transparent) !important; }
+:root:not(.dark) .border-fuchsia-400\/30 { border-color: color-mix(in oklab, var(--color-fuchsia-400) 65%, transparent) !important; }
+:root:not(.dark) .border-fuchsia-400\/40 { border-color: color-mix(in oklab, var(--color-fuchsia-400) 75%, transparent) !important; }
+:root:not(.dark) .border-sky-400\/20     { border-color: color-mix(in oklab, var(--color-sky-400) 55%, transparent) !important; }
+:root:not(.dark) .border-sky-400\/30     { border-color: color-mix(in oklab, var(--color-sky-400) 65%, transparent) !important; }
+:root:not(.dark) .border-sky-400\/40     { border-color: color-mix(in oklab, var(--color-sky-400) 75%, transparent) !important; }
+:root:not(.dark) .border-emerald-400\/20 { border-color: color-mix(in oklab, var(--color-emerald-400) 55%, transparent) !important; }
+:root:not(.dark) .border-emerald-400\/30 { border-color: color-mix(in oklab, var(--color-emerald-400) 65%, transparent) !important; }
+:root:not(.dark) .border-emerald-400\/40 { border-color: color-mix(in oklab, var(--color-emerald-400) 75%, transparent) !important; }
+:root:not(.dark) .border-amber-400\/20   { border-color: color-mix(in oklab, var(--color-amber-400) 55%, transparent) !important; }
+:root:not(.dark) .border-amber-400\/30   { border-color: color-mix(in oklab, var(--color-amber-400) 65%, transparent) !important; }
+:root:not(.dark) .border-amber-400\/40   { border-color: color-mix(in oklab, var(--color-amber-400) 75%, transparent) !important; }
+:root:not(.dark) .border-rose-400\/20    { border-color: color-mix(in oklab, var(--color-rose-400) 55%, transparent) !important; }
+:root:not(.dark) .border-rose-400\/30    { border-color: color-mix(in oklab, var(--color-rose-400) 65%, transparent) !important; }
+:root:not(.dark) .border-rose-400\/40    { border-color: color-mix(in oklab, var(--color-rose-400) 75%, transparent) !important; }
 
 /* ─── White-opacity utilities: on white bg these are invisible → use foreground ─── */
 :root:not(.dark) .bg-white\/\[0\.02\]   { background-color: color-mix(in oklab, var(--foreground) 4%, transparent) !important; }

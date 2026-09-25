@@ -12,16 +12,13 @@ import {
   Mic,
   Monitor,
   ShieldAlert,
-  Sparkles,
 } from "lucide-react";
 import {
-  AuroraBackground,
   GlowCard,
-  MagneticButton,
-  PulseBadge,
   revealItem,
   StaggeredReveal,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useNav } from "@/lib/store";
@@ -36,7 +33,7 @@ interface CheckRow {
   icon: React.ComponentType<{ className?: string }>;
   state: CheckState;
   action?: string; // when state is pending, the button label
-  onAction?: () => void; // mock — flips to ok
+  onAction?: () => void; // mock. flips to ok
 }
 
 export function PreTestCheck() {
@@ -52,7 +49,7 @@ export function PreTestCheck() {
 
   const runMock = (id: string) => {
     setBusy(id);
-    // Mock permission request — in production this calls getUserMedia / requestFullscreen.
+    // Mock permission request. In production this calls getUserMedia / requestFullscreen.
     setTimeout(() => {
       setChecks((p) => ({ ...p, [id]: "ok" }));
       setBusy(null);
@@ -70,7 +67,7 @@ export function PreTestCheck() {
     {
       id: "mic",
       label: "Microphone",
-      detail: "Working — clear input detected",
+      detail: "Working. Clear input detected",
       icon: Mic,
       state: checks.mic,
     },
@@ -100,7 +97,7 @@ export function PreTestCheck() {
   const allOk = Object.values(checks).every((s) => s === "ok");
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <section className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl flex-col items-center justify-center px-4 py-12 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -108,7 +105,9 @@ export function PreTestCheck() {
           transition={{ duration: 0.5 }}
           className="flex justify-center"
         >
-          <PulseBadge color="amber">Mandatory · Enforced Proctoring</PulseBadge>
+          <Badge variant="outline" className="rounded-full border-amber-400/40 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300">
+            Mandatory · Enforced Proctoring
+          </Badge>
         </motion.div>
 
         <motion.h1
@@ -117,7 +116,7 @@ export function PreTestCheck() {
           transition={{ duration: 0.6, delay: 0.08 }}
           className="mt-5 text-center text-3xl font-semibold tracking-tight text-balance sm:text-4xl"
         >
-          🔍 <span className="gradient-text text-glow">System Check</span>
+          <span className="text-violet-500 dark:text-violet-400">System Check</span>
         </motion.h1>
 
         <motion.p
@@ -127,7 +126,7 @@ export function PreTestCheck() {
           className="mt-3 text-center text-sm text-muted-foreground sm:text-base"
         >
           Run these checks before each assessment round. Hiring-mode proctoring
-          is enforced — you can&apos;t skip any step.
+          is enforced. You can&apos;t skip any step.
         </motion.p>
 
         <StaggeredReveal className="mt-8 w-full" delay={0.05}>
@@ -144,7 +143,7 @@ export function PreTestCheck() {
                 </div>
                 <div className="h-1.5 w-24 overflow-hidden rounded-full bg-white/10">
                   <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                    className="h-full rounded-full bg-violet-500"
                     initial={{ width: "50%" }}
                     animate={{
                       width: `${
@@ -180,15 +179,14 @@ export function PreTestCheck() {
                 </p>
               </div>
 
-              <MagneticButton
+              <Button
                 disabled={!allOk}
                 onClick={() => set("candidate-dashboard")}
-                className="mt-5 h-11 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-7 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
+                className="mt-5 h-11 w-full rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600"
               >
-                <Sparkles className="mr-2 h-4 w-4" />
                 Continue to Assessment
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </MagneticButton>
+              </Button>
             </GlowCard>
           </motion.div>
         </StaggeredReveal>
@@ -204,7 +202,7 @@ export function PreTestCheck() {
         </motion.p>
 
       </section>
-    </AuroraBackground>
+    </div>
   );
 }
 

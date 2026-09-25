@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
   Bell,
   Check,
@@ -18,16 +17,9 @@ import {
   ShieldCheck,
   Upload,
   Users,
+  X as XIcon,
 } from "lucide-react";
-import {
-  AuroraBackground,
-  GlowCard,
-  MagneticButton,
-  PageWrap,
-  PulseBadge,
-  SectionHeading,
-  StatCard,
-} from "@/components/shared/primitives";
+import { PageWrap } from "@/components/shared/primitives";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
@@ -246,29 +238,34 @@ export function CandidateLeaderboard() {
   };
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap className="pt-8">
         <button
           onClick={() => set("admin-dashboard")}
-          className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-white"
+          className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
           Back to dashboard
         </button>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeading
-            align="left"
-            eyebrow="Campaign · backend-sde-1"
-            title="Candidate leaderboard"
-            description="State 4 · post-shortlist. Candidates are taking assessment rounds. Updates in real-time via WebSocket."
-          />
+          <div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">
+              Campaign. backend-sde-1
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+              Candidate leaderboard
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              State 4. Post-shortlist. Candidates are taking assessment rounds. Updates in real-time via WebSocket.
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => set("bulk-upload")}
-              className="h-9 rounded-full border-white/15 bg-white/5 hover:bg-white/10"
+              className="h-9 rounded-full"
             >
               <Upload className="mr-1.5 h-3.5 w-3.5" />
               Bulk upload
@@ -278,25 +275,25 @@ export function CandidateLeaderboard() {
 
         {/* Stats bar */}
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard
+          <StatBlock
             label="Total"
             value={SUMMARY.total}
             tone="violet"
             icon={<Users className="h-4 w-4" />}
           />
-          <StatCard
+          <StatBlock
             label="Shortlisted"
             value={SUMMARY.shortlisted}
             tone="sky"
             icon={<CheckCircle2 className="h-4 w-4" />}
           />
-          <StatCard
+          <StatBlock
             label="Invited"
             value={SUMMARY.invited}
             tone="amber"
             icon={<Mail className="h-4 w-4" />}
           />
-          <StatCard
+          <StatBlock
             label="Completed"
             value={SUMMARY.completed}
             tone="emerald"
@@ -305,11 +302,11 @@ export function CandidateLeaderboard() {
         </div>
 
         {/* Notification banner */}
-        <div className="mt-4 flex items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+        <div className="mt-4 flex items-center gap-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-100">
           <Bell className="h-4 w-4 shrink-0" />
           <span>
             <span className="font-semibold">3 new applicants</span> in the last
-            hour — auto-ranked by AI job-fit score.
+            hour. Auto-ranked by AI job-fit score.
           </span>
           <button className="ml-auto text-xs underline hover:text-amber-50">
             View
@@ -317,25 +314,25 @@ export function CandidateLeaderboard() {
         </div>
 
         {/* Auto-shortlist panel */}
-        <GlowCard className="mt-5 p-5">
+        <div className="mt-5 rounded-lg border border-black/10 bg-background p-5 shadow-sm dark:border-white/10">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-start gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 text-violet-300">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-300">
                 <Rocket className="h-4 w-4" />
               </div>
               <div>
                 <p className="text-sm font-medium">Auto-shortlist</p>
                 <p className="text-xs text-muted-foreground">
                   Will shortlist:{" "}
-                  <span className="font-semibold text-violet-200">
+                  <span className="font-semibold text-violet-700 dark:text-violet-300">
                     {previewCount}
                   </span>{" "}
                   candidates ·{" "}
-                  <span className="text-emerald-300">
+                  <span className="text-emerald-600 dark:text-emerald-300">
                     {eligibleForShortlist} have emails
                   </span>
                   {CANDIDATES.some((c) => c.emailMissing) && (
-                    <span className="text-amber-300">
+                    <span className="text-amber-600 dark:text-amber-300">
                       {" "}
                       · {CANDIDATES.filter((c) => c.emailMissing).length} need
                       manual fix
@@ -363,13 +360,13 @@ export function CandidateLeaderboard() {
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <MagneticButton className="h-10 rounded-full border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 px-5 text-white hover:from-violet-400 hover:to-fuchsia-400">
+              <Button className="h-10 rounded-full bg-violet-500 px-5 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600">
                 <Rocket className="mr-1.5 h-4 w-4" />
                 Shortlist &amp; Send Invites · {previewCount}
-              </MagneticButton>
+              </Button>
             </div>
           </div>
-        </GlowCard>
+        </div>
 
         {/* Source tabs */}
         <Tabs
@@ -377,7 +374,7 @@ export function CandidateLeaderboard() {
           onValueChange={(v) => setTab(v as typeof tab)}
           className="mt-5"
         >
-          <TabsList className="h-auto bg-white/[0.03] p-1">
+          <TabsList className="h-auto bg-muted/40 p-1">
             <TabsTrigger value="all" className="px-4 py-1.5 text-sm">
               All ({CANDIDATES.length})
             </TabsTrigger>
@@ -391,11 +388,11 @@ export function CandidateLeaderboard() {
         </Tabs>
 
         {/* Table */}
-        <GlowCard className="mt-4 overflow-hidden p-0">
+        <div className="mt-4 overflow-hidden rounded-lg border border-black/10 bg-background shadow-sm dark:border-white/10">
           <div className="max-h-[680px] overflow-auto scrollbar-custom">
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
+                <TableRow className="border-black/10 hover:bg-transparent dark:border-white/10">
                   <TableHead className="pl-4">
                     <Checkbox />
                   </TableHead>
@@ -419,7 +416,7 @@ export function CandidateLeaderboard() {
                   <TableRow
                     key={c.rank}
                     className={cn(
-                      "border-white/5 hover:bg-white/[0.03]",
+                      "border-black/5 hover:bg-muted/30 dark:border-white/5",
                       selected.has(c.rank) && "bg-violet-500/[0.05]",
                     )}
                   >
@@ -434,7 +431,7 @@ export function CandidateLeaderboard() {
                     </TableCell>
                     <TableCell className="py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-500/30 to-fuchsia-500/20 text-xs font-semibold text-violet-100">
+                        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-violet-500/10 text-xs font-semibold text-violet-700 dark:text-violet-300">
                           {c.name.split(" ").map((n) => n[0]).join("")}
                         </div>
                         <div className="min-w-0">
@@ -449,18 +446,22 @@ export function CandidateLeaderboard() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {c.source === "apply-link" ? (
-                        <PulseBadge color="emerald">Apply Link</PulseBadge>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                          Apply Link
+                        </span>
                       ) : (
-                        <PulseBadge color="sky">Bulk Upload</PulseBadge>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/30 bg-sky-500/10 px-2.5 py-0.5 text-xs font-medium text-sky-700 dark:text-sky-300">
+                          Bulk Upload
+                        </span>
                       )}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <div className="flex items-center gap-2">
                         <Progress
                           value={c.jobFit}
-                          className="h-1.5 w-16 [&>div]:bg-gradient-to-r [&>div]:from-violet-500 [&>div]:to-fuchsia-500"
+                          className="h-1.5 w-16 [&>div]:bg-violet-500"
                         />
-                        <span className="text-xs font-medium text-violet-200">
+                        <span className="text-xs font-medium text-violet-700 dark:text-violet-300">
                           {c.jobFit}%
                         </span>
                       </div>
@@ -470,11 +471,11 @@ export function CandidateLeaderboard() {
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       {c.emailMissing ? (
-                        <div className="flex items-center gap-1 rounded-md border border-amber-400/40 bg-amber-500/10 px-2 py-1 text-xs text-amber-200">
+                        <div className="flex items-center gap-1 rounded-md border border-amber-400/40 bg-amber-500/10 px-2 py-1 text-xs text-amber-700 dark:text-amber-200">
                           <Mail className="h-3 w-3" />
                           <input
                             placeholder="type email"
-                            className="w-28 bg-transparent outline-none placeholder:text-amber-200/50"
+                            className="w-28 bg-transparent outline-none placeholder:text-amber-700/50 dark:placeholder:text-amber-200/50"
                           />
                           <button className="ml-1 grid h-5 w-5 place-items-center rounded hover:bg-amber-500/20">
                             <Check className="h-3 w-3" />
@@ -482,7 +483,7 @@ export function CandidateLeaderboard() {
                         </div>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                          <Check className="h-3 w-3 text-emerald-300" />
+                          <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-300" />
                           <span className="truncate max-w-[140px]">
                             {c.email}
                           </span>
@@ -495,25 +496,25 @@ export function CandidateLeaderboard() {
                           className={cn(
                             "font-medium",
                             c.aptitude >= 70
-                              ? "text-emerald-300"
+                              ? "text-emerald-600 dark:text-emerald-300"
                               : c.aptitude >= 50
-                                ? "text-amber-300"
-                                : "text-rose-300",
+                                ? "text-amber-600 dark:text-amber-300"
+                                : "text-rose-600 dark:text-rose-300",
                           )}
                         >
                           {c.aptitude}/100
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {c.qualification === "pass" ? (
-                        <Check className="h-4 w-4 text-emerald-300" />
+                        <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
                       ) : c.qualification === "fail" ? (
-                        <span className="text-rose-300">✗</span>
+                        <XIcon className="h-4 w-4 text-rose-600 dark:text-rose-300" />
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell className="text-sm">
@@ -522,39 +523,39 @@ export function CandidateLeaderboard() {
                           className={cn(
                             "font-medium",
                             c.coding >= 70
-                              ? "text-emerald-300"
-                              : "text-amber-300",
+                              ? "text-emerald-600 dark:text-emerald-300"
+                              : "text-amber-600 dark:text-amber-300",
                           )}
                         >
                           {c.coding}/100
                         </span>
                       ) : c.qualification === "fail" ? (
-                        <Lock className="h-3.5 w-3.5 text-rose-300/70" />
+                        <Lock className="h-3.5 w-3.5 text-rose-600/70 dark:text-rose-300/70" />
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       {c.interview === "live" ? (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-200">
-                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-300">
+                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
                           Live
                         </span>
                       ) : c.interview !== null ? (
-                        <span className="text-sm font-medium text-emerald-300">
+                        <span className="text-sm font-medium text-emerald-600 dark:text-emerald-300">
                           {c.interview}/100
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {c.overall !== null ? (
-                        <span className="text-sm font-semibold text-violet-200">
+                        <span className="text-sm font-semibold text-violet-700 dark:text-violet-300">
                           {c.overall}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -568,7 +569,7 @@ export function CandidateLeaderboard() {
               </TableBody>
             </Table>
           </div>
-        </GlowCard>
+        </div>
 
         {/* Bottom actions */}
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -580,19 +581,19 @@ export function CandidateLeaderboard() {
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
-              className="h-10 rounded-full border-white/15 bg-white/5 hover:bg-white/10"
+              className="h-10 rounded-full"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
             <Button
               variant="outline"
-              className="h-10 rounded-full border-white/15 bg-white/5 hover:bg-white/10"
+              className="h-10 rounded-full"
             >
               <Download className="mr-2 h-4 w-4" />
               Export CSV
             </Button>
-            <Button className="h-10 rounded-full border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white hover:from-violet-400 hover:to-fuchsia-400">
+            <Button className="h-10 rounded-full bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600">
               <FileArchive className="mr-2 h-4 w-4" />
               Export PDF ZIP
             </Button>
@@ -600,7 +601,7 @@ export function CandidateLeaderboard() {
         </div>
 
       </PageWrap>
-    </AuroraBackground>
+    </div>
   );
 }
 
@@ -617,7 +618,7 @@ function IntegrityBadge({
     return (
       <button
         onClick={onClick}
-        className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-200 transition-colors hover:bg-emerald-500/20"
+        className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-700 transition-colors hover:bg-emerald-500/20 dark:text-emerald-300"
       >
         <ShieldCheck className="h-3 w-3" />
         Clean
@@ -628,7 +629,7 @@ function IntegrityBadge({
     return (
       <button
         onClick={onClick}
-        className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-0.5 text-xs text-amber-200 transition-colors hover:bg-amber-500/20"
+        className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-0.5 text-xs text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-300"
       >
         <ShieldAlert className="h-3 w-3" />
         2 flags
@@ -638,7 +639,7 @@ function IntegrityBadge({
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-full border border-rose-400/30 bg-rose-500/10 px-2.5 py-0.5 text-xs text-rose-200 transition-colors hover:bg-rose-500/20"
+      className="inline-flex items-center gap-1.5 rounded-full border border-rose-400/30 bg-rose-500/10 px-2.5 py-0.5 text-xs text-rose-700 transition-colors hover:bg-rose-500/20 dark:text-rose-300"
     >
       <ShieldAlert className="h-3 w-3" />
       20% penalty
@@ -649,12 +650,56 @@ function IntegrityBadge({
 function StatusBadge({ status }: { status: Status }) {
   const map: Record<
     Status,
-    { color: "violet" | "emerald" | "rose" | "sky" | "slate" }
+    string
   > = {
-    "In Progress": { color: "violet" },
-    Completed: { color: "emerald" },
-    Locked: { color: "rose" },
-    Invited: { color: "sky" },
+    "In Progress": "border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+    Completed: "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    Locked: "border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+    Invited: "border-sky-400/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
   };
-  return <PulseBadge color={map[status].color}>{status}</PulseBadge>;
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium", map[status])}>
+      {status}
+    </span>
+  );
+}
+
+function StatBlock({
+  label,
+  value,
+  tone,
+  icon,
+}: {
+  label: string;
+  value: number;
+  tone: "violet" | "emerald" | "amber" | "rose" | "sky" | "slate";
+  icon: React.ReactNode;
+}) {
+  const tones: Record<string, string> = {
+    violet: "text-violet-600 dark:text-violet-300",
+    emerald: "text-emerald-600 dark:text-emerald-300",
+    amber: "text-amber-600 dark:text-amber-300",
+    rose: "text-rose-600 dark:text-rose-300",
+    sky: "text-sky-600 dark:text-sky-300",
+    slate: "text-foreground/80",
+  };
+  return (
+    <div className="rounded-lg border border-black/10 bg-background p-4 shadow-sm dark:border-white/10">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+            {label}
+          </p>
+          <p className={cn("mt-2 text-2xl font-semibold tracking-tight", tones[tone])}>
+            {value}
+          </p>
+        </div>
+        {icon && (
+          <div className={cn("rounded-lg border border-black/10 bg-muted/40 p-2 dark:border-white/10", tones[tone])}>
+            {icon}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

@@ -10,26 +10,23 @@ import {
   Loader2,
   Mail,
   Phone,
-  Sparkles,
   UploadCloud,
   User,
   X,
 } from "lucide-react";
 import {
-  AuroraBackground,
   GlowCard,
-  MagneticButton,
-  PulseBadge,
   revealItem,
   StaggeredReveal,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-// Mock campaign data — in production this comes from /api/campaigns/:slug
+// Mock campaign data. In production this comes from /api/campaigns/:slug
 const CAMPAIGN = {
   company: "Acme Corp",
   role: "Backend Developer",
@@ -70,7 +67,7 @@ export function ApplyPage() {
     e.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
-    // Mock 2s processing — Cloudinary upload + Gemini resume analysis happen here.
+    // Mock 2s processing. Cloudinary upload + Gemini resume analysis happen here.
     setTimeout(() => {
       setSubmitting(false);
       setSubmitted(true);
@@ -109,7 +106,7 @@ export function ApplyPage() {
         : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <section className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -117,9 +114,9 @@ export function ApplyPage() {
           transition={{ duration: 0.5 }}
           className="flex justify-center"
         >
-          <PulseBadge color="amber">
+          <Badge variant="outline" className="rounded-full border-amber-400/40 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300">
             Public Application · No login required
-          </PulseBadge>
+          </Badge>
         </motion.div>
 
         <motion.h1
@@ -128,7 +125,7 @@ export function ApplyPage() {
           transition={{ duration: 0.6, delay: 0.08 }}
           className="mt-5 text-center text-3xl font-semibold tracking-tight text-balance sm:text-4xl"
         >
-          Apply for: <span className="gradient-text text-glow">{CAMPAIGN.role}</span>
+          Apply for: <span className="text-violet-500 dark:text-violet-400">{CAMPAIGN.role}</span>
         </motion.h1>
 
         <motion.p
@@ -146,7 +143,7 @@ export function ApplyPage() {
             <GlowCard className="relative overflow-hidden p-6 sm:p-8">
               {/* Company header */}
               <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
-                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 text-violet-200 ring-1 ring-inset ring-white/10">
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-300 ring-1 ring-inset ring-black/10 dark:ring-white/10">
                   <Building2 className="h-6 w-6" />
                 </div>
                 <div className="flex-1">
@@ -265,12 +262,12 @@ export function ApplyPage() {
                           errors.resume && "border-rose-400/60 bg-rose-500/5",
                         )}
                       >
-                        <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 text-violet-200 ring-1 ring-inset ring-white/10">
+                        <div className="grid h-11 w-11 place-items-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-300 ring-1 ring-inset ring-black/10 dark:ring-white/10">
                           <UploadCloud className="h-5 w-5" />
                         </div>
                         <div>
                           <p className="text-sm font-medium">
-                            <span className="gradient-text">Click to upload</span>{" "}
+                            <span className="text-violet-500 dark:text-violet-400">Click to upload</span>{" "}
                             or drag &amp; drop
                           </p>
                           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -330,10 +327,10 @@ export function ApplyPage() {
                         By submitting, you agree to be contacted about this role
                         at the email above.
                       </p>
-                      <MagneticButton
+                      <Button
                         type="submit"
                         disabled={submitting}
-                        className="h-11 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-7 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400 sm:w-auto"
+                        className="h-11 w-full rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600 sm:w-auto"
                       >
                         {submitting ? (
                           <>
@@ -342,11 +339,10 @@ export function ApplyPage() {
                           </>
                         ) : (
                           <>
-                            <Sparkles className="mr-2 h-4 w-4" />
                             Submit Application
                           </>
                         )}
-                      </MagneticButton>
+                      </Button>
                     </div>
                   </motion.form>
                 ) : (
@@ -366,7 +362,7 @@ export function ApplyPage() {
                         damping: 18,
                         delay: 0.1,
                       }}
-                      className="grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-emerald-500/30 to-emerald-500/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30"
+                      className="grid h-20 w-20 place-items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 ring-1 ring-inset ring-emerald-400/30"
                     >
                       <CheckCircle2 className="h-10 w-10" />
                     </motion.div>
@@ -375,9 +371,9 @@ export function ApplyPage() {
                         Application Submitted
                       </p>
                       <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-                        ✅ Application Submitted!
+                        Application Submitted
                       </h2>
-                      <p className="mt-2 text-lg text-white">
+                      <p className="mt-2 text-lg text-foreground">
                         Thank you, {fullName.split(" ")[0] || "Priya"}!
                       </p>
                       <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
@@ -416,7 +412,7 @@ export function ApplyPage() {
         </motion.p>
 
       </section>
-    </AuroraBackground>
+    </div>
   );
 }
 

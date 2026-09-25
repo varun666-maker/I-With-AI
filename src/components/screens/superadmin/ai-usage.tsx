@@ -19,15 +19,14 @@ import {
   YAxis,
 } from "recharts";
 import {
-  AuroraBackground,
   GlowCard,
   PageWrap,
-  PulseBadge,
   SectionHeading,
   StatCard,
   StaggeredReveal,
   revealItem,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const MODULE_USAGE = [
@@ -78,13 +77,13 @@ const RATE_EVENTS = [
 ];
 
 const SEVERITY_COLOR: Record<string, string> = {
-  amber: "border-amber-400/30 bg-amber-500/10 text-amber-200",
-  rose: "border-rose-400/30 bg-rose-500/10 text-rose-200",
+  amber: "border-amber-400/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  rose: "border-rose-400/40 bg-rose-500/10 text-rose-700 dark:text-rose-300",
 };
 
 export function AIUsageMonitor() {
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap>
         <motion.header
           initial={{ opacity: 0, y: 16 }}
@@ -94,13 +93,13 @@ export function AIUsageMonitor() {
         >
           <div>
             <div className="flex items-center gap-2">
-              <Cpu className="h-4 w-4 text-violet-300" />
-              <p className="text-xs uppercase tracking-widest text-violet-300/80">
+              <Cpu className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+              <p className="text-xs uppercase tracking-widest text-violet-600 dark:text-violet-300/80">
                 Super Admin · AI Usage
               </p>
             </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">
-              Gemini <span className="gradient-text">consumption</span> monitor
+              Gemini <span className="text-violet-500 dark:text-violet-400">consumption</span> monitor
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
               Real-time visibility into daily request count, token usage and
@@ -108,9 +107,9 @@ export function AIUsageMonitor() {
               RPM quota contract.
             </p>
           </div>
-          <PulseBadge color="amber" className="self-start sm:self-end">
+          <Badge variant="outline" className="self-start rounded-full border-amber-400/40 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300 sm:self-end">
             Token quota 120%
-          </PulseBadge>
+          </Badge>
         </motion.header>
 
         {/* Stat cards */}
@@ -140,7 +139,7 @@ export function AIUsageMonitor() {
                   <AlertTriangle className="h-4 w-4 text-amber-300" />
                 </span>
               }
-              hint="120% of daily 1M limit — over!"
+              hint="120% of daily 1M limit. Over!"
               icon={<TrendingUp className="h-4 w-4" />}
               tone="amber"
             />
@@ -317,7 +316,7 @@ export function AIUsageMonitor() {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm">
                         <span className="font-medium">{e.who}</span>
-                        <span className="text-muted-foreground"> — {e.detail}</span>
+                        <span className="text-muted-foreground"> · {e.detail}</span>
                       </p>
                     </div>
                     <span
@@ -341,6 +340,6 @@ export function AIUsageMonitor() {
         </div>
 
       </PageWrap>
-    </AuroraBackground>
+    </div>
   );
 }

@@ -9,18 +9,16 @@ import {
   Database,
   ListChecks,
   RefreshCw,
-  Sparkles,
 } from "lucide-react";
 import {
-  AuroraBackground,
   GlowCard,
   PageWrap,
-  PulseBadge,
   SectionHeading,
   StatCard,
   StaggeredReveal,
   revealItem,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -107,7 +105,7 @@ export function QuestionBankAdmin() {
   const grandTotal = aptitudeTotal + codingTotal;
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap>
         <motion.header
           initial={{ opacity: 0, y: 16 }}
@@ -117,13 +115,13 @@ export function QuestionBankAdmin() {
         >
           <div>
             <div className="flex items-center gap-2">
-              <ListChecks className="h-4 w-4 text-violet-300" />
-              <p className="text-xs uppercase tracking-widest text-violet-300/80">
+              <ListChecks className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+              <p className="text-xs uppercase tracking-widest text-violet-600 dark:text-violet-300/80">
                 Super Admin · Question Bank
               </p>
             </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">
-              Question <span className="gradient-text">bank</span> management
+              Question <span className="text-violet-500 dark:text-violet-400">bank</span> management
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
               Inventory of {grandTotal.toLocaleString()} AI-generated items
@@ -131,9 +129,9 @@ export function QuestionBankAdmin() {
               everything via Gemini (respecting the 15 RPM quota).
             </p>
           </div>
-          <PulseBadge color="emerald" className="self-start sm:self-end">
+          <Badge variant="outline" className="self-start rounded-full border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300 sm:self-end">
             {grandTotal.toLocaleString()} items live
-          </PulseBadge>
+          </Badge>
         </motion.header>
 
         {/* Top-level stat cards */}
@@ -170,7 +168,7 @@ export function QuestionBankAdmin() {
               label="Bank quality"
               value={
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="text-emerald-300">✅</span> Healthy
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" /> Healthy
                 </span>
               }
               hint="Coverage ≥ target on all categories"
@@ -196,7 +194,6 @@ export function QuestionBankAdmin() {
                 title="Aptitude categories"
                 description="Five banks, each maintained above its target coverage."
               />
-              <Sparkles className="h-5 w-5 text-violet-300/60" />
             </div>
             <div className="overflow-x-auto scrollbar-custom">
               <Table>
@@ -231,7 +228,10 @@ export function QuestionBankAdmin() {
                         {c.lastReseed}
                       </TableCell>
                       <TableCell className="pr-5">
-                        <PulseBadge color="emerald">✅ Healthy</PulseBadge>
+                        <Badge variant="outline" className="rounded-full border-emerald-400/40 bg-emerald-500/10 px-2.5 py-0.5 text-emerald-700 dark:text-emerald-300">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          Healthy
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -299,7 +299,10 @@ export function QuestionBankAdmin() {
                         {c.lastReseed}
                       </TableCell>
                       <TableCell className="pr-5">
-                        <PulseBadge color="emerald">✅ Healthy</PulseBadge>
+                        <Badge variant="outline" className="rounded-full border-emerald-400/40 bg-emerald-500/10 px-2.5 py-0.5 text-emerald-700 dark:text-emerald-300">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          Healthy
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -373,18 +376,18 @@ export function QuestionBankAdmin() {
               quota with a 4-second sleep between Gemini calls.
             </p>
             <Button
-              className="mt-4 w-full border-0 bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-400 hover:to-pink-400"
+              className="mt-4 w-full bg-rose-500 text-white hover:bg-rose-600"
               onClick={() => setReseedOpen(true)}
               disabled={seeding}
             >
               <RefreshCw className={cn("mr-2 h-4 w-4", seeding && "animate-spin")} />
-              {seeding ? "Reseeding…" : "🔄 Reseed All Questions"}
+              {seeding ? "Reseeding…" : "Reseed All Questions"}
             </Button>
             {seeding && (
               <div className="mt-4">
                 <Progress value={progress} className="h-1.5 bg-white/5" />
                 <p className="mt-2 text-[11px] text-muted-foreground">
-                  {progress}% · calling Gemini… (mock — real job ~30 min)
+                  {progress}% · calling Gemini… (mock. Real job ~30 min)
                 </p>
               </div>
             )}
@@ -435,7 +438,7 @@ export function QuestionBankAdmin() {
               Cancel
             </Button>
             <Button
-              className="border-0 bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-400 hover:to-pink-400"
+              className="bg-rose-500 text-white hover:bg-rose-600"
               onClick={startReseed}
               disabled={seeding}
             >
@@ -445,6 +448,6 @@ export function QuestionBankAdmin() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AuroraBackground>
+    </div>
   );
 }

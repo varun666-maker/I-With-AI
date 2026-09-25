@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
+  Award,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -15,16 +16,12 @@ import {
   Info,
   Play,
   PlayCircle,
-  Sparkles,
   Terminal,
   X,
   Zap,
 } from "lucide-react";
 import {
-  AuroraBackground,
-  GlowCard,
   PageWrap,
-  PulseBadge,
   SectionHeading,
 } from "@/components/shared/primitives";
 import { BackToHome } from "@/components/shared/top-nav";
@@ -129,7 +126,7 @@ export function CodingArena() {
     setRunning(true);
     setTimeout(() => {
       setRunning(false);
-      // 7/10 pass — case 3 and case 8 fail
+      // 7/10 pass, case 3 and case 8 fail
       setResults(
         TEST_CASES.map((tc) => ({
           id: tc.id,
@@ -146,19 +143,19 @@ export function CodingArena() {
   const passCount = results ? results.filter((r) => r.status === "pass").length : 0;
 
   return (
-    <AuroraBackground showGrid={false}>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap wide>
         <BackToHome />
         <SectionHeading
           eyebrow="Coding Arena"
-          title={<>Practice with the <span className="gradient-text">AI code reviewer</span></>}
+          title={<>Practice with the <span className="text-violet-500 dark:text-violet-400">AI code reviewer</span></>}
           description="A VS Code-like editor with syntax highlighting, 10 test cases per problem, real-time execution, and an AI review that scores complexity, readability, and gives refactor suggestions."
           align="left"
         />
 
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {/* LEFT PANE: problem statement */}
-          <GlowCard className="flex h-full flex-col p-6">
+          <div className="flex h-full flex-col rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold tracking-tight">
@@ -166,12 +163,12 @@ export function CodingArena() {
                 </h3>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">Problem #1 · Asked 3,241 times this week</p>
               </div>
-              <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-200">Easy</Badge>
+              <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">Easy</Badge>
             </div>
 
             <div className="mt-4 space-y-3 text-sm text-foreground/85">
               <p>
-                Given an array of integers <code className="rounded bg-white/10 px-1 font-mono text-xs text-violet-200">nums</code> and an integer <code className="rounded bg-white/10 px-1 font-mono text-xs text-violet-200">target</code>, return <em>indices of the two numbers</em> such that they add up to <code className="rounded bg-white/10 px-1 font-mono text-xs text-violet-200">target</code>.
+                Given an array of integers <code className="rounded bg-black/10 px-1 font-mono text-xs text-violet-700 dark:bg-white/10 dark:text-violet-200">nums</code> and an integer <code className="rounded bg-black/10 px-1 font-mono text-xs text-violet-700 dark:bg-white/10 dark:text-violet-200">target</code>, return <em>indices of the two numbers</em> such that they add up to <code className="rounded bg-black/10 px-1 font-mono text-xs text-violet-700 dark:bg-white/10 dark:text-violet-200">target</code>.
               </p>
               <p>
                 You may assume that each input would have <strong>exactly one solution</strong>, and you may not use the same element twice. You can return the answer in any order.
@@ -186,10 +183,10 @@ export function CodingArena() {
                   { i: "nums = [3,2,4], target = 6", o: "[1,2]", note: "Because nums[1] + nums[2] == 6." },
                   { i: "nums = [3,3], target = 6", o: "[0,1]", note: "Same value, different indices." },
                 ].map((e, i) => (
-                  <div key={i} className="rounded-md border border-white/10 bg-black/30 p-3 font-mono text-xs">
+                  <div key={i} className="rounded-md border border-black/10 bg-zinc-900 p-3 font-mono text-xs dark:border-white/10">
                     <p className="text-emerald-300">Input: <span className="text-white/80">{e.i}</span></p>
                     <p className="mt-1 text-violet-300">Output: <span className="text-white/80">{e.o}</span></p>
-                    <p className="mt-1 text-muted-foreground"># {e.note}</p>
+                    <p className="mt-1 text-zinc-400"># {e.note}</p>
                   </div>
                 ))}
               </div>
@@ -198,35 +195,30 @@ export function CodingArena() {
             <div className="mt-5">
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Constraints</p>
               <ul className="mt-2 space-y-1 font-mono text-xs text-foreground/70">
-                <li>• 2 ≤ nums.length ≤ 10⁴</li>
-                <li>• -10⁹ ≤ nums[i] ≤ 10⁹</li>
-                <li>• -10⁹ ≤ target ≤ 10⁹</li>
-                <li>• Only one valid answer exists.</li>
-                <li>• Follow-up: O(n) time, O(n) space.</li>
+                <li>2 ≤ nums.length ≤ 10⁴</li>
+                <li>-10⁹ ≤ nums[i] ≤ 10⁹</li>
+                <li>-10⁹ ≤ target ≤ 10⁹</li>
+                <li>Only one valid answer exists.</li>
+                <li>Follow-up: O(n) time, O(n) space.</li>
               </ul>
             </div>
 
             <div className="mt-auto pt-5">
               <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" />
-                Avg solve time: <span className="text-foreground">4m 12s</span> · Acceptance rate: <span className="text-emerald-300">52%</span>
+                Avg solve time: <span className="text-foreground">4m 12s</span> · Acceptance rate: <span className="text-emerald-600 dark:text-emerald-300">52%</span>
               </div>
             </div>
-          </GlowCard>
+          </div>
 
           {/* RIGHT PANE: editor */}
-          <GlowCard className="flex h-full flex-col p-0 overflow-hidden">
+          <div className="flex h-full flex-col overflow-hidden rounded-lg border border-black/10 bg-card shadow-sm dark:border-white/10">
             {/* Editor chrome */}
-            <div className="flex items-center justify-between border-b border-white/5 px-4 py-2">
-              <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-rose-500/70" />
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-500/70" />
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/70" />
-                <span className="ml-3 font-mono text-xs text-muted-foreground">solution.{language === "C++" ? "cpp" : language.toLowerCase().replace("+", "pp")}</span>
-              </div>
+            <div className="flex items-center justify-between border-b border-black/10 px-4 py-2 dark:border-white/5">
+              <span className="font-mono text-xs text-muted-foreground">solution.{language === "C++" ? "cpp" : language.toLowerCase().replace("+", "pp")}</span>
               <div className="flex items-center gap-2">
                 <Select value={language} onValueChange={onLangChange}>
-                  <SelectTrigger size="sm" className="w-32 rounded-md border-white/10 bg-white/5">
+                  <SelectTrigger size="sm" className="w-32 rounded-md border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/5">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -236,7 +228,7 @@ export function CodingArena() {
                   </SelectContent>
                 </Select>
                 {autoSaved && (
-                  <span className="text-[11px] text-emerald-300">
+                  <span className="text-[11px] text-emerald-600 dark:text-emerald-300">
                     <Check className="mr-0.5 inline h-3 w-3" /> Auto-saved
                   </span>
                 )}
@@ -244,7 +236,7 @@ export function CodingArena() {
             </div>
 
             {/* Editor (textarea styled like Monaco) */}
-            <div className="relative bg-[#0a0a0f]">
+            <div className="relative bg-zinc-900">
               <div className="flex">
                 {/* Line numbers */}
                 <div className="select-none border-r border-white/5 px-2 py-3 text-right font-mono text-xs text-white/30">
@@ -263,12 +255,12 @@ export function CodingArena() {
             </div>
 
             {/* Custom input + actions */}
-            <div className="border-t border-white/5 p-4">
+            <div className="border-t border-black/10 p-4 dark:border-white/5">
               <Label2 text="Custom Input" />
               <Textarea
                 value={customInput}
                 onChange={(e) => setCustomInput(e.target.value)}
-                className="mt-1 h-16 rounded-md bg-black/40 font-mono text-xs border-white/10"
+                className="mt-1 h-16 rounded-md bg-zinc-900 font-mono text-xs text-emerald-100 border-black/10 dark:border-white/10"
               />
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Button
@@ -276,7 +268,7 @@ export function CodingArena() {
                   size="sm"
                   onClick={run}
                   disabled={running}
-                  className="rounded-full border-white/15 bg-white/5 hover:bg-white/10"
+                  className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
                 >
                   {running ? <Clock className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
                   Run
@@ -285,7 +277,7 @@ export function CodingArena() {
                   size="sm"
                   onClick={submit}
                   disabled={running}
-                  className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0"
+                  className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
                 >
                   {running ? <Clock className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
                   Submit
@@ -303,13 +295,13 @@ export function CodingArena() {
 
             {/* Test cases */}
             {results && (
-              <div className="border-t border-white/5 p-4">
+              <div className="border-t border-black/10 p-4 dark:border-white/5">
                 <div className="flex items-center justify-between">
                   <p className="text-xs uppercase tracking-wider text-muted-foreground">
                     {submitted ? "Submit Results" : "Run Results"}
                   </p>
                   {submitted && (
-                    <Badge className="border-violet-400/30 bg-violet-500/10 text-violet-200">
+                    <Badge className="border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-200">
                       {passCount}/{results.length} passed
                     </Badge>
                   )}
@@ -318,18 +310,18 @@ export function CodingArena() {
                   {results.map((r) => {
                     const tc = TEST_CASES.find((x) => x.id === r.id)!;
                     return (
-                      <li key={r.id} className="flex items-center justify-between rounded-md border border-white/5 bg-white/[0.02] px-3 py-1.5 text-xs">
+                      <li key={r.id} className="flex items-center justify-between rounded-md border border-black/5 bg-black/[0.02] px-3 py-1.5 text-xs dark:border-white/5 dark:bg-white/[0.02]">
                         <div className="flex min-w-0 items-center gap-2">
                           {r.status === "pass" ? (
-                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
                           ) : (
-                            <X className="h-3.5 w-3.5 shrink-0 text-rose-400" />
+                            <X className="h-3.5 w-3.5 shrink-0 text-rose-500" />
                           )}
                           <span className="truncate font-mono text-muted-foreground">
                             Case {r.id} {tc.hidden && <span className="text-[10px]">(hidden)</span>}
                           </span>
                           {r.status === "fail" && (
-                            <span className="ml-2 truncate text-rose-300">
+                            <span className="ml-2 truncate text-rose-600 dark:text-rose-300">
                               Expected {tc.expected} · Got <span className="font-mono">{r.got}</span>
                             </span>
                           )}
@@ -349,7 +341,7 @@ export function CodingArena() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="border-t border-white/5"
+                  className="border-t border-black/10 dark:border-white/5"
                 >
                   <AIReview language={language} code={code} passCount={passCount} total={TEST_CASES.length} />
                 </motion.div>
@@ -357,22 +349,22 @@ export function CodingArena() {
             </AnimatePresence>
 
             {/* Proctoring footer */}
-            <div className="mt-auto border-t border-white/5 px-4 py-2 text-[11px] text-muted-foreground">
+            <div className="mt-auto border-t border-black/10 px-4 py-2 text-[11px] text-muted-foreground dark:border-white/5">
               <Info className="mr-1 inline h-3 w-3" />
-              Tab switches: <span className="text-foreground">1</span> · Fullscreen exits: <span className="text-foreground">0</span> — logged for awareness only. No penalties.
+              Tab switches: <span className="text-foreground">1</span> · Fullscreen exits: <span className="text-foreground">0</span>. Logged for awareness only. No penalties.
             </div>
-          </GlowCard>
+          </div>
         </div>
 
         {/* Bottom strip: quick navigation */}
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: "Problems", icon: Code2, value: "1,247", tone: "text-violet-300" },
-            { label: "Solved", icon: CheckCircle2, value: "312", tone: "text-emerald-300" },
-            { label: "Streak", icon: Zap, value: "9 days", tone: "text-amber-300" },
-            { label: "Avg score", icon: Sparkles, value: "85/100", tone: "text-fuchsia-300" },
+            { label: "Problems", icon: Code2, value: "1,247", tone: "text-violet-500 dark:text-violet-400" },
+            { label: "Solved", icon: CheckCircle2, value: "312", tone: "text-emerald-600 dark:text-emerald-300" },
+            { label: "Streak", icon: Zap, value: "9 days", tone: "text-amber-600 dark:text-amber-300" },
+            { label: "Avg score", icon: Award, value: "85/100", tone: "text-violet-500 dark:text-violet-400" },
           ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div key={s.label} className="rounded-lg border border-black/10 bg-card p-4 shadow-sm dark:border-white/10">
               <s.icon className={cn("h-4 w-4", s.tone)} />
               <p className="mt-2 text-xl font-semibold tracking-tight">{s.value}</p>
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
@@ -383,7 +375,7 @@ export function CodingArena() {
       </PageWrap>
 
       <Dialog open={confirmLang !== null} onOpenChange={(o) => !o && setConfirmLang(null)}>
-        <DialogContent className="border-white/10 bg-card/95 backdrop-blur-xl">
+        <DialogContent className="border-black/10 bg-card dark:border-white/10">
           <DialogHeader>
             <DialogTitle>Switch language?</DialogTitle>
             <DialogDescription>
@@ -400,14 +392,14 @@ export function CodingArena() {
             </Button>
             <Button
               onClick={confirmSwitch}
-              className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0"
+              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
             >
               Switch &amp; Clear Code
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AuroraBackground>
+    </div>
   );
 }
 
@@ -426,19 +418,19 @@ function AIReview({ language, code, passCount, total }: { language: string; code
   return (
     <div className="p-4">
       <div className="flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-violet-300" />
+        <Code2 className="h-4 w-4 text-violet-500 dark:text-violet-400" />
         <p className="text-sm font-medium">AI Code Review</p>
-        <Badge className="border-violet-400/30 bg-violet-500/10 text-violet-200">
+        <Badge className="border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-200">
           Gemini 1.5 Flash · {language}
         </Badge>
       </div>
 
-      <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.02] p-4">
+      <div className="mt-3 rounded-lg border border-black/10 bg-black/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.02]">
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">Overall Score</p>
-          <p className="text-xl font-semibold text-violet-300">{overall}/100</p>
+          <p className="text-xl font-semibold text-violet-500 dark:text-violet-300">{overall}/100</p>
         </div>
-        <Progress value={overall} className="mt-2 bg-white/10" />
+        <Progress value={overall} className="mt-2 bg-black/10 dark:bg-white/10" />
         <div className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
           <SubScore label="Correctness" value={Math.round((passCount / total) * 100)} />
           <SubScore label="Code Quality" value={90} />
@@ -446,10 +438,10 @@ function AIReview({ language, code, passCount, total }: { language: string; code
           <SubScore label="Complexity" value={95} />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
-          <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-200">
+          <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">
             <Check className="h-3 w-3" /> Time: O(n) · Optimal
           </Badge>
-          <Badge className="border-sky-400/30 bg-sky-500/10 text-sky-200">
+          <Badge className="border-sky-400/30 bg-sky-500/10 text-sky-700 dark:text-sky-200">
             <Terminal className="h-3 w-3" /> Space: O(n)
           </Badge>
         </div>
@@ -457,35 +449,35 @@ function AIReview({ language, code, passCount, total }: { language: string; code
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
         <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/[0.04] p-4">
-          <p className="text-xs font-medium text-emerald-300">Strengths</p>
+          <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Strengths</p>
           <ul className="mt-2 space-y-1.5 text-xs text-foreground/80">
-            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-400" /> Clean, descriptive variable naming (<code className="font-mono text-emerald-200">seen</code>, <code className="font-mono text-emerald-200">target</code>).</li>
-            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-400" /> Single pass O(n) — no nested loop. Optimal.</li>
-            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-400" /> Handles edge case where no solution exists.</li>
+            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Clean, descriptive variable naming (<code className="font-mono text-emerald-700 dark:text-emerald-200">seen</code>, <code className="font-mono text-emerald-700 dark:text-emerald-200">target</code>).</li>
+            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Single pass O(n). No nested loop. Optimal.</li>
+            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Handles edge case where no solution exists.</li>
           </ul>
         </div>
         <div className="rounded-lg border border-amber-400/20 bg-amber-500/[0.04] p-4">
-          <p className="text-xs font-medium text-amber-300">Suggestions</p>
+          <p className="text-xs font-medium text-amber-700 dark:text-amber-300">Suggestions</p>
           <ul className="mt-2 space-y-1.5 text-xs text-foreground/80">
-            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-400" /> Add a docstring explaining parameters and return type.</li>
-            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-400" /> Type hints missing — add <code className="font-mono text-amber-200">nums: list[int], target: int</code>.</li>
-            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-400" /> Raise <code className="font-mono text-amber-200">ValueError</code> instead of returning empty list when no pair found.</li>
+            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Add a docstring explaining parameters and return type.</li>
+            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Type hints missing. Add <code className="font-mono text-amber-700 dark:text-amber-200">nums: list[int], target: int</code>.</li>
+            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Raise <code className="font-mono text-amber-700 dark:text-amber-200">ValueError</code> instead of returning empty list when no pair found.</li>
           </ul>
         </div>
       </div>
 
       <Collapsible open={showRefactor} onOpenChange={setShowRefactor} className="mt-4">
-        <GlowCard className="p-0">
+        <div className="rounded-lg border border-black/10 bg-card dark:border-white/10">
           <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-violet-300" />
+              <Code2 className="h-4 w-4 text-violet-500 dark:text-violet-400" />
               <span className="text-sm font-medium">Refactored Snippet</span>
-              <Badge className="border-white/10 bg-white/5 text-white/70">AI-generated</Badge>
+              <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5">AI-generated</Badge>
             </div>
             <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", showRefactor && "rotate-180")} />
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="border-t border-white/5 bg-[#0a0a0f] p-4">
+            <div className="border-t border-black/10 bg-zinc-900 p-4 dark:border-white/5">
               <pre className="overflow-x-auto whitespace-pre font-mono text-xs text-emerald-100">
 {`def two_sum(nums: list[int], target: int) -> list[int]:
     """Return indices of two numbers summing to target.
@@ -506,7 +498,7 @@ function AIReview({ language, code, passCount, total }: { language: string; code
                 <Button
                   size="sm"
                   variant="outline"
-                  className="rounded-full border-white/15 bg-white/5 hover:bg-white/10"
+                  className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
                   onClick={() => navigator.clipboard?.writeText(code)}
                 >
                   <Copy className="h-3.5 w-3.5" /> Copy Refactor
@@ -521,7 +513,7 @@ function AIReview({ language, code, passCount, total }: { language: string; code
               </div>
             </div>
           </CollapsibleContent>
-        </GlowCard>
+        </div>
       </Collapsible>
     </div>
   );
@@ -532,7 +524,7 @@ function SubScore({ label, value }: { label: string; value: number }) {
     <div>
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <div className="mt-1 flex items-center gap-2">
-        <Progress value={value} className="bg-white/10" />
+        <Progress value={value} className="bg-black/10 dark:bg-white/10" />
         <span className="font-mono text-[11px] font-semibold text-foreground">{value}</span>
       </div>
     </div>

@@ -14,12 +14,11 @@ import {
   Users,
 } from "lucide-react";
 import {
-  AuroraBackground,
   GlowCard,
   PageWrap,
-  PulseBadge,
   SectionHeading,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -74,7 +73,7 @@ const USERS: UserRow[] = [
     email: "rahul@student.com",
     name: "Rahul Kumar",
     role: "student",
-    company: "—",
+    company: "-",
     created: "Nov 20",
   },
   {
@@ -90,7 +89,7 @@ const USERS: UserRow[] = [
     email: "meera@prepmail.com",
     name: "Meera Krishnan",
     role: "student",
-    company: "—",
+    company: "-",
     created: "Jan 4",
   },
   {
@@ -110,6 +109,15 @@ const ROLE_BADGE: Record<Role, { color: "violet" | "sky" | "amber" | "emerald" |
   super_admin: { color: "emerald", label: "super_admin" },
 };
 
+const BADGE_TONE_CLASS: Record<string, string> = {
+  violet: "border-violet-400/40 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+  sky: "border-sky-400/40 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  amber: "border-amber-400/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  emerald: "border-emerald-400/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  rose: "border-rose-400/40 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  slate: "border-black/10 bg-black/5 text-muted-foreground dark:border-white/10 dark:bg-white/5",
+};
+
 export function UserManagement() {
   const { set } = useNav();
   const [query, setQuery] = useState("");
@@ -118,7 +126,7 @@ export function UserManagement() {
   const [pendingSuspend, setPendingSuspend] = useState<UserRow | null>(null);
   const [resetPwFor, setResetPwFor] = useState<UserRow | null>(null);
 
-  // Mock debounce — 300ms after typing stops
+  // Mock debounce. 300ms after typing stops
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query), 300);
     return () => clearTimeout(t);
@@ -137,7 +145,7 @@ export function UserManagement() {
   }, [debounced]);
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <PageWrap>
         <motion.header
           initial={{ opacity: 0, y: 16 }}
@@ -147,13 +155,13 @@ export function UserManagement() {
         >
           <div>
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-violet-300" />
-              <p className="text-xs uppercase tracking-widest text-violet-300/80">
+              <Users className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+              <p className="text-xs uppercase tracking-widest text-violet-600 dark:text-violet-300/80">
                 Super Admin · Users
               </p>
             </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">
-              User <span className="gradient-text">management</span>
+              User <span className="text-violet-500 dark:text-violet-400">management</span>
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
               Search 12,450 accounts across every role. Reset passwords, suspend
@@ -161,9 +169,9 @@ export function UserManagement() {
               MongoDB, Cloudinary and Redis.
             </p>
           </div>
-          <PulseBadge color="violet" className="self-start sm:self-end">
+          <Badge variant="outline" className="self-start rounded-full border-violet-400/40 bg-violet-500/10 px-3 py-1 text-violet-700 dark:text-violet-300 sm:self-end">
             {USERS.length} shown · 12,450 total
-          </PulseBadge>
+          </Badge>
         </motion.header>
 
         {/* Debounced search */}
@@ -254,7 +262,7 @@ export function UserManagement() {
                         </TableCell>
                         <TableCell className="font-medium">{u.name}</TableCell>
                         <TableCell>
-                          <PulseBadge color={badge.color}>{badge.label}</PulseBadge>
+                          <Badge variant="outline" className={cn("rounded-full px-2.5 py-0.5", BADGE_TONE_CLASS[badge.color])}>{badge.label}</Badge>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {u.company}
@@ -364,7 +372,7 @@ export function UserManagement() {
               Cancel
             </Button>
             <Button
-              className="border-0 bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-400 hover:to-pink-400"
+              className="bg-rose-500 text-white hover:bg-rose-600"
               onClick={() => setPendingDelete(null)}
             >
               <Trash2 className="mr-1.5 h-4 w-4" />
@@ -399,7 +407,7 @@ export function UserManagement() {
               Cancel
             </Button>
             <Button
-              className="border-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400"
+              className="bg-amber-500 text-white hover:bg-amber-600"
               onClick={() => setPendingSuspend(null)}
             >
               <PauseCircle className="mr-1.5 h-4 w-4" />
@@ -435,7 +443,7 @@ export function UserManagement() {
               Cancel
             </Button>
             <Button
-              className="border-0 bg-gradient-to-r from-sky-500 to-cyan-500 text-white hover:from-sky-400 hover:to-cyan-400"
+              className="bg-sky-500 text-white hover:bg-sky-600"
               onClick={() => setResetPwFor(null)}
             >
               <CheckCircle2 className="mr-1.5 h-4 w-4" />
@@ -444,6 +452,6 @@ export function UserManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AuroraBackground>
+    </div>
   );
 }

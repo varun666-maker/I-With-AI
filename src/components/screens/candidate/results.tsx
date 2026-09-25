@@ -15,20 +15,18 @@ import {
   Video,
 } from "lucide-react";
 import {
-  AuroraBackground,
   GlowCard,
-  MagneticButton,
-  PulseBadge,
   revealItem,
   StaggeredReveal,
 } from "@/components/shared/primitives";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-// Mock results context — would come from /api/campaigns/:slug/results
+// Mock results context. Would come from /api/campaigns/:slug/results
 const CAMPAIGN = {
   company: "Acme Corp",
   role: "Backend Developer",
@@ -85,7 +83,7 @@ export function CandidateResults() {
   const { set } = useNav();
 
   return (
-    <AuroraBackground>
+    <div className="min-h-screen bg-background text-foreground">
       <section className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl flex-col items-center justify-center px-4 py-12 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -93,7 +91,9 @@ export function CandidateResults() {
           transition={{ duration: 0.5 }}
           className="flex justify-center"
         >
-          <PulseBadge color="emerald">Read-only · Final</PulseBadge>
+          <Badge variant="outline" className="rounded-full border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300">
+            Read-only · Final
+          </Badge>
         </motion.div>
 
         <motion.div
@@ -105,7 +105,7 @@ export function CandidateResults() {
             damping: 16,
             delay: 0.1,
           }}
-          className="mt-6 grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-emerald-500/30 to-emerald-500/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30"
+          className="mt-6 grid h-20 w-20 place-items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 ring-1 ring-inset ring-emerald-400/30"
         >
           <CheckCircle2 className="h-10 w-10" />
         </motion.div>
@@ -116,7 +116,7 @@ export function CandidateResults() {
           transition={{ duration: 0.6, delay: 0.16 }}
           className="mt-5 text-center text-3xl font-semibold tracking-tight sm:text-4xl"
         >
-          ✅ <span className="gradient-text text-glow">Assessment Complete</span>
+          <span className="text-violet-500 dark:text-violet-400">Assessment Complete</span>
         </motion.h1>
 
         <motion.p
@@ -126,7 +126,7 @@ export function CandidateResults() {
           className="mt-3 text-center text-sm text-muted-foreground sm:text-base"
         >
           Your responses have been submitted to{" "}
-          <span className="font-medium text-white">{CAMPAIGN.company}</span>.
+          <span className="font-medium text-foreground">{CAMPAIGN.company}</span>.
         </motion.p>
 
         <StaggeredReveal className="mt-8 w-full" delay={0.05}>
@@ -137,11 +137,11 @@ export function CandidateResults() {
                   <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
                     Your Results
                   </p>
-                  <p className="text-sm text-white/80">
+                  <p className="text-sm text-foreground/80">
                     {CAMPAIGN.company} · {CAMPAIGN.role}
                   </p>
                 </div>
-                <div className="flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+                <div className="flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-700 dark:text-emerald-300">
                   <ShieldCheck className="h-3.5 w-3.5" />
                   Integrity: Clean
                 </div>
@@ -169,18 +169,18 @@ export function CandidateResults() {
                       key={row.label}
                       className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2.5"
                     >
-                      <div className="grid h-8 w-8 place-items-center rounded-lg bg-white/5 text-white/40 ring-1 ring-inset ring-white/10">
+                      <div className="grid h-8 w-8 place-items-center rounded-lg bg-black/5 text-muted-foreground ring-1 ring-inset ring-black/10 dark:bg-white/5 dark:text-white/40 dark:ring-white/10">
                         <row.icon className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-white/80">
+                        <p className="text-sm font-medium text-foreground/80">
                           {row.label}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
                           {row.hint}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/50">
+                      <div className="flex items-center gap-1.5 rounded-full border border-black/10 bg-black/5 px-3 py-1 text-xs text-muted-foreground dark:border-white/10 dark:bg-white/5">
                         <Lock className="h-3 w-3" />
                         <EyeOff className="h-3 w-3" />
                         Hidden
@@ -190,8 +190,8 @@ export function CandidateResults() {
                 </ul>
               </div>
 
-              <div className="mt-5 flex items-start gap-2 rounded-lg border border-sky-400/20 bg-sky-500/5 px-3 py-2.5 text-xs text-sky-100/90">
-                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-300" />
+              <div className="mt-5 flex items-start gap-2 rounded-lg border border-sky-400/20 bg-sky-500/5 px-3 py-2.5 text-xs text-sky-800 dark:text-sky-100/90">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-600 dark:text-sky-300" />
                 <p>
                   Individual round scores are visible to you. The weighted
                   overall score, your rank, and other candidates&apos; data are
@@ -203,25 +203,25 @@ export function CandidateResults() {
 
               <p className="text-center text-sm text-muted-foreground">
                 Thank you for your time. Results will be shared with{" "}
-                <span className="font-medium text-white">
+                <span className="font-medium text-foreground">
                   {CAMPAIGN.company}
                 </span>{" "}
                 directly.
               </p>
 
-              <MagneticButton
+              <Button
                 onClick={() => set("landing")}
-                className="mt-5 h-11 w-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-7 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
+                className="mt-5 h-11 w-full rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
-              </MagneticButton>
+              </Button>
 
               <div className="mt-3 text-center">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs text-muted-foreground hover:text-white"
+                  className="text-xs text-muted-foreground hover:text-foreground"
                   onClick={() => alert("Support: support@interviewai.dev")}
                 >
                   Need help? Contact support
@@ -242,7 +242,7 @@ export function CandidateResults() {
         </motion.p>
 
       </section>
-    </AuroraBackground>
+    </div>
   );
 }
 
