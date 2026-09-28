@@ -6,38 +6,26 @@ import {
   FileText,
   Code2,
   Video,
-  Mic,
   BarChart3,
+  ClipboardList,
+  FileBarChart,
+  PlayCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNav } from "@/lib/store";
+import { Footer } from "@/components/shared/footer";
 
 /**
- * Design Read: B2B SaaS landing for job seekers, restrained editorial language.
- * Dials: VARIANCE 6, MOTION 4, DENSITY 3.
+ * Prep Mode landing page.
  *
- * Anti-patterns avoided (from the 30-things list + taste-skill v2):
- * - No centered hero (asymmetric split instead)
- * - No 3-feature-card grid (vertical narrative instead)
- * - No bento grid
- * - No terminal window mockup (real picsum image instead)
- * - No aurora blobs / radial orbs / dot grids
- * - No harsh gradients (solid accent only)
- * - No em dashes (periods/hyphens only)
- * - No emojis in copy
- * - No Sparkles icon
- * - No fake testimonials with generic names (realistic names + companies)
- * - No "it's not X, it's Y" copy
- * - No filler verbs (Elevate, Unleash, Seamless, Next-Gen)
- * - Eyebrow restraint (max 1 per 3 sections)
- * - Hero fits viewport (max 4 text elements)
- * - Real images via picsum
- * - No scroll cues
- * - No decorative dots
- * - Off-black (zinc-950) not pure black
- * - Off-white (zinc-50) not pure white
- * - Shape consistency: 8px radius for cards, pill for buttons
- * - Color consistency: one accent (theme-driven)
+ * Sections:
+ *   1. Hero (asymmetric split, single CTA)
+ *   2. Stat band (4 stats)
+ *   3. Six features (vertical narrative, alternating image/text)
+ *   4. How it works (4 steps)
+ *   5. Testimonials marquee (scrolls right to left slowly)
+ *   6. Quiet CTA
+ *   7. Global Footer (shared across all screens)
  */
 
 const STATS = [
@@ -53,21 +41,48 @@ const FEATURES = [
     icon: FileText,
     title: "Resume analysis",
     body: "Upload a PDF. Get an ATS score, missing skills, and a rewrite plan in 15 seconds. The analyzer reads for the role you specify, not a generic checklist.",
-    image: "https://picsum.photos/seed/resume-analysis-desk/640/480",
+    image:
+      "https://picsum.photos/seed/resume-paper-desk-pen/640/480",
   },
   {
     n: "02",
-    icon: Code2,
-    title: "Coding practice",
-    body: "A Monaco editor with 7 languages. Run against 10 test cases. Submit and get a complexity analysis, a code-quality score, and a refactored snippet from the AI.",
-    image: "https://picsum.photos/seed/coding-monitor-screen/640/480",
+    icon: ClipboardList,
+    title: "Aptitude practice",
+    body: "1,500+ timed questions across quantitative, logical, verbal, analytical, and data interpretation. Take a 25-question mock in 30 minutes. Get per-category breakdowns and explanations for every wrong answer.",
+    image:
+      "https://picsum.photos/seed/aptitude-test-notebook-pencil/640/480",
   },
   {
     n: "03",
+    icon: Code2,
+    title: "Coding practice",
+    body: "A Monaco editor with 7 languages. Run against 10 test cases. Submit and get a complexity analysis, a code-quality score, and a refactored snippet from the AI.",
+    image:
+      "https://picsum.photos/seed/coding-editor-monitor-keyboard/640/480",
+  },
+  {
+    n: "04",
     icon: Video,
     title: "Live AI interview",
     body: "A 3D avatar asks a question, you answer out loud. Whisper transcribes in real time. The AI generates a follow-up based on what you said. Body language tracked throughout.",
-    image: "https://picsum.photos/seed/video-interview-webcam/640/480",
+    image:
+      "https://picsum.photos/seed/video-interview-webcam-headset/640/480",
+  },
+  {
+    n: "05",
+    icon: FileBarChart,
+    title: "Complete 17-section report",
+    body: "Every interview produces a full report: executive summary, overall score across 6 dimensions, hiring recommendation, resume analysis, aptitude analysis, coding analysis, technical and HR evaluation, communication and emotion analysis, emotion timeline chart, session highlights, top 7 strengths, top 7 improvements, a 6-week learning roadmap, and a final recommendation. Download as PDF.",
+    image:
+      "https://picsum.photos/seed/report-document-charts-graph/640/480",
+  },
+  {
+    n: "06",
+    icon: PlayCircle,
+    title: "Interview video replay",
+    body: "Re-watch any past interview with the video recording synced to the transcript and AI annotations. Click any line in the transcript to jump to that moment. An emotion timeline strip shows how your expressions changed throughout. If the recording failed, the transcript and scores are still accessible.",
+    image:
+      "https://picsum.photos/seed/video-replay-playback-screen/640/480",
   },
 ];
 
@@ -78,35 +93,42 @@ const STEPS = [
   { n: "4", label: "Get report", note: "17-section PDF with a 6-week study plan" },
 ];
 
-const PRICING = [
+const TESTIMONIALS = [
   {
-    name: "Free",
-    price: "$0",
-    period: "forever",
-    desc: "For getting started.",
-    features: [
-      "3 AI interviews per month",
-      "1 resume analysis",
-      "100 aptitude questions",
-      "Basic score report",
-    ],
-    cta: "Start free",
+    quote:
+      "The body-language feedback caught my slouching. I fixed it before my actual interview and got the offer at Atlassian.",
+    name: "Priya Sharma",
+    role: "Backend Engineer, hired at Atlassian",
   },
   {
-    name: "Pro",
-    price: "$19",
-    period: "per month",
-    desc: "For serious preparation.",
-    features: [
-      "Unlimited AI interviews",
-      "Unlimited resume analyses",
-      "Full 1,500+ question bank",
-      "17-section PDF reports",
-      "Coding arena with AI review",
-      "Progress tracking + heatmap",
-    ],
-    cta: "Go Pro",
-    featured: true,
+    quote:
+      "I bombed my first mock. The 17-section report told me exactly which filler words I overused. Three sessions later I cracked Razorpay.",
+    name: "Amit Patel",
+    role: "Full-stack Developer, hired at Razorpay",
+  },
+  {
+    quote:
+      "The AI follow-up questions were sharper than my real interviewer. I walked into the actual loop already knowing the answers.",
+    name: "Sneha Iyer",
+    role: "Data Analyst, hired at Cred",
+  },
+  {
+    quote:
+      "The video replay feature let me rewatch my own awkward pauses. Fixed them before the real thing. Worth every minute.",
+    name: "Rahul Kumar",
+    role: "SDE-1, hired at Zomato",
+  },
+  {
+    quote:
+      "Resume analyzer told me my ATS score was 67. Two edits based on the missing-skills list and it jumped to 91.",
+    name: "Meera Krishnan",
+    role: "Frontend Engineer, hired at Postman",
+  },
+  {
+    quote:
+      "The aptitude category breakdown showed I was weak at data interpretation. I drilled just that section for a week. Cleared every aptitude round after.",
+    name: "Karthik Reddy",
+    role: "Backend Developer, hired at Swiggy",
   },
 ];
 
@@ -115,9 +137,9 @@ export function LandingPage() {
   const reduce = useReducedMotion();
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* ───────── HERO: asymmetric split ───────── */}
-      <section className="mx-auto max-w-6xl px-4 pt-16 pb-12 sm:px-6 md:pt-24 md:pb-20 lg:px-8">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      {/* ───────── HERO: asymmetric split, single CTA ───────── */}
+      <section className="mx-auto w-full max-w-6xl px-4 pt-16 pb-12 sm:px-6 md:pt-24 md:pb-20 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-12">
           {/* Left: text (7 cols) */}
           <div className="md:col-span-7">
@@ -159,14 +181,6 @@ export function LandingPage() {
                 Start free
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button
-                size="lg"
-                variant="ghost"
-                onClick={() => set("company-landing")}
-                className="h-12 rounded-full px-7 text-muted-foreground hover:text-foreground"
-              >
-                For companies
-              </Button>
             </motion.div>
           </div>
 
@@ -179,8 +193,8 @@ export function LandingPage() {
               className="relative"
             >
               <img
-                src="https://picsum.photos/seed/interview-practice-laptop/640/720"
-                alt="A laptop showing a practice interview session"
+                src="https://picsum.photos/seed/person-practicing-interview-laptop/640/720"
+                alt="A person practicing an interview on their laptop"
                 className="w-full rounded-lg border border-black/10 object-cover dark:border-white/10"
                 style={{ aspectRatio: "4/5" }}
               />
@@ -218,10 +232,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ───────── FEATURES: vertical narrative (text + image alternating) ───────── */}
-      <section className="mx-auto max-w-5xl px-4 py-20 sm:px-6 md:py-28 lg:px-8">
+      {/* ───────── SIX FEATURES: vertical narrative (text + image alternating) ───────── */}
+      <section className="mx-auto w-full max-w-5xl px-4 py-20 sm:px-6 md:py-28 lg:px-8">
         <h2 className="max-w-xl text-3xl font-bold tracking-tight md:text-4xl">
-          Three things that actually
+          Six things that actually
           <br />
           change your outcome.
         </h2>
@@ -247,6 +261,7 @@ export function LandingPage() {
                     alt={f.title}
                     className="w-full rounded-lg border border-black/10 object-cover dark:border-white/10"
                     style={{ aspectRatio: "4/3" }}
+                    loading="lazy"
                   />
                 </motion.div>
               </div>
@@ -306,85 +321,50 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ───────── TESTIMONIAL: single quote, no card ───────── */}
-      <section className="mx-auto max-w-3xl px-4 py-20 sm:px-6 md:py-28 lg:px-8">
-        <motion.blockquote
-          initial={reduce ? false : { opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <p className="text-2xl font-medium leading-snug tracking-tight md:text-3xl">
-            "The body-language feedback caught my slouching. I fixed it before
-            my actual interview and got the offer at Atlassian."
-          </p>
-          <footer className="mt-6 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">Priya Sharma</span>
-            {" - "}
-            Backend Engineer, hired at Atlassian
-          </footer>
-        </motion.blockquote>
-      </section>
-
-      {/* ───────── PRICING: 2 tiers, not 3 ───────── */}
-      <section className="border-t border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.02]">
-        <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6 md:py-28 lg:px-8">
+      {/* ───────── TESTIMONIALS MARQUEE: scrolls right to left slowly ───────── */}
+      <section className="overflow-hidden py-20 md:py-28">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-            Pricing
+            Candidates who got hired.
           </h2>
-          <p className="mt-2 text-muted-foreground">
-            Start free. Upgrade when you need more interviews.
-          </p>
-
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {PRICING.map((p) => (
-              <div
-                key={p.name}
-                className={`rounded-lg border p-6 ${
-                  p.featured
-                    ? "border-violet-400/50 bg-violet-500/5 dark:border-violet-400/40 dark:bg-violet-500/10"
-                    : "border-black/10 dark:border-white/10"
-                }`}
-              >
-                <h3 className="text-lg font-semibold">{p.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{p.desc}</p>
-                <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold tracking-tight">
-                    {p.price}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {p.period}
-                  </span>
-                </div>
-                <ul className="mt-6 space-y-2">
-                  {p.features.map((f) => (
-                    <li
-                      key={f}
-                      className="flex items-start gap-2 text-sm text-foreground/80"
-                    >
-                      <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-violet-500 dark:bg-violet-400" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  className={`mt-6 w-full rounded-full ${
-                    p.featured
-                      ? "bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
-                      : "bg-black/10 hover:bg-black/15 dark:bg-white/10 dark:hover:bg-white/15"
-                  }`}
-                  onClick={() => set("auth")}
-                >
-                  {p.cta}
-                </Button>
-              </div>
-            ))}
-          </div>
+        </div>
+        <div className="relative mt-12">
+          {/* Edge fade masks */}
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-background to-transparent sm:w-32"
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-background to-transparent sm:w-32"
+            aria-hidden="true"
+          />
+          {/* Marquee track — scrolls right to left slowly */}
+          {reduce ? (
+            <div className="flex gap-6 overflow-x-auto px-4 pb-4 sm:px-6 lg:px-8">
+              {TESTIMONIALS.map((t) => (
+                <TestimonialCard key={t.name} t={t} />
+              ))}
+            </div>
+          ) : (
+            <motion.div
+              className="flex w-max gap-6"
+              animate={{ x: [0, -1600] }}
+              transition={{
+                duration: 40,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
+                <TestimonialCard key={`${t.name}-${i}`} t={t} />
+              ))}
+            </motion.div>
+          )}
         </div>
       </section>
 
       {/* ───────── QUIET CTA ───────── */}
-      <section className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 md:py-28 lg:px-8">
+      <section className="mx-auto w-full max-w-3xl px-4 py-20 text-center sm:px-6 md:py-28 lg:px-8">
         <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
           Your next interview
           <br />
@@ -403,33 +383,28 @@ export function LandingPage() {
         </Button>
       </section>
 
-      {/* ───────── FOOTER: minimal ───────── */}
-      <footer className="border-t border-black/10 dark:border-white/10">
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">InterviewAI</span>
-            </div>
-            <nav className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <button onClick={() => set("auth")} className="hover:text-foreground transition-colors">
-                Prep Mode
-              </button>
-              <button onClick={() => set("company-landing")} className="hover:text-foreground transition-colors">
-                For Companies
-              </button>
-              <button onClick={() => set("apply")} className="hover:text-foreground transition-colors">
-                Candidate
-              </button>
-              <button onClick={() => set("superadmin-dashboard")} className="hover:text-foreground transition-colors">
-                Super Admin
-              </button>
-            </nav>
-            <p className="text-xs text-muted-foreground">
-              © 2025 InterviewAI · Last updated Sep 2025
-            </p>
-          </div>
-        </div>
-      </footer>
+      {/* ───────── GLOBAL FOOTER (shared across all screens) ───────── */}
+      <Footer className="mt-auto" />
     </div>
+  );
+}
+
+/** Single testimonial card used in the marquee. */
+function TestimonialCard({
+  t,
+}: {
+  t: { quote: string; name: string; role: string };
+}) {
+  return (
+    <figure className="w-[320px] shrink-0 rounded-lg border border-black/10 bg-background p-6 dark:border-white/10 sm:w-[380px]">
+      <blockquote className="text-base font-medium leading-snug tracking-tight text-foreground">
+        {t.quote}
+      </blockquote>
+      <figcaption className="mt-4 text-sm text-muted-foreground">
+        <span className="font-medium text-foreground">{t.name}</span>
+        {" - "}
+        {t.role}
+      </figcaption>
+    </figure>
   );
 }
