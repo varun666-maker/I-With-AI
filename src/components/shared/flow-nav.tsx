@@ -37,7 +37,7 @@ const FLOW_LABELS: Record<FlowKind, string> = {
 };
 
 /**
- * Map each of the 12 accent themes to a gradient pair.
+ * Map each accent theme to a gradient pair.
  * The FlowNav uses the USER'S SELECTED accent — not a hardcoded per-flow color.
  * So if you pick "ocean" from the theme switcher, every flow's nav bar is ocean-colored.
  */
@@ -45,18 +45,22 @@ const ACCENT_GRADIENTS: Record<
   AccentTheme,
   { from: string; to: string; solid: string; glow: string; soft: string; text: string }
 > = {
-  violet:   { from: "#a855f7", to: "#d946ef", solid: "#a855f7", glow: "rgba(168, 85, 247, 0.5)",  soft: "rgba(168, 85, 247, 0.10)",  text: "#a855f7" },
-  ocean:    { from: "#0ea5e9", to: "#06b6d4", solid: "#0ea5e9", glow: "rgba(14, 165, 233, 0.5)",  soft: "rgba(14, 165, 233, 0.10)",  text: "#0ea5e9" },
-  forest:   { from: "#10b981", to: "#14b8a6", solid: "#10b981", glow: "rgba(16, 185, 129, 0.5)",  soft: "rgba(16, 185, 129, 0.10)",  text: "#10b981" },
-  sunset:   { from: "#f59e0b", to: "#f43f5e", solid: "#f59e0b", glow: "rgba(245, 158, 11, 0.5)",  soft: "rgba(245, 158, 11, 0.10)",  text: "#f59e0b" },
-  coral:    { from: "#f43f5e", to: "#fb923c", solid: "#f43f5e", glow: "rgba(244, 63, 94, 0.5)",   soft: "rgba(244, 63, 94, 0.10)",   text: "#f43f5e" },
-  lavender: { from: "#a855f7", to: "#ec4899", solid: "#a855f7", glow: "rgba(168, 85, 247, 0.5)",  soft: "rgba(168, 85, 247, 0.10)",  text: "#a855f7" },
-  mint:     { from: "#10b981", to: "#84cc16", solid: "#10b981", glow: "rgba(16, 185, 129, 0.5)",  soft: "rgba(16, 185, 129, 0.10)",  text: "#10b981" },
-  sunrise:  { from: "#f59e0b", to: "#f97316", solid: "#f59e0b", glow: "rgba(245, 158, 11, 0.5)",  soft: "rgba(245, 158, 11, 0.10)",  text: "#f59e0b" },
-  berry:    { from: "#ec4899", to: "#a855f7", solid: "#ec4899", glow: "rgba(236, 72, 153, 0.5)",  soft: "rgba(236, 72, 153, 0.10)",  text: "#ec4899" },
-  sage:     { from: "#14b8a6", to: "#22c55e", solid: "#14b8a6", glow: "rgba(20, 184, 166, 0.5)",  soft: "rgba(20, 184, 166, 0.10)",  text: "#14b8a6" },
-  ember:    { from: "#ef4444", to: "#f59e0b", solid: "#ef4444", glow: "rgba(239, 68, 68, 0.5)",   soft: "rgba(239, 68, 68, 0.10)",   text: "#ef4444" },
-  mono:     { from: "#64748b", to: "#1f2937", solid: "#64748b", glow: "rgba(100, 116, 139, 0.4)", soft: "rgba(100, 116, 139, 0.10)", text: "#64748b" },
+  violet:           { from: "#a855f7", to: "#d946ef", solid: "#a855f7", glow: "rgba(168, 85, 247, 0.5)",  soft: "rgba(168, 85, 247, 0.10)",  text: "#a855f7" },
+  ocean:            { from: "#0ea5e9", to: "#06b6d4", solid: "#0ea5e9", glow: "rgba(14, 165, 233, 0.5)",  soft: "rgba(14, 165, 233, 0.10)",  text: "#0ea5e9" },
+  forest:           { from: "#10b981", to: "#14b8a6", solid: "#10b981", glow: "rgba(16, 185, 129, 0.5)",  soft: "rgba(16, 185, 129, 0.10)",  text: "#10b981" },
+  sunrise:          { from: "#f59e0b", to: "#f97316", solid: "#f59e0b", glow: "rgba(245, 158, 11, 0.5)",  soft: "rgba(245, 158, 11, 0.10)",  text: "#f59e0b" },
+  emerald:          { from: "#059669", to: "#34d399", solid: "#059669", glow: "rgba(5, 150, 105, 0.5)",   soft: "rgba(5, 150, 105, 0.10)",   text: "#059669" },
+  "master-purple":  { from: "#6d28d9", to: "#a855f7", solid: "#6d28d9", glow: "rgba(109, 40, 217, 0.5)",  soft: "rgba(109, 40, 217, 0.10)",  text: "#6d28d9" },
+  ruby:             { from: "#be123c", to: "#f43f5e", solid: "#be123c", glow: "rgba(190, 18, 60, 0.5)",   soft: "rgba(190, 18, 60, 0.10)",   text: "#be123c" },
+  gold:             { from: "#b45309", to: "#fbbf24", solid: "#b45309", glow: "rgba(180, 83, 9, 0.5)",    soft: "rgba(180, 83, 9, 0.10)",    text: "#b45309" },
+  rose:             { from: "#9f1239", to: "#fb7185", solid: "#9f1239", glow: "rgba(159, 18, 57, 0.5)",   soft: "rgba(159, 18, 57, 0.10)",   text: "#9f1239" },
+  midnight:         { from: "#0f172a", to: "#334155", solid: "#334155", glow: "rgba(51, 65, 85, 0.4)",    soft: "rgba(51, 65, 85, 0.10)",    text: "#64748b" },
+  sakura:           { from: "#ec4899", to: "#fbcfe8", solid: "#ec4899", glow: "rgba(236, 72, 153, 0.5)",  soft: "rgba(236, 72, 153, 0.10)",  text: "#ec4899" },
+  "forest-sovereign":{ from: "#14532d", to: "#22c55e", solid: "#22c55e", glow: "rgba(34, 197, 94, 0.5)",  soft: "rgba(34, 197, 94, 0.10)",   text: "#22c55e" },
+  slate:            { from: "#334155", to: "#64748b", solid: "#64748b", glow: "rgba(100, 116, 139, 0.4)", soft: "rgba(100, 116, 139, 0.10)", text: "#64748b" },
+  coral:            { from: "#f97316", to: "#fb7185", solid: "#f97316", glow: "rgba(249, 115, 22, 0.5)",  soft: "rgba(249, 115, 22, 0.10)",  text: "#f97316" },
+  "cosmic-diamond": { from: "#6366f1", to: "#e0e7ff", solid: "#6366f1", glow: "rgba(99, 102, 241, 0.5)",  soft: "rgba(99, 102, 241, 0.10)",  text: "#6366f1" },
+  custom:           { from: "#a855f7", to: "#ec4899", solid: "#a855f7", glow: "rgba(168, 85, 247, 0.5)",  soft: "rgba(168, 85, 247, 0.10)",  text: "#a855f7" },
 };
 
 function inferFlowKind(id: ScreenId): FlowKind {
