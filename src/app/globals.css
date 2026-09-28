@@ -216,6 +216,39 @@
   --accent-swatch: oklch(0.69 0.17 160);
 }
 
+[data-accent="sunrise"] {
+  --color-violet-50:  oklch(0.97 0.03 60);
+  --color-violet-100: oklch(0.93 0.07 60);
+  --color-violet-200: oklch(0.88 0.11 60);
+  --color-violet-300: oklch(0.82 0.14 60);
+  --color-violet-400: oklch(0.76 0.16 60);
+  --color-violet-500: oklch(0.72 0.18 60);
+  --color-violet-600: oklch(0.62 0.20 60);
+  --color-violet-700: oklch(0.52 0.18 60);
+  --color-violet-800: oklch(0.42 0.15 60);
+  --color-violet-900: oklch(0.32 0.12 60);
+  --color-violet-950: oklch(0.22 0.09 60);
+  --color-fuchsia-50:  oklch(0.97 0.03 30);
+  --color-fuchsia-100: oklch(0.93 0.07 30);
+  --color-fuchsia-200: oklch(0.88 0.11 30);
+  --color-fuchsia-300: oklch(0.82 0.14 30);
+  --color-fuchsia-400: oklch(0.76 0.16 30);
+  --color-fuchsia-500: oklch(0.71 0.18 30);
+  --color-fuchsia-600: oklch(0.61 0.20 30);
+  --color-fuchsia-700: oklch(0.51 0.18 30);
+  --color-fuchsia-800: oklch(0.41 0.15 30);
+  --color-fuchsia-900: oklch(0.31 0.12 30);
+  --gradient-text-1: oklch(0.95 0.05 60);
+  --gradient-text-2: oklch(0.72 0.18 60);
+  --gradient-text-3: oklch(0.71 0.18 30);
+  --text-glow-1: oklch(0.72 0.18 60 / 0.45);
+  --text-glow-2: oklch(0.71 0.18 30 / 0.25);
+  --aurora-1: oklch(0.6 0.20 60 / 0.22);
+  --aurora-2: oklch(0.6 0.20 30 / 0.16);
+  --aurora-3: oklch(0.65 0.18 90 / 0.16);
+  --accent-swatch: oklch(0.72 0.18 60);
+}
+
 [data-accent="emerald"] {
   --color-violet-50:  oklch(0.97 0.03 160);
   --color-violet-100: oklch(0.93 0.07 160);
