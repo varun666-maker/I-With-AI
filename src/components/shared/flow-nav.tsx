@@ -1,16 +1,11 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Home } from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle, Lock, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNav, type ScreenId, type AccentTheme } from "@/lib/store";
-import {
-  getFlowForScreen,
-  PREP_FLOW,
-  ADMIN_FLOW,
-  CANDIDATE_FLOW,
-  SUPERADMIN_FLOW,
-} from "@/lib/flows";
+import { GlowCard } from "@/components/shared/primitives";
+import { useNav, type ScreenId } from "@/lib/store";
+import { getFlowForScreen, type FlowStep } from "@/lib/flows";
 import { cn } from "@/lib/utils";
 
 type FlowKind = "prep" | "admin" | "candidate" | "superadmin";
@@ -22,6 +17,29 @@ const HOME_BASE: Record<FlowKind, ScreenId> = {
   superadmin: "superadmin-dashboard",
 };
 
+const FLOW_KINDS: Record<FlowKind, FlowStep[]> = {
+  prep: [],          // populated below via getFlowForScreen
+  admin: [],
+  candidate: [],
+  superadmin: [],
+};
+
+function inferFlowKind(id: ScreenId): FlowKind {
+  if (id.startsWith("candidate")) return "candidate";
+  if (id.startsWith("superadmin")) return "superadmin";
+  if (
+    id.startsWith("admin") ||
+    id.startsWith("company") ||
+    id.startsWith("campaign") ||
+    id.startsWith("question") ||
+    id.startsWith("bulk") ||
+    id.startsWith("proctoring") ||
+    id.startsWith("final")
+  )
+    return "admin";
+  return "prep";
+}
+
 const HOME_BASE_LABEL: Record<FlowKind, string> = {
   prep: "Dashboard",
   admin: "Admin Dashboard",
@@ -29,194 +47,147 @@ const HOME_BASE_LABEL: Record<FlowKind, string> = {
   superadmin: "Super Admin Dashboard",
 };
 
-const FLOW_LABELS: Record<FlowKind, string> = {
-  prep: "Prep Mode",
-  admin: "Hiring · Admin",
-  candidate: "Hiring · Candidate",
-  superadmin: "Super Admin",
-};
-
 /**
- * Map each accent theme to a gradient pair.
- * The FlowNav uses the USER'S SELECTED accent — not a hardcoded per-flow color.
- * So if you pick "ocean" from the theme switcher, every flow's nav bar is ocean-colored.
+ * FlowNav — sequential navigation CTA placed at the bottom of every screen
+ * in a flow. Shows the user where they are in the journey and what comes next.
  */
-const ACCENT_GRADIENTS: Record<
-  AccentTheme,
-  { from: string; to: string; solid: string; glow: string; soft: string; text: string }
-> = {
-  violet:           { from: "#a855f7", to: "#d946ef", solid: "#a855f7", glow: "rgba(168, 85, 247, 0.5)",  soft: "rgba(168, 85, 247, 0.10)",  text: "#a855f7" },
-  ocean:            { from: "#0ea5e9", to: "#06b6d4", solid: "#0ea5e9", glow: "rgba(14, 165, 233, 0.5)",  soft: "rgba(14, 165, 233, 0.10)",  text: "#0ea5e9" },
-  forest:           { from: "#10b981", to: "#14b8a6", solid: "#10b981", glow: "rgba(16, 185, 129, 0.5)",  soft: "rgba(16, 185, 129, 0.10)",  text: "#10b981" },
-  sunrise:          { from: "#f59e0b", to: "#f97316", solid: "#f59e0b", glow: "rgba(245, 158, 11, 0.5)",  soft: "rgba(245, 158, 11, 0.10)",  text: "#f59e0b" },
-  emerald:          { from: "#059669", to: "#34d399", solid: "#059669", glow: "rgba(5, 150, 105, 0.5)",   soft: "rgba(5, 150, 105, 0.10)",   text: "#059669" },
-  "master-purple":  { from: "#6d28d9", to: "#a855f7", solid: "#6d28d9", glow: "rgba(109, 40, 217, 0.5)",  soft: "rgba(109, 40, 217, 0.10)",  text: "#6d28d9" },
-  ruby:             { from: "#be123c", to: "#f43f5e", solid: "#be123c", glow: "rgba(190, 18, 60, 0.5)",   soft: "rgba(190, 18, 60, 0.10)",   text: "#be123c" },
-  gold:             { from: "#b45309", to: "#fbbf24", solid: "#b45309", glow: "rgba(180, 83, 9, 0.5)",    soft: "rgba(180, 83, 9, 0.10)",    text: "#b45309" },
-  rose:             { from: "#9f1239", to: "#fb7185", solid: "#9f1239", glow: "rgba(159, 18, 57, 0.5)",   soft: "rgba(159, 18, 57, 0.10)",   text: "#9f1239" },
-  midnight:         { from: "#0f172a", to: "#334155", solid: "#334155", glow: "rgba(51, 65, 85, 0.4)",    soft: "rgba(51, 65, 85, 0.10)",    text: "#64748b" },
-  sakura:           { from: "#ec4899", to: "#fbcfe8", solid: "#ec4899", glow: "rgba(236, 72, 153, 0.5)",  soft: "rgba(236, 72, 153, 0.10)",  text: "#ec4899" },
-  "forest-sovereign":{ from: "#14532d", to: "#22c55e", solid: "#22c55e", glow: "rgba(34, 197, 94, 0.5)",  soft: "rgba(34, 197, 94, 0.10)",   text: "#22c55e" },
-  slate:            { from: "#334155", to: "#64748b", solid: "#64748b", glow: "rgba(100, 116, 139, 0.4)", soft: "rgba(100, 116, 139, 0.10)", text: "#64748b" },
-  coral:            { from: "#f97316", to: "#fb7185", solid: "#f97316", glow: "rgba(249, 115, 22, 0.5)",  soft: "rgba(249, 115, 22, 0.10)",  text: "#f97316" },
-  "cosmic-diamond": { from: "#6366f1", to: "#e0e7ff", solid: "#6366f1", glow: "rgba(99, 102, 241, 0.5)",  soft: "rgba(99, 102, 241, 0.10)",  text: "#6366f1" },
-  custom:           { from: "#a855f7", to: "#ec4899", solid: "#a855f7", glow: "rgba(168, 85, 247, 0.5)",  soft: "rgba(168, 85, 247, 0.10)",  text: "#a855f7" },
-};
-
-function inferFlowKind(id: ScreenId): FlowKind {
-  if (CANDIDATE_FLOW.some((s) => s.id === id)) return "candidate";
-  if (SUPERADMIN_FLOW.some((s) => s.id === id)) return "superadmin";
-  if (ADMIN_FLOW.some((s) => s.id === id)) return "admin";
-  return "prep";
-}
-
-/**
- * FlowNav — wizard-style sticky top bar (Swiggy/Zomato checkout pattern).
- *
- * Uses the USER'S SELECTED ACCENT THEME for all colors — so if you pick
- * "ocean" from the theme switcher, the nav bar is ocean-colored across
- * all 4 flows. The flow is identified by the text label only.
- *
- * Layout:
- *   [← Back to {prev}]    ● ● ◉ ○ ○ ○ ○ ○    [Continue to {next} →]
- *
- * - First step:  no Back button, just flow label + Continue
- * - Last step:   no Continue, just "Back to {home}"
- * - Middle:      Back (left) + progress dots (center) + Continue (right)
- */
-export function FlowNav() {
+export function FlowNav({
+  flowId,
+  currentScreenId,
+  className,
+}: {
+  flowId?: FlowKind;
+  currentScreenId?: ScreenId;
+  className?: string;
+}) {
   const current = useNav((s) => s.current);
-  const accentTheme = useNav((s) => s.accent);
   const set = useNav((s) => s.set);
+  const id = currentScreenId ?? current;
 
-  const flow = getFlowForScreen(current);
+  const kind = flowId ?? inferFlowKind(id);
+  const flow = getFlowForScreen(id);
   if (!flow) return null;
 
-  const kind = inferFlowKind(current);
-  const currentIdx = flow.findIndex((s) => s.id === current);
+  const currentIdx = flow.findIndex((s) => s.id === id);
   if (currentIdx === -1) return null;
 
-  const prev = flow[currentIdx - 1] ?? null;
   const next = flow[currentIdx + 1] ?? null;
+  const prev = flow[currentIdx - 1] ?? null;
   const homeBaseId = HOME_BASE[kind];
   const homeBaseLabel = HOME_BASE_LABEL[kind];
-  const isFirstStep = !prev;
-  const isLastStep = !next;
-  const accent = ACCENT_GRADIENTS[accentTheme];
-  const totalSteps = flow.length;
 
   return (
-    <div
-      className="sticky top-16 z-40 w-full border-b backdrop-blur-xl"
-      style={{
-        borderColor: `${accent.solid}22`,
-        background: `linear-gradient(180deg, ${accent.soft}, transparent)`,
-      }}
-    >
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-2.5 sm:px-6 lg:px-8">
-        {/* ─── LEFT: Back button (contextual) ─── */}
-        <div className="flex min-w-[120px] flex-1 items-center justify-start">
-          {!isFirstStep ? (
-            <button
-              onClick={() => set(prev!.id)}
-              className="group inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-black/20 hover:bg-black/5 hover:text-foreground dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/20 dark:hover:bg-white/5 dark:hover:text-white"
-            >
-              <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
-              <span className="hidden sm:inline">Back to</span>
-              <span className="font-semibold text-foreground">{prev!.label}</span>
-            </button>
-          ) : (
-            <span
-              className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider"
-              style={{ color: accent.text }}
-            >
-              <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ background: accent.solid }}
-              />
-              <span className="hidden sm:inline">{FLOW_LABELS[kind]}</span>
-            </span>
-          )}
-        </div>
+    <div className={cn("mt-12", className)}>
+      <GlowCard className="relative overflow-hidden p-5 sm:p-6">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-violet-500/10 via-transparent to-fuchsia-500/10" />
 
-        {/* ─── CENTER: Progress dots (minimal, no labels) ─── */}
-        <div className="flex flex-col items-center gap-1">
-          <div className="flex items-center gap-1.5">
+        {/* Stepper */}
+        <div className="mb-5 overflow-x-auto scrollbar-custom">
+          <ol className="flex min-w-max items-center gap-2 pr-4">
             {flow.map((step, i) => {
-              const active = i === currentIdx;
               const done = i < currentIdx;
+              const active = i === currentIdx;
+              const locked = i > currentIdx;
               return (
-                <button
-                  key={step.id}
-                  onClick={() => set(step.id)}
-                  className="group relative"
-                  title={`${step.label} — ${step.hint}`}
-                  aria-label={`Go to ${step.label}`}
-                >
-                  {active ? (
-                    <span
-                      className="block h-2 w-2 rounded-full transition-all"
-                      style={{
-                        background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                        boxShadow: `0 0 8px ${accent.glow}`,
-                        transform: "scale(1.4)",
-                      }}
-                    />
-                  ) : done ? (
-                    <span
-                      className="block h-2 w-2 rounded-full transition-all group-hover:scale-125"
-                      style={{ background: accent.solid }}
-                    />
-                  ) : (
-                    <span className="block h-2 w-2 rounded-full bg-black/15 transition-all group-hover:bg-black/30 group-hover:scale-125 dark:bg-white/15 dark:group-hover:bg-white/30" />
+                <li key={step.id} className="flex items-center gap-2">
+                  <button
+                    onClick={() => i <= currentIdx && set(step.id)}
+                    disabled={locked}
+                    className={cn(
+                      "group flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs transition-all",
+                      active
+                        ? "border-violet-400/40 bg-violet-500/15 text-violet-200"
+                        : done
+                          ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20"
+                          : "border-white/5 bg-white/[0.02] text-muted-foreground cursor-not-allowed",
+                    )}
+                  >
+                    {done ? (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    ) : active ? (
+                      <Circle className="h-3.5 w-3.5 fill-violet-400 text-violet-400" />
+                    ) : (
+                      <Lock className="h-3 w-3.5 opacity-50" />
+                    )}
+                    <span className="font-medium">{step.label}</span>
+                  </button>
+                  {i < flow.length - 1 && (
+                    <ArrowRight className="h-3 w-3 text-muted-foreground/40" />
                   )}
-                </button>
+                </li>
               );
             })}
-          </div>
-          <span className="hidden text-[9px] font-medium uppercase tracking-wider text-muted-foreground sm:inline">
-            {currentIdx + 1} / {totalSteps}
-          </span>
+          </ol>
         </div>
 
-        {/* ─── RIGHT: Continue button (contextual) ─── */}
-        <div className="flex min-w-[120px] flex-1 items-center justify-end">
-          {isLastStep ? (
-            <button
+        {/* Hint + next CTA */}
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">
+              Step {currentIdx + 1} of {flow.length}
+            </p>
+            <p className="mt-1 text-sm text-foreground/80">
+              <span className="font-semibold text-foreground">{flow[currentIdx].label}</span>
+              {" — "}
+              {flow[currentIdx].hint}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {prev && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => set(prev.id)}
+                className="rounded-full text-muted-foreground"
+              >
+                Back: {prev.label}
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => set(homeBaseId)}
-              className="group inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-black/20 hover:bg-black/5 hover:text-foreground dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/20 dark:hover:bg-white/5 dark:hover:text-white"
+              className="rounded-full text-muted-foreground"
             >
-              <Home className="h-3 w-3" />
-              <span className="hidden sm:inline">Back to</span>
-              <span className="font-semibold text-foreground">{homeBaseLabel}</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => set(next!.id)}
-              className="group inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold text-white transition-all hover:opacity-90"
-              style={{
-                background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                boxShadow: `0 0 20px -6px ${accent.glow}`,
-              }}
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={next!.id}
-                  initial={{ opacity: 0, x: 6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -6 }}
-                  transition={{ duration: 0.15 }}
-                  className="flex items-center gap-1.5"
-                >
-                  <span className="hidden sm:inline">Continue to</span>
-                  <span>{next!.label}</span>
-                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                </motion.span>
-              </AnimatePresence>
-            </button>
-          )}
+              <SkipForward className="mr-1 h-3.5 w-3.5" />
+              Skip to {homeBaseLabel}
+            </Button>
+            {next ? (
+              <Button
+                size="sm"
+                onClick={() => set(next.id)}
+                className="group rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={next.id}
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -8 }}
+                    transition={{ duration: 0.18 }}
+                    className="flex items-center gap-1.5"
+                  >
+                    Continue to {next.label}
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </motion.span>
+                </AnimatePresence>
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => set(homeBaseId)}
+                className="group rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 hover:from-emerald-400 hover:to-teal-400"
+              >
+                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                Finish — back to {homeBaseLabel}
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      </GlowCard>
     </div>
   );
 }
+
+// Keep this for backwards-compat with any code that might import it
+export { FLOW_KINDS };
