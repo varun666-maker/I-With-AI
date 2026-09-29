@@ -181,7 +181,7 @@ export function PreTestCheck() {
 
               <Button
                 disabled={!allOk}
-                onClick={() => set("candidate-dashboard")}
+                onClick={() => set("candidate-aptitude")}
                 className="mt-5 h-11 w-full rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600"
               >
                 Continue to Assessment

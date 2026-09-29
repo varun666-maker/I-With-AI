@@ -1,0 +1,536 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import { useEffect, useState } from "react";
+     4→     4→import { AnimatePresence, motion } from "framer-motion";
+     5→     5→import {
+     6→     6→  AlertTriangle,
+     7→     7→  Award,
+     8→     8→  Check,
+     9→     9→  CheckCircle2,
+    10→    10→  ChevronDown,
+    11→    11→  ChevronRight,
+    12→    12→  Clock,
+    13→    13→  Code2,
+    14→    14→  Copy,
+    15→    15→  Download,
+    16→    16→  Info,
+    17→    17→  Play,
+    18→    18→  PlayCircle,
+    19→    19→  Terminal,
+    20→    20→  X,
+    21→    21→  Zap,
+    22→    22→} from "lucide-react";
+    23→    23→import {
+    24→    24→  PageWrap,
+    25→    25→  SectionHeading,
+    26→    26→} from "@/components/shared/primitives";
+    27→    27→import { BackToHome } from "@/components/shared/top-nav";
+    28→    28→import { Button } from "@/components/ui/button";
+    29→    29→import { Badge } from "@/components/ui/badge";
+    30→    30→import { Progress } from "@/components/ui/progress";
+    31→    31→import { Textarea } from "@/components/ui/textarea";
+    32→    32→import {
+    33→    33→  Select,
+    34→    34→  SelectContent,
+    35→    35→  SelectItem,
+    36→    36→  SelectTrigger,
+    37→    37→  SelectValue,
+    38→    38→} from "@/components/ui/select";
+    39→    39→import {
+    40→    40→  Dialog,
+    41→    41→  DialogContent,
+    42→    42→  DialogDescription,
+    43→    43→  DialogFooter,
+    44→    44→  DialogHeader,
+    45→    45→  DialogTitle,
+    46→    46→} from "@/components/ui/dialog";
+    47→    47→import {
+    48→    48→  Collapsible,
+    49→    49→  CollapsibleContent,
+    50→    50→  CollapsibleTrigger,
+    51→    51→} from "@/components/ui/collapsible";
+    52→    52→import { useNav } from "@/lib/store";
+    53→    53→import { cn } from "@/lib/utils";
+    54→    54→
+    55→    55→const LANGUAGES = ["Python", "Java", "C++", "JavaScript", "SQL", "Go", "TypeScript"];
+    56→    56→
+    57→    57→const STARTER_CODE: Record<string, string> = {
+    58→    58→  Python: `def two_sum(nums, target):\n    seen = {}\n    for i, n in enumerate(nums):\n        if target - n in seen:\n            return [seen[target - n], i]\n        seen[n] = i\n    return []\n`,
+    59→    59→  JavaScript: `function twoSum(nums, target) {\n  const seen = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    if (seen.has(target - nums[i])) {\n      return [seen.get(target - nums[i]), i];\n    }\n    seen.set(nums[i], i);\n  }\n  return [];\n}\n`,
+    60→    60→  Java: `public int[] twoSum(int[] nums, int target) {\n    Map<Integer, Integer> seen = new HashMap<>();\n    for (int i = 0; i < nums.length; i++) {\n        if (seen.containsKey(target - nums[i]))\n            return new int[]{seen.get(target - nums[i]), i};\n        seen.put(nums[i], i);\n    }\n    return new int[]{};\n}\n`,
+    61→    61→  TypeScript: `function twoSum(nums: number[], target: number): number[] {\n  const seen = new Map<number, number>();\n  for (let i = 0; i < nums.length; i++) {\n    if (seen.has(target - nums[i]))\n      return [seen.get(target - nums[i])!, i];\n    seen.set(nums[i], i);\n  }\n  return [];\n}\n`,
+    62→    62→  "C++": `vector<int> twoSum(vector<int>& nums, int target) {\n    unordered_map<int,int> seen;\n    for (int i = 0; i < nums.size(); i++) {\n        if (seen.count(target - nums[i]))\n            return {seen[target - nums[i]], i};\n        seen[nums[i]] = i;\n    }\n    return {};\n}\n`,
+    63→    63→  Go: `func twoSum(nums []int, target int) []int {\n    seen := map[int]int{}\n    for i, n := range nums {\n        if j, ok := seen[target-n]; ok {\n            return []int{j, i}\n        }\n        seen[n] = i\n    }\n    return []\n}\n`,
+    64→    64→  SQL: `-- SQL variant: find pairs of ids\nSELECT a.id AS id1, b.id AS id2\nFROM nums a JOIN nums b\n  ON a.id < b.id AND a.value + b.value = :target;\n`,
+    65→    65→};
+    66→    66→
+    67→    67→const TEST_CASES = [
+    68→    68→  { id: 1, input: "nums = [2,7,11,15], target = 9", expected: "[0,1]", hidden: false },
+    69→    69→  { id: 2, input: "nums = [3,2,4], target = 6", expected: "[1,2]", hidden: false },
+    70→    70→  { id: 3, input: "nums = [3,3], target = 6", expected: "[0,1]", hidden: false },
+    71→    71→  { id: 4, input: "nums = [1,5,8,12,7], target = 13", expected: "[2,3]", hidden: true },
+    72→    72→  { id: 5, input: "nums = [10,20,30,40], target = 50", expected: "[1,2]", hidden: true },
+    73→    73→  { id: 6, input: "nums = [0,-1,2,-3,1], target = -2", expected: "[1,3]", hidden: true },
+    74→    74→  { id: 7, input: "nums = [5,5,5,5], target = 10", expected: "[0,1]", hidden: true },
+    75→    75→  { id: 8, input: "nums = [99,1,2,99], target = 100", expected: "[]", hidden: true },
+    76→    76→  { id: 9, input: "nums = [-3,4,3,90], target = 0", expected: "[0,2]", hidden: true },
+    77→    77→  { id: 10, input: "nums = [1,8,2,7,3,6,4,5], target = 9", expected: "[0,1]", hidden: true },
+    78→    78→];
+    79→    79→
+    80→    80→export function CodingArena() {
+    81→    81→  const { set } = useNav();
+    82→    82→  const [language, setLanguage] = useState("Python");
+    83→    83→  const [code, setCode] = useState(STARTER_CODE.Python);
+    84→    84→  const [customInput, setCustomInput] = useState("nums = [2,7,11,15], target = 9");
+    85→    85→  const [results, setResults] = useState<{ id: number; status: "pass" | "fail"; runtime: string; mem: string; got?: string }[] | null>(null);
+    86→    86→  const [submitted, setSubmitted] = useState(false);
+    87→    87→  const [running, setRunning] = useState(false);
+    88→    88→  const [confirmLang, setConfirmLang] = useState<string | null>(null);
+    89→    89→  const [autoSaved, setAutoSaved] = useState(false);
+    90→    90→
+    91→    91→  // autosave simulation
+    92→    92→  useEffect(() => {
+    93→    93→    const t = setInterval(() => {
+    94→    94→      setAutoSaved(true);
+    95→    95→      setTimeout(() => setAutoSaved(false), 1500);
+    96→    96→    }, 30000);
+    97→    97→    return () => clearInterval(t);
+    98→    98→  }, []);
+    99→    99→
+   100→   100→  const onLangChange = (lang: string) => {
+   101→   101→    if (lang === language) return;
+   102→   102→    setConfirmLang(lang);
+   103→   103→  };
+   104→   104→  const confirmSwitch = () => {
+   105→   105→    if (!confirmLang) return;
+   106→   106→    setLanguage(confirmLang);
+   107→   107→    setCode(STARTER_CODE[confirmLang] ?? "");
+   108→   108→    setResults(null);
+   109→   109→    setSubmitted(false);
+   110→   110→    setConfirmLang(null);
+   111→   111→  };
+   112→   112→
+   113→   113→  const run = () => {
+   114→   114→    setRunning(true);
+   115→   115→    setTimeout(() => {
+   116→   116→      setRunning(false);
+   117→   117→      setResults([
+   118→   118→        { id: 1, status: "pass", runtime: "12ms", mem: "14.0MB" },
+   119→   119→        { id: 2, status: "pass", runtime: "8ms", mem: "14.2MB" },
+   120→   120→        { id: 3, status: "fail", runtime: "15ms", mem: "14.1MB", got: "[1,0]" },
+   121→   121→      ]);
+   122→   122→    }, 900);
+   123→   123→  };
+   124→   124→
+   125→   125→  const submit = () => {
+   126→   126→    setRunning(true);
+   127→   127→    setTimeout(() => {
+   128→   128→      setRunning(false);
+   129→   129→      // 7/10 pass, case 3 and case 8 fail
+   130→   130→      setResults(
+   131→   131→        TEST_CASES.map((tc) => ({
+   132→   132→          id: tc.id,
+   133→   133→          status: tc.id === 3 || tc.id === 8 ? "fail" as const : "pass" as const,
+   134→   134→          runtime: `${8 + Math.floor(Math.random() * 12)}ms`,
+   135→   135→          mem: "14.0MB",
+   136→   136→          got: tc.id === 3 ? "[1,0]" : tc.id === 8 ? "[0,3]" : undefined,
+   137→   137→        })),
+   138→   138→      );
+   139→   139→      setSubmitted(true);
+   140→   140→    }, 1400);
+   141→   141→  };
+   142→   142→
+   143→   143→  const passCount = results ? results.filter((r) => r.status === "pass").length : 0;
+   144→   144→
+   145→   145→  return (
+   146→   146→    <div className="min-h-screen bg-background text-foreground">
+   147→   147→      <PageWrap wide>
+   148→   148→        <BackToHome />
+   149→   149→        <SectionHeading
+   150→   150→          eyebrow="Coding Arena"
+   151→   151→          title={<>Practice with the <span className="text-violet-500 dark:text-violet-400">AI code reviewer</span></>}
+   152→   152→          description="A VS Code-like editor with syntax highlighting, 10 test cases per problem, real-time execution, and an AI review that scores complexity, readability, and gives refactor suggestions."
+   153→   153→          align="left"
+   154→   154→        />
+   155→   155→
+   156→   156→        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+   157→   157→          {/* LEFT PANE: problem statement */}
+   158→   158→          <div className="flex h-full flex-col rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   159→   159→            <div className="flex items-center justify-between">
+   160→   160→              <div>
+   161→   161→                <h3 className="text-lg font-semibold tracking-tight">
+   162→   162→                  <span className="font-mono text-muted-foreground">#</span> Two Sum
+   163→   163→                </h3>
+   164→   164→                <p className="mt-0.5 text-[11px] text-muted-foreground">Problem #1 · Asked 3,241 times this week</p>
+   165→   165→              </div>
+   166→   166→              <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">Easy</Badge>
+   167→   167→            </div>
+   168→   168→
+   169→   169→            <div className="mt-4 space-y-3 text-sm text-foreground/85">
+   170→   170→              <p>
+   171→   171→                Given an array of integers <code className="rounded bg-black/10 px-1 font-mono text-xs text-violet-700 dark:bg-white/10 dark:text-violet-200">nums</code> and an integer <code className="rounded bg-black/10 px-1 font-mono text-xs text-violet-700 dark:bg-white/10 dark:text-violet-200">target</code>, return <em>indices of the two numbers</em> such that they add up to <code className="rounded bg-black/10 px-1 font-mono text-xs text-violet-700 dark:bg-white/10 dark:text-violet-200">target</code>.
+   172→   172→              </p>
+   173→   173→              <p>
+   174→   174→                You may assume that each input would have <strong>exactly one solution</strong>, and you may not use the same element twice. You can return the answer in any order.
+   175→   175→              </p>
+   176→   176→            </div>
+   177→   177→
+   178→   178→            <div className="mt-5">
+   179→   179→              <p className="text-xs uppercase tracking-wider text-muted-foreground">Examples</p>
+   180→   180→              <div className="mt-2 space-y-2">
+   181→   181→                {[
+   182→   182→                  { i: "nums = [2,7,11,15], target = 9", o: "[0,1]", note: "Because nums[0] + nums[1] == 9." },
+   183→   183→                  { i: "nums = [3,2,4], target = 6", o: "[1,2]", note: "Because nums[1] + nums[2] == 6." },
+   184→   184→                  { i: "nums = [3,3], target = 6", o: "[0,1]", note: "Same value, different indices." },
+   185→   185→                ].map((e, i) => (
+   186→   186→                  <div key={i} className="rounded-md border border-black/10 bg-zinc-900 p-3 font-mono text-xs dark:border-white/10">
+   187→   187→                    <p className="text-emerald-300">Input: <span className="text-white/80">{e.i}</span></p>
+   188→   188→                    <p className="mt-1 text-violet-300">Output: <span className="text-white/80">{e.o}</span></p>
+   189→   189→                    <p className="mt-1 text-zinc-400"># {e.note}</p>
+   190→   190→                  </div>
+   191→   191→                ))}
+   192→   192→              </div>
+   193→   193→            </div>
+   194→   194→
+   195→   195→            <div className="mt-5">
+   196→   196→              <p className="text-xs uppercase tracking-wider text-muted-foreground">Constraints</p>
+   197→   197→              <ul className="mt-2 space-y-1 font-mono text-xs text-foreground/70">
+   198→   198→                <li>2 ≤ nums.length ≤ 10⁴</li>
+   199→   199→                <li>-10⁹ ≤ nums[i] ≤ 10⁹</li>
+   200→   200→                <li>-10⁹ ≤ target ≤ 10⁹</li>
+   201→   201→                <li>Only one valid answer exists.</li>
+   202→   202→                <li>Follow-up: O(n) time, O(n) space.</li>
+   203→   203→              </ul>
+   204→   204→            </div>
+   205→   205→
+   206→   206→            <div className="mt-auto pt-5">
+   207→   207→              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+   208→   208→                <Clock className="h-3.5 w-3.5" />
+   209→   209→                Avg solve time: <span className="text-foreground">4m 12s</span> · Acceptance rate: <span className="text-emerald-600 dark:text-emerald-300">52%</span>
+   210→   210→              </div>
+   211→   211→            </div>
+   212→   212→          </div>
+   213→   213→
+   214→   214→          {/* RIGHT PANE: editor */}
+   215→   215→          <div className="flex h-full flex-col overflow-hidden rounded-lg border border-black/10 bg-card shadow-sm dark:border-white/10">
+   216→   216→            {/* Editor chrome */}
+   217→   217→            <div className="flex items-center justify-between border-b border-black/10 px-4 py-2 dark:border-white/5">
+   218→   218→              <span className="font-mono text-xs text-muted-foreground">solution.{language === "C++" ? "cpp" : language.toLowerCase().replace("+", "pp")}</span>
+   219→   219→              <div className="flex items-center gap-2">
+   220→   220→                <Select value={language} onValueChange={onLangChange}>
+   221→   221→                  <SelectTrigger size="sm" className="w-32 rounded-md border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/5">
+   222→   222→                    <SelectValue />
+   223→   223→                  </SelectTrigger>
+   224→   224→                  <SelectContent>
+   225→   225→                    {LANGUAGES.map((l) => (
+   226→   226→                      <SelectItem key={l} value={l}>{l}</SelectItem>
+   227→   227→                    ))}
+   228→   228→                  </SelectContent>
+   229→   229→                </Select>
+   230→   230→                {autoSaved && (
+   231→   231→                  <span className="text-[11px] text-emerald-600 dark:text-emerald-300">
+   232→   232→                    <Check className="mr-0.5 inline h-3 w-3" /> Auto-saved
+   233→   233→                  </span>
+   234→   234→                )}
+   235→   235→              </div>
+   236→   236→            </div>
+   237→   237→
+   238→   238→            {/* Editor (textarea styled like Monaco) */}
+   239→   239→            <div className="relative bg-zinc-900">
+   240→   240→              <div className="flex">
+   241→   241→                {/* Line numbers */}
+   242→   242→                <div className="select-none border-r border-white/5 px-2 py-3 text-right font-mono text-xs text-white/30">
+   243→   243→                  {code.split("\n").map((_, i) => (
+   244→   244→                    <div key={i} className="leading-6">{i + 1}</div>
+   245→   245→                  ))}
+   246→   246→                </div>
+   247→   247→                <textarea
+   248→   248→                  value={code}
+   249→   249→                  onChange={(e) => setCode(e.target.value)}
+   250→   250→                  spellCheck={false}
+   251→   251→                  className="flex-1 resize-none bg-transparent p-3 font-mono text-xs leading-6 text-emerald-100 outline-none"
+   252→   252→                  style={{ minHeight: 280, tabSize: 4 }}
+   253→   253→                />
+   254→   254→              </div>
+   255→   255→            </div>
+   256→   256→
+   257→   257→            {/* Custom input + actions */}
+   258→   258→            <div className="border-t border-black/10 p-4 dark:border-white/5">
+   259→   259→              <Label2 text="Custom Input" />
+   260→   260→              <Textarea
+   261→   261→                value={customInput}
+   262→   262→                onChange={(e) => setCustomInput(e.target.value)}
+   263→   263→                className="mt-1 h-16 rounded-md bg-zinc-900 font-mono text-xs text-emerald-100 border-black/10 dark:border-white/10"
+   264→   264→              />
+   265→   265→              <div className="mt-3 flex flex-wrap items-center gap-2">
+   266→   266→                <Button
+   267→   267→                  variant="outline"
+   268→   268→                  size="sm"
+   269→   269→                  onClick={run}
+   270→   270→                  disabled={running}
+   271→   271→                  className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   272→   272→                >
+   273→   273→                  {running ? <Clock className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
+   274→   274→                  Run
+   275→   275→                </Button>
+   276→   276→                <Button
+   277→   277→                  size="sm"
+   278→   278→                  onClick={submit}
+   279→   279→                  disabled={running}
+   280→   280→                  className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   281→   281→                >
+   282→   282→                  {running ? <Clock className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+   283→   283→                  Submit
+   284→   284→                </Button>
+   285→   285→                <Button
+   286→   286→                  size="sm"
+   287→   287→                  variant="ghost"
+   288→   288→                  className="rounded-full text-muted-foreground"
+   289→   289→                  onClick={() => navigator.clipboard?.writeText(code)}
+   290→   290→                >
+   291→   291→                  <Copy className="h-3.5 w-3.5" /> Copy
+   292→   292→                </Button>
+   293→   293→              </div>
+   294→   294→            </div>
+   295→   295→
+   296→   296→            {/* Test cases */}
+   297→   297→            {results && (
+   298→   298→              <div className="border-t border-black/10 p-4 dark:border-white/5">
+   299→   299→                <div className="flex items-center justify-between">
+   300→   300→                  <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   301→   301→                    {submitted ? "Submit Results" : "Run Results"}
+   302→   302→                  </p>
+   303→   303→                  {submitted && (
+   304→   304→                    <Badge className="border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-200">
+   305→   305→                      {passCount}/{results.length} passed
+   306→   306→                    </Badge>
+   307→   307→                  )}
+   308→   308→                </div>
+   309→   309→                <ul className="mt-3 space-y-1.5">
+   310→   310→                  {results.map((r) => {
+   311→   311→                    const tc = TEST_CASES.find((x) => x.id === r.id)!;
+   312→   312→                    return (
+   313→   313→                      <li key={r.id} className="flex items-center justify-between rounded-md border border-black/5 bg-black/[0.02] px-3 py-1.5 text-xs dark:border-white/5 dark:bg-white/[0.02]">
+   314→   314→                        <div className="flex min-w-0 items-center gap-2">
+   315→   315→                          {r.status === "pass" ? (
+   316→   316→                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+   317→   317→                          ) : (
+   318→   318→                            <X className="h-3.5 w-3.5 shrink-0 text-rose-500" />
+   319→   319→                          )}
+   320→   320→                          <span className="truncate font-mono text-muted-foreground">
+   321→   321→                            Case {r.id} {tc.hidden && <span className="text-[10px]">(hidden)</span>}
+   322→   322→                          </span>
+   323→   323→                          {r.status === "fail" && (
+   324→   324→                            <span className="ml-2 truncate text-rose-600 dark:text-rose-300">
+   325→   325→                              Expected {tc.expected} · Got <span className="font-mono">{r.got}</span>
+   326→   326→                            </span>
+   327→   327→                          )}
+   328→   328→                        </div>
+   329→   329→                        <span className="font-mono text-[10px] text-muted-foreground">{r.runtime} · {r.mem}</span>
+   330→   330→                      </li>
+   331→   331→                    );
+   332→   332→                  })}
+   333→   333→                </ul>
+   334→   334→              </div>
+   335→   335→            )}
+   336→   336→
+   337→   337→            {/* AI review panel */}
+   338→   338→            <AnimatePresence>
+   339→   339→              {submitted && (
+   340→   340→                <motion.div
+   341→   341→                  initial={{ opacity: 0, height: 0 }}
+   342→   342→                  animate={{ opacity: 1, height: "auto" }}
+   343→   343→                  exit={{ opacity: 0, height: 0 }}
+   344→   344→                  className="border-t border-black/10 dark:border-white/5"
+   345→   345→                >
+   346→   346→                  <AIReview language={language} code={code} passCount={passCount} total={TEST_CASES.length} />
+   347→   347→                </motion.div>
+   348→   348→              )}
+   349→   349→            </AnimatePresence>
+   350→   350→
+   351→   351→            {/* Proctoring footer */}
+   352→   352→            <div className="mt-auto border-t border-black/10 px-4 py-2 text-[11px] text-muted-foreground dark:border-white/5">
+   353→   353→              <Info className="mr-1 inline h-3 w-3" />
+   354→   354→              Tab switches: <span className="text-foreground">1</span> · Fullscreen exits: <span className="text-foreground">0</span>. Logged for awareness only. No penalties.
+   355→   355→            </div>
+   356→   356→          </div>
+   357→   357→        </div>
+   358→   358→
+   359→   359→        {/* Bottom strip: quick navigation */}
+   360→   360→        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+   361→   361→          {[
+   362→   362→            { label: "Problems", icon: Code2, value: "1,247", tone: "text-violet-500 dark:text-violet-400" },
+   363→   363→            { label: "Solved", icon: CheckCircle2, value: "312", tone: "text-emerald-600 dark:text-emerald-300" },
+   364→   364→            { label: "Streak", icon: Zap, value: "9 days", tone: "text-amber-600 dark:text-amber-300" },
+   365→   365→            { label: "Avg score", icon: Award, value: "85/100", tone: "text-violet-500 dark:text-violet-400" },
+   366→   366→          ].map((s) => (
+   367→   367→            <div key={s.label} className="rounded-lg border border-black/10 bg-card p-4 shadow-sm dark:border-white/10">
+   368→   368→              <s.icon className={cn("h-4 w-4", s.tone)} />
+   369→   369→              <p className="mt-2 text-xl font-semibold tracking-tight">{s.value}</p>
+   370→   370→              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
+   371→   371→            </div>
+   372→   372→          ))}
+   373→   373→        </div>
+   374→   374→
+   375→   375→      </PageWrap>
+   376→   376→
+   377→   377→      <Dialog open={confirmLang !== null} onOpenChange={(o) => !o && setConfirmLang(null)}>
+   378→   378→        <DialogContent className="border-black/10 bg-card dark:border-white/10">
+   379→   379→          <DialogHeader>
+   380→   380→            <DialogTitle>Switch language?</DialogTitle>
+   381→   381→            <DialogDescription>
+   382→   382→              Switching to <strong className="text-foreground">{confirmLang}</strong> will clear your current code. Continue?
+   383→   383→            </DialogDescription>
+   384→   384→          </DialogHeader>
+   385→   385→          <DialogFooter className="mt-4 flex gap-2">
+   386→   386→            <Button
+   387→   387→              variant="ghost"
+   388→   388→              onClick={() => setConfirmLang(null)}
+   389→   389→              className="rounded-full"
+   390→   390→            >
+   391→   391→              Cancel
+   392→   392→            </Button>
+   393→   393→            <Button
+   394→   394→              onClick={confirmSwitch}
+   395→   395→              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   396→   396→            >
+   397→   397→              Switch &amp; Clear Code
+   398→   398→            </Button>
+   399→   399→          </DialogFooter>
+   400→   400→        </DialogContent>
+   401→   401→      </Dialog>
+   402→   402→    </div>
+   403→   403→  );
+   404→   404→}
+   405→   405→
+   406→   406→/* -------------------------------------------------------------------------- */
+   407→   407→
+   408→   408→function Label2({ text }: { text: string }) {
+   409→   409→  return (
+   410→   410→    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{text}</p>
+   411→   411→  );
+   412→   412→}
+   413→   413→
+   414→   414→function AIReview({ language, code, passCount, total }: { language: string; code: string; passCount: number; total: number }) {
+   415→   415→  const [showRefactor, setShowRefactor] = useState(false);
+   416→   416→  const overall = passCount === total ? 92 : passCount >= total - 2 ? 85 : 72;
+   417→   417→
+   418→   418→  return (
+   419→   419→    <div className="p-4">
+   420→   420→      <div className="flex items-center gap-2">
+   421→   421→        <Code2 className="h-4 w-4 text-violet-500 dark:text-violet-400" />
+   422→   422→        <p className="text-sm font-medium">AI Code Review</p>
+   423→   423→        <Badge className="border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-200">
+   424→   424→          Gemini 1.5 Flash · {language}
+   425→   425→        </Badge>
+   426→   426→      </div>
+   427→   427→
+   428→   428→      <div className="mt-3 rounded-lg border border-black/10 bg-black/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.02]">
+   429→   429→        <div className="flex items-center justify-between">
+   430→   430→          <p className="text-xs text-muted-foreground">Overall Score</p>
+   431→   431→          <p className="text-xl font-semibold text-violet-500 dark:text-violet-300">{overall}/100</p>
+   432→   432→        </div>
+   433→   433→        <Progress value={overall} className="mt-2 bg-black/10 dark:bg-white/10" />
+   434→   434→        <div className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+   435→   435→          <SubScore label="Correctness" value={Math.round((passCount / total) * 100)} />
+   436→   436→          <SubScore label="Code Quality" value={90} />
+   437→   437→          <SubScore label="Readability" value={85} />
+   438→   438→          <SubScore label="Complexity" value={95} />
+   439→   439→        </div>
+   440→   440→        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+   441→   441→          <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">
+   442→   442→            <Check className="h-3 w-3" /> Time: O(n) · Optimal
+   443→   443→          </Badge>
+   444→   444→          <Badge className="border-sky-400/30 bg-sky-500/10 text-sky-700 dark:text-sky-200">
+   445→   445→            <Terminal className="h-3 w-3" /> Space: O(n)
+   446→   446→          </Badge>
+   447→   447→        </div>
+   448→   448→      </div>
+   449→   449→
+   450→   450→      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+   451→   451→        <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/[0.04] p-4">
+   452→   452→          <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Strengths</p>
+   453→   453→          <ul className="mt-2 space-y-1.5 text-xs text-foreground/80">
+   454→   454→            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Clean, descriptive variable naming (<code className="font-mono text-emerald-700 dark:text-emerald-200">seen</code>, <code className="font-mono text-emerald-700 dark:text-emerald-200">target</code>).</li>
+   455→   455→            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Single pass O(n). No nested loop. Optimal.</li>
+   456→   456→            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Handles edge case where no solution exists.</li>
+   457→   457→          </ul>
+   458→   458→        </div>
+   459→   459→        <div className="rounded-lg border border-amber-400/20 bg-amber-500/[0.04] p-4">
+   460→   460→          <p className="text-xs font-medium text-amber-700 dark:text-amber-300">Suggestions</p>
+   461→   461→          <ul className="mt-2 space-y-1.5 text-xs text-foreground/80">
+   462→   462→            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Add a docstring explaining parameters and return type.</li>
+   463→   463→            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Type hints missing. Add <code className="font-mono text-amber-700 dark:text-amber-200">nums: list[int], target: int</code>.</li>
+   464→   464→            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Raise <code className="font-mono text-amber-700 dark:text-amber-200">ValueError</code> instead of returning empty list when no pair found.</li>
+   465→   465→          </ul>
+   466→   466→        </div>
+   467→   467→      </div>
+   468→   468→
+   469→   469→      <Collapsible open={showRefactor} onOpenChange={setShowRefactor} className="mt-4">
+   470→   470→        <div className="rounded-lg border border-black/10 bg-card dark:border-white/10">
+   471→   471→          <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left">
+   472→   472→            <div className="flex items-center gap-2">
+   473→   473→              <Code2 className="h-4 w-4 text-violet-500 dark:text-violet-400" />
+   474→   474→              <span className="text-sm font-medium">Refactored Snippet</span>
+   475→   475→              <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5">AI-generated</Badge>
+   476→   476→            </div>
+   477→   477→            <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", showRefactor && "rotate-180")} />
+   478→   478→          </CollapsibleTrigger>
+   479→   479→          <CollapsibleContent>
+   480→   480→            <div className="border-t border-black/10 bg-zinc-900 p-4 dark:border-white/5">
+   481→   481→              <pre className="overflow-x-auto whitespace-pre font-mono text-xs text-emerald-100">
+   482→   482→{`def two_sum(nums: list[int], target: int) -> list[int]:
+   483→   483→    """Return indices of two numbers summing to target.
+   484→   484→
+   485→   485→    Raises:
+   486→   486→        ValueError: if no valid pair exists.
+   487→   487→    """
+   488→   488→    seen: dict[int, int] = {}
+   489→   489→    for i, n in enumerate(nums):
+   490→   490→        complement = target - n
+   491→   491→        if complement in seen:
+   492→   492→            return [seen[complement], i]
+   493→   493→        seen[n] = i
+   494→   494→    raise ValueError("No two sum solution")
+   495→   495→`}
+   496→   496→              </pre>
+   497→   497→              <div className="mt-3 flex items-center gap-2">
+   498→   498→                <Button
+   499→   499→                  size="sm"
+   500→   500→                  variant="outline"
+   501→   501→                  className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   502→   502→                  onClick={() => navigator.clipboard?.writeText(code)}
+   503→   503→                >
+   504→   504→                  <Copy className="h-3.5 w-3.5" /> Copy Refactor
+   505→   505→                </Button>
+   506→   506→                <Button
+   507→   507→                  size="sm"
+   508→   508→                  variant="ghost"
+   509→   509→                  className="rounded-full text-muted-foreground"
+   510→   510→                >
+   511→   511→                  <Download className="h-3.5 w-3.5" /> Export Snippet
+   512→   512→                </Button>
+   513→   513→              </div>
+   514→   514→            </div>
+   515→   515→          </CollapsibleContent>
+   516→   516→        </div>
+   517→   517→      </Collapsible>
+   518→   518→    </div>
+   519→   519→  );
+   520→   520→}
+   521→   521→
+   522→   522→function SubScore({ label, value }: { label: string; value: number }) {
+   523→   523→  return (
+   524→   524→    <div>
+   525→   525→      <p className="text-[11px] text-muted-foreground">{label}</p>
+   526→   526→      <div className="mt-1 flex items-center gap-2">
+   527→   527→        <Progress value={value} className="bg-black/10 dark:bg-white/10" />
+   528→   528→        <span className="font-mono text-[11px] font-semibold text-foreground">{value}</span>
+   529→   529→      </div>
+   530→   530→    </div>
+   531→   531→  );
+   532→   532→}
+   533→   533→
+   534→   534→/* keep imports referenced */
+   535→   535→export const __icons = { ChevronRight, PlayCircle };
+   536→   536→

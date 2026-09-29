@@ -35,6 +35,11 @@ import { CandidateLogin } from "@/components/screens/candidate/login";
 import { ForcePasswordChange } from "@/components/screens/candidate/change-password";
 import { PreTestCheck } from "@/components/screens/candidate/system-check";
 import { CandidateDashboard } from "@/components/screens/candidate/dashboard";
+import { CandidateAptitudeTest } from "@/components/screens/candidate/aptitude-test";
+import { CandidateAptitudeResult } from "@/components/screens/candidate/aptitude-result";
+import { CandidateCodingTest } from "@/components/screens/candidate/coding-test";
+import { CandidateCodingResult } from "@/components/screens/candidate/coding-result";
+import { CandidateInterviewTest } from "@/components/screens/candidate/interview-test";
 import { CandidateResults } from "@/components/screens/candidate/results";
 
 // Super Admin
@@ -75,6 +80,11 @@ const SCREENS: Record<ScreenId, React.ComponentType> = {
   "candidate-change-password": ForcePasswordChange,
   "candidate-system-check": PreTestCheck,
   "candidate-dashboard": CandidateDashboard,
+  "candidate-aptitude": CandidateAptitudeTest,
+  "candidate-aptitude-result": CandidateAptitudeResult,
+  "candidate-coding": CandidateCodingTest,
+  "candidate-coding-result": CandidateCodingResult,
+  "candidate-interview": CandidateInterviewTest,
   "candidate-results": CandidateResults,
   // Super Admin
   "superadmin-dashboard": SuperAdminDashboard,

@@ -28,6 +28,7 @@ export function SiteChrome() {
     restDelta: 0.001,
   });
 
+  const navigationLocked = useNav((s) => s.navigationLocked);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [cookieDismissed, setCookieDismissed] = useState(true); // start dismissed, check localStorage
   const [contactOpen, setContactOpen] = useState(false);
@@ -60,6 +61,9 @@ export function SiteChrome() {
     }
     setCookieDismissed(true);
   };
+
+  // Hide all site chrome during fullscreen tests (after all hooks)
+  if (navigationLocked) return null;
 
   return (
     <>

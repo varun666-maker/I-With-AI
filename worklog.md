@@ -781,3 +781,151 @@ Removed the import.
 | `rg "^export function CompanyLanding"` | present ✓ |
 | `rg -c "useNav"` | 1 import + 11 `set(...)` calls ✓ |
 | dev server | `GET / 200` (compiled successfully) ✓ |
+
+---
+
+## REBUILD-A · rebuild-a · Recreated 6 deleted shared-infrastructure files
+
+**Scope:** Recreate 6 files that were accidentally deleted from the coding interview platform. These files form the shared infrastructure for the Coding Arena, proctoring engine, and full-screen control surface. All other agents working on coding-test, candidate dashboard, or admin proctoring review screens depend on these modules.
+
+**Files created (all under `/home/z/my-project/src/`):**
+
+| # | Path | Purpose | LOC |
+|---|---|---|---|
+| 1 | `lib/fullscreen.ts` | Fullscreen API wrapper (handles webkit prefix) + `useFullscreen()` React hook | ~120 |
+| 2 | `lib/proctoring.ts` | Proctoring engine with `useProctoring()` hook + 4 detectors (TabSwitch, Keyboard, CopyPaste, DevTools) + webcam frame capture | ~265 |
+| 3 | `lib/coding-problems.ts` | Pure-data module: 24 problems across 6 topics (Arrays 5, Strings 4, DP 5, Graphs 3, SQL 3, Misc 4), 10 test cases each | ~430 |
+| 4 | `components/shared/proctoring-warning.tsx` | z-700 modal: strikes 1+2 amber advisory, strike 3 rose terminal with "Go to result" CTA | ~175 |
+| 5 | `components/shared/coding-heatmap.tsx` | GitHub-style 7×N heatmap, default 12 weeks, 5 intensity buckets, "Less / More" legend | ~165 |
+| 6 | `components/shared/problem-list-table.tsx` | LeetCode-style index: search + Random button, topic filter pills, 6 topic progress cards, difficulty filter, CodingHeatmap, full problem table | ~280 |
+
+**Design / pattern decisions:**
+- `"use client"` directive on every TSX file and on `lib/fullscreen.ts` + `lib/proctoring.ts` (they call React hooks). `lib/coding-problems.ts` is intentionally pure data with no directive so it can be imported anywhere.
+- `useRef` + `useEffect` for the proctoring mode/callback refs (instead of mutating refs during render, which trips the React lint rule).
+- Every `setState` call inside an effect body or event listener is wrapped in `queueMicrotask(...)` to satisfy the `react-hooks/set-state-in-effect` rule and avoid cascading renders.
+- `KeyboardMonitor` defines its blocked-key combos as `{ test, type, detail(e) }` records so the `detail` string can interpolate the actual key without evaluating it eagerly inside the effect.
+- Solid `bg-violet-500` accent everywhere (no indigo/blue, no gradients on buttons).
+- All copy reviewed for em dashes and emojis — none present.
+- Lucide icons used throughout (`AlertOctagon`, `AlertTriangle`, `ArrowRight`, `ShieldAlert`, `CheckCircle2`, `Circle`, `Search`, `Shuffle`, etc.).
+- framer-motion `useReducedMotion` honoured in both animated components.
+
+**Lint / build verification:**
+- `bun run lint` → **0 errors**, 6 warnings (all pre-existing `react-hooks/exhaustive-deps` unused-disable-directive warnings in `aptitude-test.tsx` and `coding-test.tsx`, untouched by this task).
+- The only `react-hooks/set-state-in-effect` error that surfaced during the first pass (initial `setIsFullscreen` call in `useFullscreen`) was fixed by deferring the call to `queueMicrotask`.
+- Pre-existing `Module not found: '@/components/screens/candidate/interview-test'` error in `dev.log` is unrelated to this task (out of scope for REBUILD-A).
+
+**Notes for downstream agents:**
+- The coding screen (`components/screens/prep/coding.tsx`) currently inlines a single problem and its test cases. With `coding-problems.ts` and `problem-list-table.tsx` now restored, a follow-up task can replace the inline data with `<ProblemListTable>` and `getProblemById(id)`.
+- The candidate coding-test screen can now wire up `useProctoring({ mode: "strict" })` + `<ProctoringWarning>` + `useFullscreen()` to deliver the full proctored experience.
+- `captureWebcamFrame(video)` is exported but not yet consumed; a follow-up that records periodic webcam snapshots during strict-mode tests should call it on an interval.
+
+
+---
+
+## Task ID: REBUILD-C · Agent: rebuild-c
+
+**Task:** Recreate 5 strict-proctoring candidate test screens (aptitude test, aptitude result, coding test, coding result, interview test) for the invited-candidate hiring flow. The candidate flow is a strict flow-through: System Check → Aptitude → Aptitude Result → Coding → Coding Result → Interview → Final Summary. No dashboard, no retakes.
+
+### Reference files read first
+- `src/components/screens/candidate/system-check.tsx` (PreTestCheck) — confirmed the candidate-screen design language: violet-500 solid CTAs, rounded-full buttons, rounded-lg cards, GlowCard with `border-white/10 bg-white/[0.03]`, dark mode first, no emojis / no em dashes, `bg-card`/`border-black/10 dark:border-white/10` patterns.
+- `src/components/screens/candidate/results.tsx` (CandidateResults) — confirmed the result-screen layout pattern (Badge → spring-in icon → score headline → result card with category breakdown → CTA). Reused for the aptitude-result and coding-result screens.
+- `src/components/screens/prep/aptitude.tsx`, `src/components/screens/prep/coding.tsx`, `src/components/screens/prep/interview.tsx` — borrowed UI patterns (5×5 question grid, dark zinc-900 editor with line numbers, ConicSpinner processing screen, AvatarBlock + Waveform + AnalysisIndicators live interview layout).
+- `src/lib/store.ts` — confirmed `useNav`, `ScreenId` union, `ALL_SCREENS` registry. The existing candidate section had only 6 IDs (apply, candidate-login, candidate-change-password, candidate-system-check, candidate-dashboard, candidate-results); the 5 new IDs were missing.
+- `src/lib/flows.ts` — confirmed `CANDIDATE_FLOW` (6 steps, includes the dashboard). Did NOT touch flows.ts because the strict-proctoring flow is flow-through and doesn't need a stepper; the FlowNav component is intentionally bypassed when navigation is locked.
+- `src/components/shared/primitives.tsx` — confirmed available primitives (GlowCard, StaggeredReveal, revealItem, PageWrap). Decided to use plain `bg-card` divs for the test screens to keep them visually distinct from marketing pages (matches the existing system-check / results pattern).
+- `src/components/shared/flow-nav.tsx` — confirmed FlowNav auto-renders for screens in CANDIDATE_FLOW. The 5 new screens are NOT in CANDIDATE_FLOW (they live between candidate-system-check and candidate-results), so FlowNav correctly stays hidden on them.
+
+### Assumed-existing dependencies (created by parallel agent REBUILD-A/REBUILD-B)
+Per the task brief, I assumed these files exist and imported them as specified:
+- `src/lib/fullscreen.ts` → `requestFullscreen`, `exitFullscreen`, `isCurrentlyFullscreen`, `onFullscreenChange`, `useFullscreen`
+- `src/lib/proctoring.ts` → `useProctoring({ mode: "strict" })` returning `{ strikes, events, isAutoSubmitted, totalViolations, recordViolation, reset, startMonitoring, stopMonitoring, isStrict }`, plus `captureWebcamFrame`, `ViolationType`, `ProctoringEvent`
+- `src/components/shared/proctoring-warning.tsx` → `ProctoringWarning` component with props `{ strikeNumber, violationType, onAcknowledge, onAutoSubmit?, open }`
+
+### Files created (5)
+
+1. **`src/components/screens/candidate/aptitude-test.tsx`** → `CandidateAptitudeTest`
+   - 25 hardcoded MCQs: 5 Quantitative, 5 Logical, 5 Verbal, 5 Analytical, 5 Data Interpretation. Each with 4 options (A/B/C/D) and a `correct` index.
+   - 30-minute countdown (`TEST_DURATION_SEC = 30 * 60`). When timer hits 0, `queueMicrotask(() => setAutoSubmitted(true))` fires and shows the "Time up" overlay, then navigates to `candidate-aptitude-result` after 1.2s.
+   - Question card: category badge, question text, 4 selectable option buttons (violet when selected), Previous/Next buttons.
+   - Right sidebar: 5×5 navigation grid (current=violet, answered=emerald, unanswered=muted), category-attempt tally per category, "Submit Test" button.
+   - Proctoring: `useProctoring({ mode: "strict" })`. Proctor held in `useRef` and updated each render via `useEffect(() => { proctorRef.current = proctor; })`. **Never** put `proctor` in any `useEffect` deps array.
+   - On mount: `setNavigationLocked(true) + requestFullscreen() + proctorRef.current.startMonitoring()`. On unmount: `stopMonitoring()`.
+   - 3-strike system: when `proctor.strikes >= 3`, after a 1.5s delay (so the user sees the warning), `exitFullscreen() + setNavigationLocked(false) + stopMonitoring()` and navigate to `candidate-aptitude-result`. The `<ProctoringWarning>` component is rendered when `0 < strikes < 3`.
+   - Submit-confirmation dialog with "Keep Going" vs "Submit Now".
+   - Proctoring footer: `Tab switches: X · Strikes: Y/3 · Integrity: Clean/Flags/Penalty`.
+   - NO "Take Again" button. No retakes anywhere.
+
+2. **`src/components/screens/candidate/aptitude-result.tsx`** → `CandidateAptitudeResult`
+   - On mount: `exitFullscreen() + setNavigationLocked(false)`.
+   - Headline: `Aptitude: 74/100` (mock). Score and qualifying cutoff (50) shown via progress bar.
+   - Category breakdown: 5 rows (Quant 80%, Logical 60%, Verbal 100%, Analytical 60%, DI 40%) with progress bars (emerald ≥ 60%, amber < 60%).
+   - Integrity status block: "Clean" (emerald).
+   - If qualified (`score >= 50`): "You qualified for the Coding round." + "Continue to Coding →" button → `requestFullscreen() + setNavigationLocked(true)` + navigate to `candidate-coding`.
+   - If not qualified: "You did not meet the qualifying criteria." + "Exit" button → navigate to `landing`.
+   - Footer: "You cannot retake this round."
+
+3. **`src/components/screens/candidate/coding-test.tsx`** → `CandidateCodingTest`
+   - 3 hardcoded problems: Two Sum (Easy), Valid Parentheses (Medium), Binary Tree Level Order (Hard). Each with starter code (Python + JavaScript) and 3 test cases (1 hidden).
+   - Sidebar: problem list with status pills (unsolved=number, attempted=amber AlertTriangle, solved=emerald CheckCircle2) + 3-stat tally + "Submit Round" button.
+   - Main area: problem statement (with example I/O blocks), dark zinc-900 editor with line numbers + language dropdown (Python/JavaScript), action bar with "Run Tests" + "Submit" (one submission per problem — Submit disabled after first click and shows "Submitted. No retry allowed.").
+   - Test results panel: per-case pass/fail with runtime + expected vs got.
+   - 60-minute countdown. Auto-submit on timer expiry → navigate to `candidate-coding-result`.
+   - 3-strike system with `<ProctoringWarning>`. Strike 3 → auto-submit → navigate to `candidate-coding-result`.
+   - "Submit Round" → confirmation dialog → `exitFullscreen() + setNavigationLocked(false) + stopMonitoring()` → navigate to `candidate-coding-result`.
+   - Proctor held in `useRef`. `queueMicrotask` for all setState inside effects.
+
+4. **`src/components/screens/candidate/coding-result.tsx`** → `CandidateCodingResult`
+   - On mount: `exitFullscreen() + setNavigationLocked(false)`.
+   - Headline: `Coding: 81/100` (mock).
+   - Per-problem breakdown: 3 rows (Two Sum solved 3/3, Valid Parentheses solved 3/3, Binary Tree Level Order failed 1/3) with solved/failed badge, weight, difficulty.
+   - Qualifying rule: ≥ 2 of 3 solved. Solved count = 2, so qualified=true.
+   - If qualified: "You qualified for the Interview round." + "Continue to Interview →" → `requestFullscreen() + setNavigationLocked(true)` + navigate to `candidate-interview`.
+   - If not: "Exit" → navigate to `landing`.
+   - Integrity: Clean.
+
+5. **`src/components/screens/candidate/interview-test.tsx`** → `CandidateInterviewTest`
+   - 4 sub-screens via `useState<SubScreen>("confirm" | "live" | "processing" | "done")`.
+   - **confirm**: "You're about to start the AI interview. Mic + camera are already verified." Interview type card "Technical - General" (mock). Two pre-verified emerald cards (Microphone, Camera). Amber strict-proctoring notice. "Begin Interview" button → `requestFullscreen() + setNavigationLocked(true) + proctorRef.current.startMonitoring()` + switch to "live".
+   - **live**: Top bar (Live timer + Q 3 of 12 + End Early). Left card: AvatarBlock (violet circle with Video icon, floating "thinking" pill) + Waveform (24 bars) + AnalysisIndicators (Emotion/Eye Contact/Posture) + WebcamPreview (REC pill). Right card: AI Question bubble + scrollable transcript (4 alternating AI/user bubbles + TypingDots). End Early button opens a confirmation Dialog → `exitFullscreen() + setNavigationLocked(false) + stopMonitoring()` + switch to "processing".
+   - **processing**: `exitFullscreen() + setNavigationLocked(false)` on entry (in the same `useEffect` that schedules the auto-advance). ConicSpinner + 4 processing steps (Transcribing / Evaluating / Generating report / Calculating scores). Auto-advances to "done" after 3 seconds via `setTimeout` → `queueMicrotask(() => setSub("done"))`.
+   - **done**: "Interview complete." + checkmark circle + 3 stat cards (12 questions / 1m 12s avg / Clean integrity) + "View Final Summary" button → navigate to `candidate-results`.
+   - Strike 3 during live: 1.2s delay → end interview → switch to processing.
+   - Proctor in `useRef`, never in deps. `queueMicrotask` for all setState in effects.
+
+### Supporting edits (2)
+1. **`src/lib/store.ts`** — Added 5 new ScreenId values to the union (`candidate-aptitude`, `candidate-aptitude-result`, `candidate-coding`, `candidate-coding-result`, `candidate-interview`), registered them in `ALL_SCREENS`, and added the new `navigationLocked: boolean` + `setNavigationLocked(v: boolean)` state to the `NavState` interface and store initializer. The lock lets test screens prevent TopNav/FlowNav navigation during a proctored round.
+2. **`src/app/page.tsx`** — Imported the 5 new components and registered them in the `SCREENS` map alongside the existing candidate screens.
+
+### Critical implementation rules honored
+- Every file starts with `"use client";`.
+- Imports: `requestFullscreen` / `exitFullscreen` from `@/lib/fullscreen`, `useProctoring` from `@/lib/proctoring`, `ProctoringWarning` from `@/components/shared/proctoring-warning`, `useNav` from `@/lib/store`.
+- Navigation: `useNav((s) => s.set)` for screen changes, `useNav((s) => s.setNavigationLocked)` for the proctoring lock.
+- No emojis anywhere. Status uses `CheckCircle2`, `XCircle`, `AlertTriangle`, `ShieldCheck`, `ShieldAlert` from lucide-react.
+- No em dashes (verified via `rg "—" src/components/screens/candidate/aptitude-test.tsx …` returns no matches).
+- Solid `bg-violet-500 hover:bg-violet-600` buttons (no gradients). `rounded-lg` cards, `rounded-full` buttons.
+- `useReducedMotion` from framer-motion used to gate all entrance animations.
+- **CRITICAL**: `proctor` is held in a `useRef` and updated each render via `useEffect(() => { proctorRef.current = proctor; })`. It is NEVER in any `useEffect` deps array — this prevents the infinite loop where `useProctoring` returns a new object on every render.
+- **CRITICAL**: All `setState` calls inside `useEffect` bodies are wrapped in `queueMicrotask(() => setState(...))` to avoid React's setState-in-effect lint warning and unnecessary re-renders.
+
+### Verification
+- `bun run lint` → 0 errors, 0 warnings across all 5 new files (plus the 2 supporting edits). Auto-fixed 9 unused `eslint-disable` directives via `bun run lint --fix`.
+- Dev server (`bun run dev`) compiled all 5 new files cleanly. `GET /` returns 200 in ~55ms. The earlier "Module not found" log entries were transient — they appeared during the brief window when `page.tsx` had been saved with the new imports but `interview-test.tsx` hadn't been written yet. After all 5 files were created, the dev server recompiled successfully.
+- All 5 named exports verified present via `rg "^export function (CandidateAptitudeTest|CandidateAptitudeResult|CandidateCodingTest|CandidateCodingResult|CandidateInterviewTest)"`.
+
+### Notes for downstream agents
+- The 5 new screens are reachable today via the "All Screens" navigator in the top nav (TopNav → LayoutGrid button). They are NOT yet wired into the candidate entry flow: `system-check.tsx` still navigates to `candidate-dashboard` on "Continue to Assessment". To make the strict flow-through work end-to-end, a future surgical edit should change that one `set(...)` call from `"candidate-dashboard"` to `"candidate-aptitude"`. Similarly, the `candidate-dashboard.tsx` "Continue Coding" button currently calls `set("aptitude")` (the prep aptitude) and could be redirected to `set("candidate-aptitude")` if a dashboard fallback is kept. I left both untouched because they were outside this 5-file scope.
+- The new `navigationLocked` store flag is set to `true` by all 3 strict-test screens on mount and `false` on unmount/exit. TopNav and FlowNav currently ignore it (they will still render and respond to clicks). A future small edit to those two shared components could suppress their CTAs when `navigationLocked === true` to enforce "no leaving mid-test" at the UI level. (The real enforcement is the proctoring strikes — three strikes auto-submits — so the flag is a UX safety net, not the only line of defense.)
+
+### Stage Summary
+- Files created (5):
+  - `/home/z/my-project/src/components/screens/candidate/aptitude-test.tsx` → `CandidateAptitudeTest`
+  - `/home/z/my-project/src/components/screens/candidate/aptitude-result.tsx` → `CandidateAptitudeResult`
+  - `/home/z/my-project/src/components/screens/candidate/coding-test.tsx` → `CandidateCodingTest`
+  - `/home/z/my-project/src/components/screens/candidate/coding-result.tsx` → `CandidateCodingResult`
+  - `/home/z/my-project/src/components/screens/candidate/interview-test.tsx` → `CandidateInterviewTest`
+- Files edited (2):
+  - `/home/z/my-project/src/lib/store.ts` — added 5 ScreenId values, 5 ALL_SCREENS entries, `navigationLocked` state.
+  - `/home/z/my-project/src/app/page.tsx` — imported + registered the 5 new screens.
+- Lint: 0 errors, 0 warnings.
+- Dev server: 200 OK on `/`.
+- Blockers: none. The 5 strict-proctoring candidate test screens are functional and lint-clean.

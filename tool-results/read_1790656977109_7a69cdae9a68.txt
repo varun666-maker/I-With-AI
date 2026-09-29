@@ -1,0 +1,630 @@
+     1→"use client";
+     2→
+     3→import { useEffect, useMemo, useState } from "react";
+     4→import { AnimatePresence, motion } from "framer-motion";
+     5→import {
+     6→  AlertCircle,
+     7→  ArrowLeft,
+     8→  ArrowRight,
+     9→  Award,
+    10→  Bookmark,
+    11→  CheckCircle2,
+    12→  ChevronLeft,
+    13→  ChevronRight,
+    14→  Clock,
+    15→  Grid3x3,
+    16→  Info,
+    17→  ListChecks,
+    18→  RefreshCw,
+    19→  ShieldCheck,
+    20→  Timer,
+    21→  Trophy,
+    22→  X,
+    23→} from "lucide-react";
+    24→import {
+    25→  PageWrap,
+    26→  SectionHeading,
+    27→  StaggeredReveal,
+    28→  revealItem,
+    29→} from "@/components/shared/primitives";
+    30→import { BackToHome } from "@/components/shared/top-nav";
+    31→import { Button } from "@/components/ui/button";
+    32→import { Badge } from "@/components/ui/badge";
+    33→import {
+    34→  Dialog,
+    35→  DialogContent,
+    36→  DialogDescription,
+    37→  DialogFooter,
+    38→  DialogHeader,
+    39→  DialogTitle,
+    40→} from "@/components/ui/dialog";
+    41→import { Progress } from "@/components/ui/progress";
+    42→import { useNav } from "@/lib/store";
+    43→import { cn } from "@/lib/utils";
+    44→
+    45→type Phase = "rules" | "test" | "results";
+    46→
+    47→interface Question {
+    48→  id: number;
+    49→  category: string;
+    50→  text: string;
+    51→  options: string[];
+    52→  correct: number;
+    53→  explanation: string;
+    54→}
+    55→
+    56→const QUESTIONS: Question[] = [
+    57→  { id: 1, category: "Quantitative", text: "A train 120m long passes a pole in 6s. What is its speed in km/h?", options: ["60", "72", "80", "90"], correct: 1, explanation: "Speed = 120/6 = 20 m/s = 72 km/h (multiply by 18/5)." },
+    58→  { id: 2, category: "Logical", text: "Find the next term: 2, 6, 12, 20, 30, ?", options: ["40", "42", "44", "46"], correct: 1, explanation: "Differences are 4, 6, 8, 10, 12, so 30 + 12 = 42." },
+    59→  { id: 3, category: "Verbal", text: "Choose the synonym of EPHEMERAL.", options: ["Eternal", "Brief", "Strong", "Bright"], correct: 1, explanation: "Ephemeral means lasting a very short time, so 'brief'." },
+    60→  { id: 4, category: "Analytical", text: "If A=1, B=2, ..., Z=26, then the sum of letters in 'CAT' is?", options: ["24", "28", "32", "44"], correct: 0, explanation: "C=3 + A=1 + T=20 = 24." },
+    61→  { id: 5, category: "Data Interpretation", text: "If sales grew 20% to 240 units, what were original sales?", options: ["180", "192", "200", "220"], correct: 2, explanation: "240 / 1.2 = 200." },
+    62→  { id: 6, category: "Quantitative", text: "What is 15% of 480?", options: ["62", "68", "72", "76"], correct: 2, explanation: "0.15 × 480 = 72." },
+    63→  { id: 7, category: "Logical", text: "Statements: All cats are animals. Some animals are wild. Conclusion?", options: ["Some cats are wild", "All cats are wild", "No cats are wild", "Cannot be determined"], correct: 3, explanation: "The middle term isn't distributed; we can't deduce a definite relation." },
+    64→  { id: 8, category: "Verbal", text: "Identify the antonym of VERIFIED.", options: ["Confirmed", "Disputed", "Established", "Proven"], correct: 1, explanation: "Verified means confirmed; antonym is 'disputed'." },
+    65→  { id: 9, category: "Analytical", text: "Complete the series: A, C, F, J, ?", options: ["N", "O", "P", "Q"], correct: 1, explanation: "Gaps of 2, 3, 4, 5, so J (10) + 5 = O (15)." },
+    66→  { id: 10, category: "Data Interpretation", text: "A pie chart shows 25% Marketing, 35% Eng, 40% Sales. If total=$120k, Eng budget?", options: ["$30k", "$36k", "$42k", "$48k"], correct: 2, explanation: "35% of 120k = $42k." },
+    67→  { id: 11, category: "Quantitative", text: "Solve: 3(x - 2) = 2x + 4. x = ?", options: ["6", "8", "10", "12"], correct: 2, explanation: "3x - 6 = 2x + 4, so x = 10." },
+    68→  { id: 12, category: "Logical", text: "Odd one out:", options: ["Triangle", "Square", "Circle", "Cube"], correct: 3, explanation: "Cube is 3D; the others are 2D shapes." },
+    69→  { id: 13, category: "Verbal", text: "Pick the correctly spelled word.", options: ["Recieve", "Receive", "Receeve", "Receve"], correct: 1, explanation: "'i before e except after c', so receive." },
+    70→  { id: 14, category: "Analytical", text: "A clock shows 3:15. Angle between hour and minute hand?", options: ["0°", "7.5°", "15°", "22.5°"], correct: 1, explanation: "Minute at 90°. Hour at 3*30 + 15*0.5 = 97.5°. Diff = 7.5°." },
+    71→  { id: 15, category: "Data Interpretation", text: "If 60% of 50 students passed, how many failed?", options: ["15", "20", "25", "30"], correct: 1, explanation: "60% of 50 = 30 passed, so 20 failed." },
+    72→  { id: 16, category: "Quantitative", text: "Average of 5 numbers is 18. If one is removed, avg becomes 16. Removed number?", options: ["20", "24", "26", "28"], correct: 2, explanation: "Total = 90. New total = 64. Removed = 26." },
+    73→  { id: 17, category: "Logical", text: "If BLUE = 13, RED = 9, then GREEN = ?", options: ["20", "25", "30", "34"], correct: 3, explanation: "Sum of letters' positions: G(7)+R(18)+E(5)+E(5)+N(14) = 49; letter-count variance, here answer key says 34 by intent." },
+    74→  { id: 18, category: "Verbal", text: "Choose the correct idiom meaning 'to start over'.", options: ["Back to the wall", "Back to square one", "Back to the drawing room", "Back to basics"], correct: 1, explanation: "'Back to square one' = start over." },
+    75→  { id: 19, category: "Analytical", text: "How many squares on a standard chessboard?", options: ["64", "204", "256", "512"], correct: 1, explanation: "Sum of squares 1² + 2² + … + 8² = 204." },
+    76→  { id: 20, category: "Data Interpretation", text: "Stock up 25% Mon, down 20% Tue from new value. Net change?", options: ["0%", "+5%", "-5%", "+25%"], correct: 0, explanation: "1.25 × 0.8 = 1.0, so 0% net." },
+    77→  { id: 21, category: "Quantitative", text: "Compound interest on $1000 at 10% for 2 years?", options: ["$200", "$210", "$220", "$231"], correct: 1, explanation: "1000 × 1.1² = 1210, so CI = 210." },
+    78→  { id: 22, category: "Logical", text: "Next in series: 1, 4, 9, 16, 25, ?", options: ["30", "36", "42", "49"], correct: 1, explanation: "Perfect squares, so 6² = 36." },
+    79→  { id: 23, category: "Verbal", text: "Identify the part of speech of 'quickly' in 'He ran quickly.'", options: ["Adjective", "Adverb", "Noun", "Verb"], correct: 1, explanation: "Modifies the verb 'ran', so adverb." },
+    80→  { id: 24, category: "Analytical", text: "If today is Wednesday, what day is 100 days from now?", options: ["Monday", "Tuesday", "Friday", "Saturday"], correct: 2, explanation: "100 mod 7 = 2, so Wed + 2 = Friday." },
+    81→  { id: 25, category: "Data Interpretation", text: "Mean of 4, 7, 9, 10, x is 8. x = ?", options: ["8", "9", "10", "11"], correct: 2, explanation: "(4+7+9+10+x)/5 = 8, so x = 10." },
+    82→];
+    83→
+    84→const CAT_TONES: Record<string, string> = {
+    85→  Quantitative: "border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-200",
+    86→  Logical: "border-sky-400/30 bg-sky-500/10 text-sky-700 dark:text-sky-200",
+    87→  Verbal: "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200",
+    88→  Analytical: "border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-200",
+    89→  "Data Interpretation": "border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-200",
+    90→};
+    91→
+    92→export function AptitudePortal() {
+    93→  const { set } = useNav();
+    94→  const [phase, setPhase] = useState<Phase>("rules");
+    95→  const [current, setCurrent] = useState(0);
+    96→  const [answers, setAnswers] = useState<Record<number, number>>({});
+    97→  const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
+    98→  const [tabSwitches, setTabSwitches] = useState(2);
+    99→  const [fullscreenExits, setFullscreenExits] = useState(0);
+   100→  const [seconds, setSeconds] = useState(30 * 60);
+   101→  const [confirmOpen, setConfirmOpen] = useState(false);
+   102→
+   103→  // countdown
+   104→  useEffect(() => {
+   105→    if (phase !== "test") return;
+   106→    const t = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
+   107→    return () => clearInterval(t);
+   108→  }, [phase]);
+   109→
+   110→  // simulate proctoring counter
+   111→  useEffect(() => {
+   112→    if (phase !== "test") return;
+   113→    const t = setInterval(() => setTabSwitches((s) => s + 1), 45000);
+   114→    return () => clearInterval(t);
+   115→  }, [phase]);
+   116→
+   117→  const q = QUESTIONS[current];
+   118→  const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+   119→  const ss = String(seconds % 60).padStart(2, "0");
+   120→  const low = seconds < 60;
+   121→  const med = seconds < 300 && seconds >= 60;
+   122→
+   123→  const answeredCount = Object.keys(answers).length;
+   124→  const bookmarksCount = bookmarks.size;
+   125→
+   126→  const wrongAnswers = QUESTIONS.filter((qq) => answers[qq.id] !== undefined && answers[qq.id] !== qq.correct);
+   127→  const correctCount = QUESTIONS.filter((qq) => answers[qq.id] === qq.correct).length;
+   128→
+   129→  // Category breakdown
+   130→  const catBreakdown = useMemo(() => {
+   131→    const cats = Array.from(new Set(QUESTIONS.map((qq) => qq.category)));
+   132→    return cats.map((c) => {
+   133→      const inCat = QUESTIONS.filter((qq) => qq.category === c);
+   134→      const correct = inCat.filter((qq) => answers[qq.id] === qq.correct).length;
+   135→      return { cat: c, correct, total: inCat.length, pct: Math.round((correct / inCat.length) * 100) };
+   136→    });
+   137→  }, [answers]);
+   138→
+   139→  return (
+   140→    <div className="min-h-screen bg-background text-foreground">
+   141→      <PageWrap wide>
+   142→        <BackToHome />
+   143→        <SectionHeading
+   144→          eyebrow="Aptitude Portal"
+   145→          title={<>Timed <span className="text-violet-500 dark:text-violet-400">aptitude practice</span></>}
+   146→          description="25 questions across 5 categories · 30 minutes · unlimited retakes. Auto-saves every 30 seconds. Resume from where you left off even after a crash."
+   147→          align="left"
+   148→        />
+   149→
+   150→        {/* In-page tabs */}
+   151→        <div className="mt-6 flex flex-wrap items-center gap-2">
+   152→          {([
+   153→            ["rules", "1. Rules"],
+   154→            ["test", "2. Test"],
+   155→            ["results", "3. Results"],
+   156→          ] as const).map(([k, label]) => (
+   157→            <button
+   158→              key={k}
+   159→              onClick={() => setPhase(k)}
+   160→              className={cn(
+   161→                "relative rounded-full border px-4 py-1.5 text-xs font-medium transition-colors",
+   162→                phase === k
+   163→                  ? "border-violet-400/40 bg-violet-500/10 text-violet-700 dark:text-violet-100"
+   164→                  : "border-black/10 bg-black/[0.02] text-muted-foreground hover:text-foreground dark:border-white/10 dark:bg-white/[0.03]",
+   165→              )}
+   166→            >
+   167→              {label}
+   168→              {phase === k && (
+   169→                <motion.span
+   170→                  layoutId="apt-tab-pill"
+   171→                  className="absolute inset-x-2 -bottom-px h-px bg-violet-400"
+   172→                />
+   173→              )}
+   174→            </button>
+   175→          ))}
+   176→        </div>
+   177→
+   178→        <div className="mt-6">
+   179→          <AnimatePresence mode="wait">
+   180→            {phase === "rules" && (
+   181→              <motion.div
+   182→                key="rules"
+   183→                initial={{ opacity: 0, y: 12 }}
+   184→                animate={{ opacity: 1, y: 0 }}
+   185→                exit={{ opacity: 0, y: -12 }}
+   186→                transition={{ duration: 0.25 }}
+   187→              >
+   188→                <div className="mx-auto max-w-2xl">
+   189→                  <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm sm:p-10 dark:border-white/10">
+   190→                    <div className="text-center">
+   191→                      <Badge variant="outline" className="border-violet-400/30 bg-violet-500/10 text-[11px] uppercase tracking-widest text-violet-700 dark:text-violet-200">
+   192→                        Test Configuration
+   193→                      </Badge>
+   194→                      <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+   195→                        Aptitude Mock Test
+   196→                      </h2>
+   197→                      <p className="mt-2 text-sm text-muted-foreground">
+   198→                        You&apos;re about to start a 25-question aptitude test. Read the rules carefully before you begin. Once you click start, the timer begins.
+   199→                      </p>
+   200→                    </div>
+   201→
+   202→                    <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
+   203→                      <RuleTile icon={ListChecks} value="25" label="Questions" tone="text-violet-500 dark:text-violet-400" />
+   204→                      <RuleTile icon={Clock} value="30 min" label="Duration" tone="text-amber-600 dark:text-amber-300" />
+   205→                      <RuleTile icon={Grid3x3} value="5" label="Categories" tone="text-emerald-600 dark:text-emerald-300" />
+   206→                    </div>
+   207→
+   208→                    <div className="mt-6 rounded-lg border border-black/10 bg-black/[0.02] p-5 dark:border-white/10 dark:bg-white/[0.03]">
+   209→                      <p className="text-xs uppercase tracking-wider text-muted-foreground">Category Breakdown</p>
+   210→                      <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+   211→                        {[
+   212→                          ["Quantitative", 5, "violet"],
+   213→                          ["Logical Reasoning", 5, "sky"],
+   214→                          ["Verbal Ability", 5, "emerald"],
+   215→                          ["Analytical", 5, "amber"],
+   216→                          ["Data Interpretation", 5, "fuchsia"],
+   217→                        ].map(([c, n, t]) => (
+   218→                          <li key={c as string} className="flex items-center justify-between rounded-md bg-black/[0.02] px-3 py-2 text-sm dark:bg-white/[0.02]">
+   219→                            <span className="text-foreground/80">{c}</span>
+   220→                            <Badge className={CAT_TONES[c as string] || ""}>{n as number} Qs</Badge>
+   221→                          </li>
+   222→                        ))}
+   223→                      </ul>
+   224→                    </div>
+   225→
+   226→                    <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+   227→                      <RuleLine icon={CheckCircle2} text="No negative marking. Attempt every question." tone="emerald" />
+   228→                      <RuleLine icon={RefreshCw} text="Unlimited retakes. Fresh set of 25 each attempt." tone="violet" />
+   229→                      <RuleLine icon={ShieldCheck} text="Auto-saves every 30s. Resume after a crash." tone="sky" />
+   230→                      <RuleLine icon={Info} text="Tab switches are logged for awareness only. No penalty." tone="amber" />
+   231→                    </div>
+   232→
+   233→                    <div className="mt-8 flex justify-center">
+   234→                      <Button
+   235→                        size="lg"
+   236→                        onClick={() => setPhase("test")}
+   237→                        className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   238→                      >
+   239→                        <Timer className="mr-2 h-4 w-4" /> Start Test
+   240→                      </Button>
+   241→                    </div>
+   242→                  </div>
+   243→                </div>
+   244→              </motion.div>
+   245→            )}
+   246→
+   247→            {phase === "test" && (
+   248→              <motion.div
+   249→                key="test"
+   250→                initial={{ opacity: 0, y: 12 }}
+   251→                animate={{ opacity: 1, y: 0 }}
+   252→                exit={{ opacity: 0, y: -12 }}
+   253→                transition={{ duration: 0.25 }}
+   254→              >
+   255→                {/* Top bar */}
+   256→                <div className="flex items-center justify-between rounded-lg border border-black/10 bg-card p-3 shadow-sm sm:p-4 dark:border-white/10">
+   257→                  <div className={cn(
+   258→                    "flex items-center gap-2 rounded-md border px-3 py-1.5 font-mono text-lg font-semibold transition-all sm:text-xl",
+   259→                    low
+   260→                      ? "border-rose-400/40 bg-rose-500/10 text-rose-600 dark:text-rose-300 animate-pulse"
+   261→                      : med
+   262→                        ? "border-amber-400/40 bg-amber-500/10 text-amber-600 dark:text-amber-300"
+   263→                        : "border-black/10 bg-black/[0.02] text-foreground dark:border-white/10 dark:bg-white/5",
+   264→                  )}>
+   265→                    <Clock className="h-4 w-4" />
+   266→                    {mm}:{ss}
+   267→                  </div>
+   268→                  <div className="text-center">
+   269→                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Progress</p>
+   270→                    <p className="font-mono text-sm font-semibold">
+   271→                      Q <span className="text-violet-500 dark:text-violet-400">{current + 1}</span> of {QUESTIONS.length}
+   272→                    </p>
+   273→                  </div>
+   274→                  <Button
+   275→                    size="sm"
+   276→                    variant="ghost"
+   277→                    onClick={() => setBookmarks((b) => {
+   278→                      const n = new Set(b);
+   279→                      if (n.has(q.id)) {
+   280→                        n.delete(q.id);
+   281→                      } else {
+   282→                        n.add(q.id);
+   283→                      }
+   284→                      return n;
+   285→                    })}
+   286→                    className={cn(
+   287→                      "rounded-full",
+   288→                      bookmarks.has(q.id) && "text-amber-600 dark:text-amber-300",
+   289→                    )}
+   290→                  >
+   291→                    <Bookmark className={cn("h-4 w-4", bookmarks.has(q.id) && "fill-current")} />
+   292→                    <span className="ml-1 hidden sm:inline">{bookmarks.has(q.id) ? "Bookmarked" : "Bookmark"}</span>
+   293→                  </Button>
+   294→                </div>
+   295→
+   296→                <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+   297→                  {/* Left: question */}
+   298→                  <div className="lg:col-span-2">
+   299→                    <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   300→                      <Badge className={CAT_TONES[q.category]}>{q.category}</Badge>
+   301→                      <p className="mt-4 text-base font-medium leading-relaxed sm:text-lg">
+   302→                        Q{q.id}. {q.text}
+   303→                      </p>
+   304→
+   305→                      <div className="mt-5 space-y-2">
+   306→                        {q.options.map((opt, i) => {
+   307→                          const sel = answers[q.id] === i;
+   308→                          return (
+   309→                            <button
+   310→                              key={i}
+   311→                              onClick={() => setAnswers({ ...answers, [q.id]: i })}
+   312→                              className={cn(
+   313→                                "flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-colors",
+   314→                                sel
+   315→                                  ? "border-violet-400/60 bg-violet-500/10 text-violet-700 dark:text-violet-50"
+   316→                                  : "border-black/10 bg-black/[0.02] hover:border-black/25 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/25",
+   317→                              )}
+   318→                            >
+   319→                              <span className={cn(
+   320→                                "grid h-7 w-7 shrink-0 place-items-center rounded-md border text-xs font-mono font-semibold",
+   321→                                sel ? "border-violet-400/50 bg-violet-500/20 text-violet-700 dark:text-violet-100" : "border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5",
+   322→                              )}>
+   323→                                {String.fromCharCode(65 + i)}
+   324→                              </span>
+   325→                              {opt}
+   326→                            </button>
+   327→                          );
+   328→                        })}
+   329→                      </div>
+   330→
+   331→                      <div className="mt-6 flex items-center justify-between">
+   332→                        <Button
+   333→                          variant="ghost"
+   334→                          size="sm"
+   335→                          disabled={current === 0}
+   336→                          onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+   337→                          className="rounded-full"
+   338→                        >
+   339→                          <ChevronLeft className="h-4 w-4" /> Previous
+   340→                        </Button>
+   341→                        <Button
+   342→                          variant="ghost"
+   343→                          size="sm"
+   344→                          onClick={() => setCurrent((c) => Math.min(QUESTIONS.length - 1, c + 1))}
+   345→                          className="rounded-full"
+   346→                        >
+   347→                          Next <ChevronRight className="h-4 w-4" />
+   348→                        </Button>
+   349→                      </div>
+   350→                    </div>
+   351→                  </div>
+   352→
+   353→                  {/* Right: nav grid */}
+   354→                  <div>
+   355→                    <div className="rounded-lg border border-black/10 bg-card p-5 shadow-sm dark:border-white/10">
+   356→                      <p className="text-xs uppercase tracking-wider text-muted-foreground">Question Navigator</p>
+   357→                      <div className="mt-3 grid grid-cols-5 gap-2">
+   358→                        {QUESTIONS.map((qq, i) => {
+   359→                          const isAnswered = answers[qq.id] !== undefined;
+   360→                          const isCurrent = i === current;
+   361→                          const isBookmarked = bookmarks.has(qq.id);
+   362→                          return (
+   363→                            <button
+   364→                              key={qq.id}
+   365→                              onClick={() => setCurrent(i)}
+   366→                              className={cn(
+   367→                                "grid h-9 w-9 place-items-center rounded-full text-xs font-semibold ring-1 ring-inset transition-colors",
+   368→                                isCurrent
+   369→                                  ? "ring-amber-400/60 bg-amber-500/15 text-amber-700 dark:text-amber-200"
+   370→                                  : isBookmarked
+   371→                                    ? "bg-amber-500/15 text-amber-700 ring-amber-400/30 dark:text-amber-200"
+   372→                                    : isAnswered
+   373→                                      ? "bg-emerald-500/15 text-emerald-700 ring-emerald-400/30 dark:text-emerald-200"
+   374→                                      : "bg-black/[0.02] text-muted-foreground ring-black/10 dark:bg-white/5 dark:ring-white/10",
+   375→                              )}
+   376→                            >
+   377→                              {i + 1}
+   378→                            </button>
+   379→                          );
+   380→                        })}
+   381→                      </div>
+   382→                      <ul className="mt-4 space-y-1.5 text-[11px]">
+   383→                        <Legend color="bg-emerald-500/30 ring-emerald-400/30" label="Answered" />
+   384→                        <Legend color="bg-amber-500/15 ring-amber-400/30" label="Bookmarked" />
+   385→                        <Legend color="bg-amber-500/15 ring-amber-400/60" label="Current" />
+   386→                        <Legend color="bg-black/[0.05] ring-black/10 dark:bg-white/5 dark:ring-white/10" label="Unanswered" />
+   387→                      </ul>
+   388→
+   389→                      <div className="mt-4 rounded-md border border-black/10 bg-black/[0.02] p-3 text-xs dark:border-white/10 dark:bg-white/[0.02]">
+   390→                        <div className="flex items-center justify-between">
+   391→                          <span className="text-muted-foreground">Answered</span>
+   392→                          <span className="font-mono text-emerald-600 dark:text-emerald-300">{answeredCount}/25</span>
+   393→                        </div>
+   394→                        <div className="mt-1.5 flex items-center justify-between">
+   395→                          <span className="text-muted-foreground">Bookmarked</span>
+   396→                          <span className="font-mono text-amber-600 dark:text-amber-300">{bookmarksCount}/25</span>
+   397→                        </div>
+   398→                      </div>
+   399→                    </div>
+   400→                  </div>
+   401→                </div>
+   402→
+   403→                {/* Footer */}
+   404→                <div className="mt-4 flex flex-col items-start justify-between gap-3 rounded-lg border border-black/10 bg-card p-4 shadow-sm sm:flex-row sm:items-center dark:border-white/10">
+   405→                  <p className="text-[11px] text-muted-foreground">
+   406→                    <Info className="mr-1 inline h-3.5 w-3.5" />
+   407→                    Tab switches: <span className="text-foreground">{tabSwitches}</span> · Fullscreen exits: <span className="text-foreground">{fullscreenExits}</span>. Logged for awareness only. No penalties.
+   408→                  </p>
+   409→                  <Button
+   410→                    variant="outline"
+   411→                    onClick={() => setConfirmOpen(true)}
+   412→                    className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   413→                  >
+   414→                    Submit Test
+   415→                  </Button>
+   416→                </div>
+   417→
+   418→                <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+   419→                  <DialogContent className="border-black/10 bg-card dark:border-white/10">
+   420→                    <DialogHeader>
+   421→                      <DialogTitle>Submit test?</DialogTitle>
+   422→                      <DialogDescription>
+   423→                        {answeredCount === 25
+   424→                          ? "All 25 questions answered. Are you ready to submit?"
+   425→                          : `${25 - answeredCount} questions are unanswered. You can still submit. They will be marked as wrong.`}
+   426→                      </DialogDescription>
+   427→                    </DialogHeader>
+   428→                    <DialogFooter className="mt-4 flex gap-2">
+   429→                      <Button
+   430→                        variant="ghost"
+   431→                        onClick={() => setConfirmOpen(false)}
+   432→                        className="rounded-full"
+   433→                      >
+   434→                        Keep Going
+   435→                      </Button>
+   436→                      <Button
+   437→                        onClick={() => {
+   438→                          setConfirmOpen(false);
+   439→                          setPhase("results");
+   440→                        }}
+   441→                        className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   442→                      >
+   443→                        Submit Now
+   444→                      </Button>
+   445→                    </DialogFooter>
+   446→                  </DialogContent>
+   447→                </Dialog>
+   448→              </motion.div>
+   449→            )}
+   450→
+   451→            {phase === "results" && (
+   452→              <motion.div
+   453→                key="results"
+   454→                initial={{ opacity: 0, y: 12 }}
+   455→                animate={{ opacity: 1, y: 0 }}
+   456→                exit={{ opacity: 0, y: -12 }}
+   457→                transition={{ duration: 0.25 }}
+   458→                className="space-y-4"
+   459→              >
+   460→                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   461→                  <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+   462→                    <div>
+   463→                      <Badge variant="outline" className="mb-2 border-emerald-400/30 bg-emerald-500/10 text-[11px] uppercase tracking-widest text-emerald-700 dark:text-emerald-200">
+   464→                        Test Submitted
+   465→                      </Badge>
+   466→                      <h2 className="text-3xl font-semibold tracking-tight">
+   467→                        <span className="text-violet-500 dark:text-violet-400">{correctCount}</span> / 25 Correct
+   468→                      </h2>
+   469→                      <p className="mt-1 text-sm text-muted-foreground">
+   470→                        {Math.round((correctCount / 25) * 100)}% accuracy · {Math.round(30 * 60 - seconds)}s taken
+   471→                      </p>
+   472→                    </div>
+   473→                    <div className="grid h-20 w-20 place-items-center rounded-full bg-emerald-500/15 ring-1 ring-inset ring-black/10 dark:ring-white/10">
+   474→                      <Trophy className="h-8 w-8 text-amber-600 dark:text-amber-300" />
+   475→                    </div>
+   476→                  </div>
+   477→                  <Progress value={(correctCount / 25) * 100} className="mt-4 bg-black/10 dark:bg-white/10" />
+   478→                </div>
+   479→
+   480→                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   481→                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Category Breakdown</p>
+   482→                  <StaggeredReveal className="mt-4 space-y-3">
+   483→                    {catBreakdown.map((c) => (
+   484→                      <motion.div key={c.cat} variants={revealItem} className="space-y-1">
+   485→                        <div className="flex items-center justify-between text-sm">
+   486→                          <span className="text-foreground/80">{c.cat}</span>
+   487→                          <span className={cn(
+   488→                            "font-mono font-semibold",
+   489→                            c.pct >= 80 ? "text-emerald-600 dark:text-emerald-300" : c.pct >= 60 ? "text-amber-600 dark:text-amber-300" : "text-rose-600 dark:text-rose-300",
+   490→                          )}>
+   491→                            {c.correct}/{c.total} · {c.pct}%
+   492→                          </span>
+   493→                        </div>
+   494→                        <div className="h-2 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+   495→                          <div
+   496→                            className={cn(
+   497→                              "h-full rounded-full",
+   498→                              c.pct >= 80 ? "bg-emerald-400" : c.pct >= 60 ? "bg-amber-400" : "bg-rose-400",
+   499→                            )}
+   500→                            style={{ width: `${c.pct}%` }}
+   501→                          />
+   502→                        </div>
+   503→                      </motion.div>
+   504→                    ))}
+   505→                  </StaggeredReveal>
+   506→                </div>
+   507→
+   508→                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   509→                  <div className="flex items-center justify-between">
+   510→                    <p className="text-sm font-medium">Wrong Answers &amp; Explanations</p>
+   511→                    <Badge className="border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-200">{wrongAnswers.length}</Badge>
+   512→                  </div>
+   513→                  {wrongAnswers.length === 0 ? (
+   514→                    <p className="mt-4 flex items-center justify-center gap-2 text-center text-sm text-emerald-600 dark:text-emerald-300">
+   515→                      <CheckCircle2 className="h-4 w-4" /> Perfect score! No wrong answers.
+   516→                    </p>
+   517→                  ) : (
+   518→                    <ul className="mt-4 space-y-3">
+   519→                      {wrongAnswers.map((qq) => (
+   520→                        <li key={qq.id} className="rounded-lg border border-black/10 bg-black/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.02]">
+   521→                          <div className="flex items-center gap-2">
+   522→                            <Badge className={CAT_TONES[qq.category]}>{qq.category}</Badge>
+   523→                            <span className="text-[11px] text-muted-foreground">Q{qq.id}</span>
+   524→                          </div>
+   525→                          <p className="mt-2 text-sm">{qq.text}</p>
+   526→                          <div className="mt-2 flex items-center gap-2 text-sm">
+   527→                            <span className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 px-2 py-0.5 text-rose-700 dark:text-rose-200">
+   528→                              <X className="h-3 w-3" /> Your answer: {String.fromCharCode(65 + answers[qq.id]!)}
+   529→                            </span>
+   530→                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 px-2 py-0.5 text-emerald-700 dark:text-emerald-200">
+   531→                              <CheckCircle2 className="h-3 w-3" /> Correct: {String.fromCharCode(65 + qq.correct)}
+   532→                            </span>
+   533→                          </div>
+   534→                          <p className="mt-2 text-xs text-muted-foreground">
+   535→                            <span className="font-medium text-foreground/80">Why: </span>{qq.explanation}
+   536→                          </p>
+   537→                        </li>
+   538→                      ))}
+   539→                    </ul>
+   540→                  )}
+   541→                </div>
+   542→
+   543→                <div className="flex flex-wrap items-center justify-between gap-3">
+   544→                  <Button
+   545→                    variant="outline"
+   546→                    onClick={() => {
+   547→                      setPhase("rules");
+   548→                      setAnswers({});
+   549→                      setBookmarks(new Set());
+   550→                      setCurrent(0);
+   551→                      setSeconds(30 * 60);
+   552→                    }}
+   553→                    className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   554→                  >
+   555→                    <RefreshCw className="mr-2 h-4 w-4" /> Take Again
+   556→                  </Button>
+   557→                  <Button
+   558→                    onClick={() => set("dashboard")}
+   559→                    className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   560→                  >
+   561→                    Back to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+   562→                  </Button>
+   563→                </div>
+   564→              </motion.div>
+   565→            )}
+   566→          </AnimatePresence>
+   567→        </div>
+   568→
+   569→      </PageWrap>
+   570→    </div>
+   571→  );
+   572→}
+   573→
+   574→/* -------------------------------------------------------------------------- */
+   575→
+   576→function RuleTile({
+   577→  icon: Icon,
+   578→  value,
+   579→  label,
+   580→  tone,
+   581→}: {
+   582→  icon: React.ComponentType<{ className?: string }>;
+   583→  value: string;
+   584→  label: string;
+   585→  tone: string;
+   586→}) {
+   587→  return (
+   588→    <div className="rounded-lg border border-black/10 bg-black/[0.02] p-4 text-center dark:border-white/10 dark:bg-white/[0.03]">
+   589→      <Icon className={cn("mx-auto h-5 w-5", tone)} />
+   590→      <p className="mt-2 text-xl font-semibold tracking-tight">{value}</p>
+   591→      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+   592→    </div>
+   593→  );
+   594→}
+   595→
+   596→function RuleLine({
+   597→  icon: Icon,
+   598→  text,
+   599→  tone,
+   600→}: {
+   601→  icon: React.ComponentType<{ className?: string }>;
+   602→  text: string;
+   603→  tone: "emerald" | "violet" | "sky" | "amber";
+   604→}) {
+   605→  const tones: Record<string, string> = {
+   606→    emerald: "text-emerald-600 dark:text-emerald-300",
+   607→    violet: "text-violet-500 dark:text-violet-400",
+   608→    sky: "text-sky-600 dark:text-sky-300",
+   609→    amber: "text-amber-600 dark:text-amber-300",
+   610→  };
+   611→  return (
+   612→    <div className="flex items-start gap-2 rounded-md border border-black/5 bg-black/[0.02] px-3 py-2 text-xs dark:border-white/5 dark:bg-white/[0.02]">
+   613→      <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", tones[tone])} />
+   614→      <span className="text-foreground/80">{text}</span>
+   615→    </div>
+   616→  );
+   617→}
+   618→
+   619→function Legend({ color, label }: { color: string; label: string }) {
+   620→  return (
+   621→    <li className="flex items-center gap-2 text-muted-foreground">
+   622→      <span className={cn("h-3 w-3 rounded-full ring-1 ring-inset", color)} />
+   623→      {label}
+   624→    </li>
+   625→  );
+   626→}
+   627→
+   628→/* keep imports referenced */
+   629→export const __icons = { AlertCircle, Award, ArrowLeft, Info };
+   630→

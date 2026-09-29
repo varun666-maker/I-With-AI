@@ -47,9 +47,13 @@ export const CANDIDATE_FLOW: FlowStep[] = [
   { id: "apply",                     label: "Apply",            hint: "Public apply page — submit your resume" },
   { id: "candidate-login",           label: "Login",            hint: "Use the candidate ID from your invite email" },
   { id: "candidate-change-password", label: "Set Password",     hint: "First-login mandatory password change" },
-  { id: "candidate-system-check",    label: "System Check",      hint: "Camera, mic, fullscreen — all required" },
-  { id: "candidate-dashboard",       label: "Campaign",         hint: "3 rounds: Aptitude → Coding → Interview" },
-  { id: "candidate-results",         label: "Results",          hint: "Read-only round scores — overall hidden" },
+  { id: "candidate-system-check",    label: "System Check",      hint: "One-time gatekeeper: fullscreen + mic + cam + keyboard monitoring" },
+  { id: "candidate-aptitude",        label: "Aptitude",         hint: "Strict proctoring. Zero retakes." },
+  { id: "candidate-aptitude-result", label: "Aptitude Result",  hint: "Score + qualification status" },
+  { id: "candidate-coding",          label: "Coding",           hint: "Strict proctoring. One submission per problem." },
+  { id: "candidate-coding-result",   label: "Coding Result",    hint: "Score + qualification status" },
+  { id: "candidate-interview",       label: "Interview",        hint: "Strict proctoring. Flagged frames stored." },
+  { id: "candidate-results",         label: "Final Summary",    hint: "All 3 round scores. Overall hidden. No rank." },
 ];
 
 /**

@@ -61,7 +61,11 @@ export function FlowNav({
   className?: string;
 }) {
   const current = useNav((s) => s.current);
+  const navigationLocked = useNav((s) => s.navigationLocked);
   const set = useNav((s) => s.set);
+
+  // Hide FlowNav entirely during fullscreen tests
+  if (navigationLocked) return null;
   const id = currentScreenId ?? current;
 
   const kind = flowId ?? inferFlowKind(id);

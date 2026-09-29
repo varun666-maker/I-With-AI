@@ -28,6 +28,11 @@ export type ScreenId =
   | "candidate-change-password"
   | "candidate-system-check"
   | "candidate-dashboard"
+  | "candidate-aptitude"
+  | "candidate-aptitude-result"
+  | "candidate-coding"
+  | "candidate-coding-result"
+  | "candidate-interview"
   | "candidate-results"
   // Super Admin
   | "superadmin-dashboard"
@@ -73,6 +78,11 @@ export const ALL_SCREENS: ScreenMeta[] = [
   { id: "candidate-change-password", label: "Force Password Change", group: "candidate" },
   { id: "candidate-system-check", label: "Pre-Test Proctoring Check", group: "candidate" },
   { id: "candidate-dashboard", label: "Candidate Campaign Dashboard", group: "candidate" },
+  { id: "candidate-aptitude", label: "Candidate Aptitude Test (Strict)", group: "candidate" },
+  { id: "candidate-aptitude-result", label: "Candidate Aptitude Result", group: "candidate" },
+  { id: "candidate-coding", label: "Candidate Coding Test (Strict)", group: "candidate" },
+  { id: "candidate-coding-result", label: "Candidate Coding Result", group: "candidate" },
+  { id: "candidate-interview", label: "Candidate AI Interview (Strict)", group: "candidate" },
   { id: "candidate-results", label: "Candidate Results (read-only)", group: "candidate" },
   // Super Admin
   { id: "superadmin-dashboard", label: "Super Admin Dashboard", group: "superadmin" },
@@ -130,6 +140,11 @@ interface NavState {
   history: ScreenId[];
   set: (id: ScreenId) => void;
   back: () => void;
+  // Proctoring lock — when true, the candidate is in a strict test round
+  // (aptitude/coding/interview). TopNav + FlowNav should suppress their
+  // navigation CTAs so the candidate can't tab away mid-test.
+  navigationLocked: boolean;
+  setNavigationLocked: (v: boolean) => void;
   // Theme
   theme: "light" | "dark";
   accent: AccentTheme;
@@ -153,6 +168,8 @@ export const useNav = create<NavState>((set, get) => ({
     hist.pop();
     set({ history: hist, current: hist[hist.length - 1] });
   },
+  navigationLocked: false,
+  setNavigationLocked: (v) => set({ navigationLocked: v }),
   theme: "dark",
   accent: "violet",
   customColor: "#a855f7",

@@ -36,7 +36,7 @@ const GROUP_COLORS: Record<string, string> = {
 };
 
 export function TopNav() {
-  const { current, set } = useNav();
+  const { current, set, navigationLocked } = useNav();
   const [demoOpen, setDemoOpen] = useState(false);
   const [query, setQuery] = useState("");
   const isLanding = current === "landing";
@@ -47,6 +47,31 @@ export function TopNav() {
     setQuery("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Locked state (fullscreen tests) — collapse to logo + Exit Test
+  if (navigationLocked) {
+    return (
+      <header className="sticky top-0 z-50 h-12 w-full border-b border-black/10 bg-background/95 px-4 backdrop-blur-xl dark:border-white/10">
+        <div className="mx-auto flex h-full max-w-7xl items-center justify-between">
+          <button onClick={() => go("landing")} className="flex items-center gap-2">
+            <div className="grid h-7 w-7 place-items-center rounded-md bg-violet-500 text-white">
+              <span className="text-[10px] font-bold">AI</span>
+            </div>
+            <span className="text-sm font-semibold">InterviewAI</span>
+          </button>
+          <button
+            onClick={() => {
+              useNav.setState({ navigationLocked: false });
+              go("landing");
+            }}
+            className="rounded-full border border-rose-400/30 px-3 py-1 text-xs font-medium text-rose-500 transition-colors hover:bg-rose-500/10"
+          >
+            Exit Test
+          </button>
+        </div>
+      </header>
+    );
+  }
 
   const grouped = ALL_SCREENS.reduce<Record<string, typeof ALL_SCREENS>>(
     (acc, s) => {
