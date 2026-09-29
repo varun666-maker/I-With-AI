@@ -152,6 +152,18 @@ interface NavState {
   setTheme: (t: "light" | "dark") => void;
   setAccent: (a: AccentTheme) => void;
   setCustomColor: (hex: string) => void;
+  // Coding Arena progress (prep mode) — persisted to localStorage
+  codingView: "list" | "editor";
+  currentProblemId: string | null;
+  solvedProblems: string[];
+  attemptedProblems: string[];
+  submissions: { problemId: string; timestamp: number; passed: boolean }[];
+  setCodingView: (v: "list" | "editor") => void;
+  setCurrentProblem: (id: string | null) => void;
+  markSolved: (id: string) => void;
+  markAttempted: (id: string) => void;
+  recordSubmission: (problemId: string, passed: boolean) => void;
+  resetCodingProgress: () => void;
 }
 
 export const useNav = create<NavState>((set, get) => ({
@@ -198,6 +210,54 @@ export const useNav = create<NavState>((set, get) => ({
       }
     }
     set({ customColor: hex });
+  },
+  // Coding Arena progress
+  codingView: "list",
+  currentProblemId: null,
+  solvedProblems: (() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem("coding-solved") || "[]"); } catch { return []; }
+  })(),
+  attemptedProblems: (() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem("coding-attempted") || "[]"); } catch { return []; }
+  })(),
+  submissions: (() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem("coding-submissions") || "[]"); } catch { return []; }
+  })(),
+  setCodingView: (codingView) => set({ codingView }),
+  setCurrentProblem: (currentProblemId) => set({ currentProblemId }),
+  markSolved: (id) => {
+    set((s) => {
+      if (s.solvedProblems.includes(id)) return s;
+      const solvedProblems = [...s.solvedProblems, id];
+      if (typeof window !== "undefined") localStorage.setItem("coding-solved", JSON.stringify(solvedProblems));
+      return { solvedProblems };
+    });
+  },
+  markAttempted: (id) => {
+    set((s) => {
+      if (s.attemptedProblems.includes(id) || s.solvedProblems.includes(id)) return s;
+      const attemptedProblems = [...s.attemptedProblems, id];
+      if (typeof window !== "undefined") localStorage.setItem("coding-attempted", JSON.stringify(attemptedProblems));
+      return { attemptedProblems };
+    });
+  },
+  recordSubmission: (problemId, passed) => {
+    set((s) => {
+      const submissions = [...s.submissions, { problemId, timestamp: Date.now(), passed }];
+      if (typeof window !== "undefined") localStorage.setItem("coding-submissions", JSON.stringify(submissions));
+      return { submissions };
+    });
+  },
+  resetCodingProgress: () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("coding-solved");
+      localStorage.removeItem("coding-attempted");
+      localStorage.removeItem("coding-submissions");
+    }
+    set({ solvedProblems: [], attemptedProblems: [], submissions: [] });
   },
 }));
 
