@@ -1,11 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Circle, Lock, SkipForward } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { GlowCard } from "@/components/shared/primitives";
-import { useNav, type ScreenId } from "@/lib/store";
-import { getFlowForScreen, type FlowStep } from "@/lib/flows";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useNav, type ScreenId, type AccentTheme } from "@/lib/store";
+import {
+  getFlowForScreen,
+  PREP_FLOW,
+  ADMIN_FLOW,
+  CANDIDATE_FLOW,
+  SUPERADMIN_FLOW,
+} from "@/lib/flows";
 import { cn } from "@/lib/utils";
 
 type FlowKind = "prep" | "admin" | "candidate" | "superadmin";
@@ -13,185 +17,155 @@ type FlowKind = "prep" | "admin" | "candidate" | "superadmin";
 const HOME_BASE: Record<FlowKind, ScreenId> = {
   prep: "dashboard",
   admin: "admin-dashboard",
-  candidate: "candidate-dashboard",
+  candidate: "landing",
   superadmin: "superadmin-dashboard",
 };
 
-const FLOW_KINDS: Record<FlowKind, FlowStep[]> = {
-  prep: [],          // populated below via getFlowForScreen
-  admin: [],
-  candidate: [],
-  superadmin: [],
+const ACCENT_GRADIENTS: Record<
+  AccentTheme,
+  { from: string; to: string; solid: string; soft: string }
+> = {
+  violet:           { from: "#a855f7", to: "#d946ef", solid: "#a855f7", soft: "rgba(168,85,247,0.06)" },
+  ocean:            { from: "#0ea5e9", to: "#06b6d4", solid: "#0ea5e9", soft: "rgba(14,165,233,0.06)" },
+  forest:           { from: "#10b981", to: "#14b8a6", solid: "#10b981", soft: "rgba(16,185,129,0.06)" },
+  sunrise:          { from: "#f59e0b", to: "#f97316", solid: "#f59e0b", soft: "rgba(245,158,11,0.06)" },
+  emerald:          { from: "#059669", to: "#34d399", solid: "#059669", soft: "rgba(5,150,105,0.06)" },
+  "master-purple":  { from: "#6d28d9", to: "#a855f7", solid: "#6d28d9", soft: "rgba(109,40,217,0.06)" },
+  ruby:             { from: "#be123c", to: "#f43f5e", solid: "#be123c", soft: "rgba(190,18,60,0.06)" },
+  gold:             { from: "#b45309", to: "#fbbf24", solid: "#b45309", soft: "rgba(180,83,9,0.06)" },
+  rose:             { from: "#9f1239", to: "#fb7185", solid: "#9f1239", soft: "rgba(159,18,57,0.06)" },
+  midnight:         { from: "#334155", to: "#64748b", solid: "#64748b", soft: "rgba(100,116,139,0.06)" },
+  sakura:           { from: "#ec4899", to: "#fbcfe8", solid: "#ec4899", soft: "rgba(236,72,153,0.06)" },
+  "forest-sovereign": { from: "#14532d", to: "#22c55e", solid: "#22c55e", soft: "rgba(34,197,94,0.06)" },
+  slate:            { from: "#334155", to: "#64748b", solid: "#64748b", soft: "rgba(100,116,139,0.06)" },
+  coral:            { from: "#f97316", to: "#fb7185", solid: "#f97316", soft: "rgba(249,115,22,0.06)" },
+  "cosmic-diamond": { from: "#6366f1", to: "#e0e7ff", solid: "#6366f1", soft: "rgba(99,102,241,0.06)" },
+  custom:           { from: "#a855f7", to: "#ec4899", solid: "#a855f7", soft: "rgba(168,85,247,0.06)" },
 };
 
+// Screens where we don't show a Back button (first step or onboarding)
+const NO_BACK_SCREENS: ScreenId[] = ["landing", "auth", "company-landing", "company-register", "apply", "candidate-login", "superadmin-dashboard", "admin-dashboard", "dashboard"];
+
 function inferFlowKind(id: ScreenId): FlowKind {
-  if (id.startsWith("candidate")) return "candidate";
-  if (id.startsWith("superadmin")) return "superadmin";
-  if (
-    id.startsWith("admin") ||
-    id.startsWith("company") ||
-    id.startsWith("campaign") ||
-    id.startsWith("question") ||
-    id.startsWith("bulk") ||
-    id.startsWith("proctoring") ||
-    id.startsWith("final")
-  )
-    return "admin";
+  if (CANDIDATE_FLOW.some((s) => s.id === id)) return "candidate";
+  if (SUPERADMIN_FLOW.some((s) => s.id === id)) return "superadmin";
+  if (ADMIN_FLOW.some((s) => s.id === id)) return "admin";
   return "prep";
 }
 
-const HOME_BASE_LABEL: Record<FlowKind, string> = {
-  prep: "Dashboard",
-  admin: "Admin Dashboard",
-  candidate: "Campaign",
-  superadmin: "Super Admin Dashboard",
-};
-
 /**
- * FlowNav — sequential navigation CTA placed at the bottom of every screen
- * in a flow. Shows the user where they are in the journey and what comes next.
+ * FlowNav — ultra-minimal progress bar.
+ * Just: Back arrow (if applicable) + progress dots + Next button.
+ * No lock icons, no step labels, no "Step X of Y", no "Skip to" buttons.
  */
-export function FlowNav({
-  flowId,
-  currentScreenId,
-  className,
-}: {
-  flowId?: FlowKind;
-  currentScreenId?: ScreenId;
-  className?: string;
-}) {
+export function FlowNav() {
   const current = useNav((s) => s.current);
+  const accentTheme = useNav((s) => s.accent);
   const navigationLocked = useNav((s) => s.navigationLocked);
   const set = useNav((s) => s.set);
 
-  // Hide FlowNav entirely during fullscreen tests
   if (navigationLocked) return null;
-  const id = currentScreenId ?? current;
 
-  const kind = flowId ?? inferFlowKind(id);
-  const flow = getFlowForScreen(id);
+  const flow = getFlowForScreen(current);
   if (!flow) return null;
 
-  const currentIdx = flow.findIndex((s) => s.id === id);
+  const kind = inferFlowKind(current);
+  const currentIdx = flow.findIndex((s) => s.id === current);
   if (currentIdx === -1) return null;
 
-  const next = flow[currentIdx + 1] ?? null;
   const prev = flow[currentIdx - 1] ?? null;
-  const homeBaseId = HOME_BASE[kind];
-  const homeBaseLabel = HOME_BASE_LABEL[kind];
+  const next = flow[currentIdx + 1] ?? null;
+  const accent = ACCENT_GRADIENTS[accentTheme];
+  const showBack = prev && !NO_BACK_SCREENS.includes(prev.id);
+  const isLastStep = !next;
 
   return (
-    <div className={cn("mt-12", className)}>
-      <GlowCard className="relative overflow-hidden p-5 sm:p-6">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-violet-500/10 via-transparent to-fuchsia-500/10" />
-
-        {/* Stepper */}
-        <div className="mb-5 overflow-x-auto scrollbar-custom">
-          <ol className="flex min-w-max items-center gap-2 pr-4">
-            {flow.map((step, i) => {
-              const done = i < currentIdx;
-              const active = i === currentIdx;
-              const locked = i > currentIdx;
-              return (
-                <li key={step.id} className="flex items-center gap-2">
-                  <button
-                    onClick={() => i <= currentIdx && set(step.id)}
-                    disabled={locked}
-                    className={cn(
-                      "group flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs transition-all",
-                      active
-                        ? "border-violet-400/40 bg-violet-500/15 text-violet-200"
-                        : done
-                          ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20"
-                          : "border-white/5 bg-white/[0.02] text-muted-foreground cursor-not-allowed",
-                    )}
-                  >
-                    {done ? (
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                    ) : active ? (
-                      <Circle className="h-3.5 w-3.5 fill-violet-400 text-violet-400" />
-                    ) : (
-                      <Lock className="h-3 w-3.5 opacity-50" />
-                    )}
-                    <span className="font-medium">{step.label}</span>
-                  </button>
-                  {i < flow.length - 1 && (
-                    <ArrowRight className="h-3 w-3 text-muted-foreground/40" />
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-
-        {/* Hint + next CTA */}
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">
-              Step {currentIdx + 1} of {flow.length}
-            </p>
-            <p className="mt-1 text-sm text-foreground/80">
-              <span className="font-semibold text-foreground">{flow[currentIdx].label}</span>
-              {" — "}
-              {flow[currentIdx].hint}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {prev && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => set(prev.id)}
-                className="rounded-full text-muted-foreground"
-              >
-                Back: {prev.label}
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => set(homeBaseId)}
-              className="rounded-full text-muted-foreground"
+    <div
+      className="sticky top-14 z-40 h-9 w-full border-b backdrop-blur-md"
+      style={{
+        borderColor: `${accent.solid}15`,
+        background: `linear-gradient(180deg, ${accent.soft}, transparent)`,
+      }}
+    >
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Left: Back arrow only (no label unless hover) */}
+        <div className="flex w-32 items-center">
+          {showBack ? (
+            <button
+              onClick={() => set(prev!.id)}
+              className="group inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5"
+              title={`Back to ${prev!.label}`}
             >
-              <SkipForward className="mr-1 h-3.5 w-3.5" />
-              Skip to {homeBaseLabel}
-            </Button>
-            {next ? (
-              <Button
-                size="sm"
-                onClick={() => set(next.id)}
-                className="group rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:from-violet-400 hover:to-fuchsia-400"
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.span
-                    key={next.id}
-                    initial={{ opacity: 0, x: 8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -8 }}
-                    transition={{ duration: 0.18 }}
-                    className="flex items-center gap-1.5"
-                  >
-                    Continue to {next.label}
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </motion.span>
-                </AnimatePresence>
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                onClick={() => set(homeBaseId)}
-                className="group rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 hover:from-emerald-400 hover:to-teal-400"
-              >
-                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
-                Finish — back to {homeBaseLabel}
-              </Button>
-            )}
-          </div>
+              <ArrowLeft className="h-3 w-3" />
+              <span className="hidden sm:inline">{prev!.label}</span>
+            </button>
+          ) : null}
         </div>
-      </GlowCard>
+
+        {/* Center: Progress dots only — no labels, no lock icons */}
+        <div className="flex items-center gap-1">
+          {flow.map((step, i) => {
+            const active = i === currentIdx;
+            const done = i < currentIdx;
+            return (
+              <button
+                key={step.id}
+                onClick={() => set(step.id)}
+                title={step.label}
+                className="p-1"
+              >
+                <span
+                  className="block rounded-full transition-all"
+                  style={{
+                    width: active ? 8 : 5,
+                    height: active ? 8 : 5,
+                    background: active
+                      ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
+                      : done
+                        ? accent.solid
+                        : "color-mix(in oklab, var(--foreground) 15%, transparent)",
+                  }}
+                />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right: Next button only — no "Skip to", no extra buttons */}
+        <div className="flex w-32 items-center justify-end">
+          {isLastStep ? (
+            <button
+              onClick={() => set(HOME_BASE[kind])}
+              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5"
+            >
+              <span className="hidden sm:inline">Done</span>
+              <ArrowRight className="h-3 w-3" />
+            </button>
+          ) : (
+            <button
+              onClick={() => set(next!.id)}
+              className="group inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium text-white transition-all hover:opacity-90"
+              style={{
+                background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+              }}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={next!.id}
+                  initial={{ opacity: 0, x: 4 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -4 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-center gap-1"
+                >
+                  <span className="hidden sm:inline">{next!.label}</span>
+                  <ArrowRight className="h-3 w-3" />
+                </motion.span>
+              </AnimatePresence>
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
-
-// Keep this for backwards-compat with any code that might import it
-export { FLOW_KINDS };
