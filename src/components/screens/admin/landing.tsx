@@ -874,62 +874,7 @@ export function CompanyLanding() {
         </div>
       </section>
 
-      {/* ───────── FOOTER ───────── */}
-      <footer className="relative border-t border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.02]">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2">
-                <div className="grid h-8 w-8 place-items-center rounded-lg bg-violet-500 text-white">
-                  <Building2 className="h-4 w-4" />
-                </div>
-                <span className="font-semibold">
-                  Interview<span className="text-violet-500 dark:text-violet-400">AI</span>
-                </span>
-              </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                AI-powered hiring platform for high-volume recruiting. From
-                apply link to final shortlist. Automated.
-              </p>
-            </div>
-            <FooterCol
-              title="Product"
-              links={["For Companies", "Pricing", "Proctoring", "Leaderboard", "Bulk Upload"]}
-              onClick={() => set("company-landing")}
-            />
-            <FooterCol
-              title="For Candidates"
-              links={["Apply", "Login", "System Check", "Results"]}
-              onClick={() => set("apply")}
-            />
-            <FooterCol
-              title="Company"
-              links={["About", "Blog", "Careers", "Privacy", "Terms"]}
-              onClick={() => set("company-landing")}
-            />
-          </div>
-          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-black/10 pt-6 sm:flex-row dark:border-white/10">
-            <p className="text-xs text-muted-foreground">
-              © 2025 InterviewAI. All rights reserved.
-            </p>
-            <div className="flex items-center gap-2">
-              <input
-                type="email"
-                placeholder="hr@company.com"
-                className="h-9 w-full max-w-xs rounded-full border border-black/10 bg-black/[0.03] px-4 text-xs outline-none focus:border-violet-400/40 focus:ring-2 focus:ring-violet-400/20 dark:border-white/10 dark:bg-white/[0.03]"
-              />
-              <Button
-                size="sm"
-                className="rounded-full bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
-              >
-                <Mailbox className="mr-1 h-3 w-3" />
-                Get Sales
-              </Button>
-            </div>
-          </div>
-        </div>
-      </footer>
-
+      {/* Footer is handled globally by SmartFooter in page.tsx */}
     </div>
   );
 }

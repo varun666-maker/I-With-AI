@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNav } from "@/lib/store";
-import { Footer } from "@/components/shared/footer";
 
 /**
  * Prep Mode landing page.
@@ -384,7 +383,7 @@ export function LandingPage() {
       </section>
 
       {/* ───────── GLOBAL FOOTER (shared across all screens) ───────── */}
-      <Footer className="mt-auto" />
+      {/* Footer is handled globally by SmartFooter in page.tsx */}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useNav, type ScreenId } from "@/lib/store";
 import { TopNav } from "@/components/shared/top-nav";
 import { FlowNav } from "@/components/shared/flow-nav";
 import { SiteChrome } from "@/components/shared/site-chrome";
+import { SmartFooter } from "@/components/shared/footer";
 import { LandingPage } from "@/components/screens/prep/landing";
 
 // Prep Mode
@@ -118,6 +119,7 @@ export default function Home() {
           <Active />
         </motion.div>
       </AnimatePresence>
+      <SmartFooter />
     </>
   );
 }
