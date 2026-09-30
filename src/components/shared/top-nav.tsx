@@ -21,7 +21,7 @@ const GROUP_LABELS: Record<string, string> = {
   superadmin: "Super Admin",
 };
 
-// Quick-access screen links per section (for the 3-line hamburger menu)
+// Quick-access screen links per section (for the hamburger menu)
 const QUICK_LINKS: Record<string, { label: string; target: ScreenId }[]> = {
   prep: [
     { label: "Dashboard", target: "dashboard" },
@@ -59,6 +59,15 @@ const QUICK_LINKS: Record<string, { label: string; target: ScreenId }[]> = {
   ],
 };
 
+// All section links for the hamburger menu (cross-section navigation)
+const ALL_SECTIONS: { label: string; target: ScreenId }[] = [
+  { label: "Home", target: "landing" },
+  { label: "Prep Mode", target: "auth" },
+  { label: "For Companies", target: "company-landing" },
+  { label: "Candidate", target: "apply" },
+  { label: "Super Admin", target: "superadmin-dashboard" },
+];
+
 function getSection(id: ScreenId): string {
   if (id === "landing" || id === "company-landing") return "public";
   if (id.startsWith("candidate")) return "candidate";
@@ -74,27 +83,29 @@ function getSection(id: ScreenId): string {
 
 export function TopNav() {
   const { current, set, navigationLocked } = useNav();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);       // hamburger menu
+  const [drawerOpen, setDrawerOpen] = useState(false);  // All Screens (dev tool)
   const [query, setQuery] = useState("");
 
   const go = (id: ScreenId) => {
     set(id);
+    setNavOpen(false);
     setDrawerOpen(false);
     setQuery("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Locked state (during fullscreen tests)
+  // Locked state (during fullscreen tests) — minimal, no navigation
   if (navigationLocked) {
     return (
       <header className="sticky top-0 z-50 h-12 w-full border-b border-black/10 bg-background/95 px-4 backdrop-blur-xl dark:border-white/10">
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between">
-          <button onClick={() => go("landing")} className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <div className="grid h-7 w-7 place-items-center rounded-md bg-violet-500 text-white">
               <span className="text-[10px] font-bold">AI</span>
             </div>
             <span className="text-sm font-semibold">InterviewAI</span>
-          </button>
+          </div>
           <button
             onClick={() => {
               useNav.setState({ navigationLocked: false });
@@ -136,62 +147,64 @@ export function TopNav() {
     <>
       <header className="sticky top-0 z-50 h-14 w-full border-b border-black/10 bg-background/80 backdrop-blur-xl dark:border-white/10">
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          {/* Left: Logo */}
-          <button onClick={() => go("landing")} className="flex shrink-0 items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-violet-500 text-white">
-              <span className="text-xs font-bold">AI</span>
-            </div>
-            <span className="hidden text-sm font-semibold tracking-tight sm:inline">
-              InterviewAI
-            </span>
-          </button>
+          {/* Left: Logo + nav tabs */}
+          <div className="flex items-center gap-3">
+            <button onClick={() => go("landing")} className="flex shrink-0 items-center gap-2">
+              <div className="grid h-8 w-8 place-items-center rounded-lg bg-violet-500 text-white">
+                <span className="text-xs font-bold">AI</span>
+              </div>
+              <span className="hidden text-sm font-semibold tracking-tight sm:inline">
+                InterviewAI
+              </span>
+            </button>
 
-          {/* Center: Nav tabs (desktop only) */}
-          <nav className="hidden items-center gap-0.5 md:flex">
-            <NavTab active={current === "landing"} onClick={() => go("landing")}>
-              Home
-            </NavTab>
-            <NavTab
-              active={["auth", "dashboard", "resume", "aptitude", "coding", "interview", "report", "replay", "profile"].includes(current)}
-              onClick={() => go("auth")}
-            >
-              Prep Mode
-            </NavTab>
-            <NavTab
-              active={current.startsWith("company-") || current.startsWith("admin-") || ["campaign-new", "question-manager", "candidate-leaderboard", "bulk-upload", "proctoring-review", "final-selection"].includes(current)}
-              onClick={() => go("company-landing")}
-            >
-              For Companies
-            </NavTab>
-            <NavTab
-              active={current.startsWith("candidate") || current === "apply"}
-              onClick={() => go("apply")}
-            >
-              Candidate
-            </NavTab>
-            <NavTab
-              active={current.startsWith("superadmin")}
-              onClick={() => go("superadmin-dashboard")}
-            >
-              Super Admin
-            </NavTab>
-          </nav>
+            {/* Nav tabs (desktop) */}
+            <nav className="hidden items-center gap-0.5 md:flex">
+              <NavTab active={current === "landing"} onClick={() => go("landing")}>
+                Home
+              </NavTab>
+              <NavTab
+                active={["auth", "dashboard", "resume", "aptitude", "coding", "interview", "report", "replay", "profile"].includes(current)}
+                onClick={() => go("auth")}
+              >
+                Prep Mode
+              </NavTab>
+              <NavTab
+                active={current.startsWith("company-") || current.startsWith("admin-") || ["campaign-new", "question-manager", "candidate-leaderboard", "bulk-upload", "proctoring-review", "final-selection"].includes(current)}
+                onClick={() => go("company-landing")}
+              >
+                For Companies
+              </NavTab>
+              <NavTab
+                active={current.startsWith("candidate") || current === "apply"}
+                onClick={() => go("apply")}
+              >
+                Candidate
+              </NavTab>
+              <NavTab
+                active={current.startsWith("superadmin")}
+                onClick={() => go("superadmin-dashboard")}
+              >
+                Super Admin
+              </NavTab>
+            </nav>
+          </div>
 
-          {/* Right: Theme + 3-line menu + CTA */}
+          {/* Right: Theme + hamburger + All Screens + CTA */}
           <div className="flex shrink-0 items-center gap-1.5">
             <ThemeSwitcher />
 
-            {/* 3-line hamburger menu — always visible (mobile + desktop) */}
+            {/* 3-line hamburger — professional navigation menu */}
             <button
-              onClick={() => setDrawerOpen(true)}
+              onClick={() => setNavOpen(true)}
               className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5"
-              title="Quick navigation"
-              aria-label="Quick navigation menu"
+              title="Navigation menu"
+              aria-label="Navigation menu"
             >
               <Menu className="h-4 w-4" />
             </button>
 
-            {/* All Screens button — desktop only */}
+            {/* All Screens — dev/preview tool (separate from hamburger) */}
             <Button
               size="sm"
               variant="ghost"
@@ -199,7 +212,7 @@ export function TopNav() {
               onClick={() => setDrawerOpen(true)}
             >
               <LayoutGrid className="h-3.5 w-3.5" />
-              <span>All Screens</span>
+              <span>Screens</span>
               <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">
                 {ALL_SCREENS.length}
               </span>
@@ -216,7 +229,94 @@ export function TopNav() {
         </div>
       </header>
 
-      {/* Navigation drawer — opens on hamburger or All Screens click */}
+      {/* ─── Hamburger navigation menu (professional, NOT the dev tool) ─── */}
+      <AnimatePresence>
+        {navOpen && (
+          <motion.div
+            className="fixed inset-0 z-[60]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              onClick={() => setNavOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 380, damping: 38 }}
+              className="absolute right-0 top-0 h-full w-80 max-w-[85vw] border-l border-black/10 bg-card/95 backdrop-blur-2xl overflow-y-auto scrollbar-custom dark:border-white/10"
+            >
+              <div className="sticky top-0 z-10 border-b border-black/10 bg-card/90 px-5 py-4 backdrop-blur-xl dark:border-white/10">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold">Navigation</span>
+                  <button
+                    onClick={() => setNavOpen(false)}
+                    className="rounded-md p-1 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-4 space-y-6">
+                {/* All sections */}
+                <div>
+                  <p className="px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Sections
+                  </p>
+                  <div className="mt-2 space-y-0.5">
+                    {ALL_SECTIONS.map((link) => (
+                      <button
+                        key={link.target}
+                        onClick={() => go(link.target)}
+                        className={cn(
+                          "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                          current === link.target || (link.label === "Prep Mode" && section === "prep") || (link.label === "For Companies" && section === "admin") || (link.label === "Candidate" && section === "candidate") || (link.label === "Super Admin" && section === "superadmin")
+                            ? "bg-violet-500/15 text-violet-700 dark:text-violet-300"
+                            : "text-foreground/80 hover:bg-black/5 dark:hover:bg-white/5",
+                        )}
+                      >
+                        {link.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quick access for current section */}
+                {quickLinks.length > 0 && (
+                  <div>
+                    <p className="px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {GROUP_LABELS[section] || "Quick Access"}
+                    </p>
+                    <div className="mt-2 space-y-0.5">
+                      {quickLinks.map((link) => (
+                        <button
+                          key={link.target}
+                          onClick={() => go(link.target)}
+                          className={cn(
+                            "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                            current === link.target
+                              ? "bg-violet-500/15 text-violet-700 dark:text-violet-300"
+                              : "text-foreground/80 hover:bg-black/5 dark:hover:bg-white/5",
+                          )}
+                        >
+                          <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+                          {link.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.aside>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── All Screens drawer (dev/preview tool — separate from hamburger) ─── */}
       <AnimatePresence>
         {drawerOpen && (
           <motion.div
@@ -236,47 +336,20 @@ export function TopNav() {
               transition={{ type: "spring", stiffness: 380, damping: 38 }}
               className="absolute right-0 top-0 h-full w-full max-w-md border-l border-black/10 bg-card/95 backdrop-blur-2xl overflow-y-auto scrollbar-custom dark:border-white/10"
             >
-              {/* Header */}
               <div className="sticky top-0 z-10 border-b border-black/10 bg-card/90 px-5 py-4 backdrop-blur-xl dark:border-white/10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Menu className="h-5 w-5 text-violet-500" />
-                    <h3 className="font-semibold">Navigation</h3>
+                    <LayoutGrid className="h-5 w-5 text-violet-500" />
+                    <h3 className="font-semibold">Screen Navigator</h3>
                   </div>
                   <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDrawerOpen(false)}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-
-                {/* Quick links for current section */}
-                {quickLinks.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Quick Access · {GROUP_LABELS[section] || "Public"}
-                    </p>
-                    <div className="mt-2 grid grid-cols-2 gap-1">
-                      {quickLinks.map((link) => (
-                        <button
-                          key={link.target}
-                          onClick={() => go(link.target)}
-                          className={cn(
-                            "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors text-left",
-                            current === link.target
-                              ? "bg-violet-500/15 text-violet-700 dark:text-violet-300"
-                              : "hover:bg-black/5 text-foreground/70 dark:hover:bg-white/5",
-                          )}
-                        >
-                          {link.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Search */}
                 <div className="relative mt-3">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
+                    autoFocus
                     placeholder="Search all screens..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -284,8 +357,6 @@ export function TopNav() {
                   />
                 </div>
               </div>
-
-              {/* All screens grouped */}
               <div className="px-3 py-4 space-y-5">
                 {(query ? Object.entries(filtered) : Object.entries(grouped)).map(([g, items]) => {
                   const displayItems = query

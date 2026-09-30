@@ -49,22 +49,6 @@ const NO_BACK_SCREENS: ScreenId[] = [
   "apply", "candidate-login", "superadmin-dashboard", "admin-dashboard", "dashboard",
 ];
 
-// Screens where the Continue button is HIDDEN because the user is in a sub-screen
-// (e.g. aptitude rules screen, resume upload screen) — not the final result yet.
-// The Continue button should only appear on the "final" state of each screen.
-// For screens with internal sub-states (tabs/phases), the FlowNav can't know
-// the internal state, so we hide Continue on these screens entirely and let
-// the screen's own UI provide the "Continue" CTA when appropriate.
-const HIDE_CONTINUE_SCREENS: ScreenId[] = [
-  "aptitude",    // has Rules / Test / Results sub-screens — screen handles its own Continue
-  "resume",      // has Upload / Results / History tabs — screen handles its own Continue
-  "coding",      // has List / Editor views — screen handles its own Continue
-  "interview",   // has Setup / Live / Processing / Done — screen handles its own Continue
-  "report",      // long scrollable report — no Continue needed (Replay is last in flow)
-  "replay",      // last step — uses Done button instead
-  "profile",     // settings page — not in the sequential flow
-];
-
 function inferFlowKind(id: ScreenId): FlowKind {
   if (CANDIDATE_FLOW.some((s) => s.id === id)) return "candidate";
   if (SUPERADMIN_FLOW.some((s) => s.id === id)) return "superadmin";
@@ -73,16 +57,12 @@ function inferFlowKind(id: ScreenId): FlowKind {
 }
 
 /**
- * FlowNav — ultra-minimal progress bar.
+ * FlowNav — minimal progress bar.
  *
- * Design principles:
- * - Back arrow: only when previous step is NOT an onboarding screen
- * - Progress dots: always visible, no labels, no lock icons
- * - Continue button: HIDDEN on screens with internal sub-states (aptitude, resume, coding, interview)
- *   Those screens provide their own Continue CTAs when the user reaches the final sub-state.
- * - Continue button: VISIBLE on simple screens (dashboard, report, admin screens, etc.)
- * - Last step: shows "Done →" which goes to the home base
- * - Uses the user's selected theme color
+ * Shows Back + dots + Continue on ALL flow screens.
+ * Screens with internal sub-states (aptitude, resume, coding, interview)
+ * handle their own internal navigation. The FlowNav provides the
+ * flow-level navigation (jump between major steps).
  */
 export function FlowNav() {
   const current = useNav((s) => s.current);
@@ -104,7 +84,6 @@ export function FlowNav() {
   const accent = ACCENT_GRADIENTS[accentTheme];
   const showBack = prev && !NO_BACK_SCREENS.includes(prev.id);
   const isLastStep = !next;
-  const hideContinue = HIDE_CONTINUE_SCREENS.includes(current);
 
   return (
     <div
@@ -115,7 +94,7 @@ export function FlowNav() {
       }}
     >
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Left: Back arrow (hidden on onboarding/first screens) */}
+        {/* Left: Back */}
         <div className="flex w-32 items-center">
           {showBack ? (
             <button
@@ -129,7 +108,7 @@ export function FlowNav() {
           ) : null}
         </div>
 
-        {/* Center: Progress dots only */}
+        {/* Center: Progress dots */}
         <div className="flex items-center gap-1">
           {flow.map((step, i) => {
             const active = i === currentIdx;
@@ -158,7 +137,7 @@ export function FlowNav() {
           })}
         </div>
 
-        {/* Right: Continue button (hidden on screens with internal sub-states) */}
+        {/* Right: Continue / Done — always visible on flow screens */}
         <div className="flex w-32 items-center justify-end">
           {isLastStep ? (
             <button
@@ -168,7 +147,7 @@ export function FlowNav() {
               <span className="hidden sm:inline">Done</span>
               <ArrowRight className="h-3 w-3" />
             </button>
-          ) : hideContinue ? null : (
+          ) : (
             <button
               onClick={() => set(next!.id)}
               className="group inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium text-white transition-all hover:opacity-90"
