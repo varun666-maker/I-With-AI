@@ -1001,3 +1001,46 @@ lock, ProblemListTable integration, re-enter-fullscreen modal).
 - TypeScript: 0 errors in prep files.
 - Dev server: 200 OK on `/`.
 - Blockers: none.
+
+---
+Task ID: CAND-CODING-RANDOM · Agent: main
+Task: Make the aptitude-result "Continue to Coding" CTA open directly into a
+random first question on the candidate fullscreen coding test (not the prep
+Coding Arena).
+
+Work Log:
+- Verified `src/components/screens/candidate/aptitude-result.tsx` already
+  wires the "Continue to Coding" button to `requestFullscreen()` +
+  `setNavigationLocked(true)` + `set("candidate-coding")`. This routes to
+  `CandidateCodingTest` (the strict-proctoring fullscreen coding test),
+  NOT to `CodingArena` (the prep mode at screen id `coding`). Routing was
+  already correct.
+- Found the actual gap: `CandidateCodingTest` always started at
+  `activeIdx = 0` (i.e. Two Sum, the first problem). The user wanted
+  "direct random questions" — i.e. the first problem shown should be
+  random.
+- Edited `src/components/screens/candidate/coding-test.tsx`:
+  - Added a `shuffle<T>(arr)` helper (Fisher-Yates, non-mutating) at
+    module level above `LANGUAGES`.
+  - Added `const [problems] = useState<Problem[]>(() => shuffle(PROBLEMS))`
+    so the order is randomized ONCE on mount.
+  - Replaced all in-component references from `PROBLEMS` to `problems`
+    (header count, sidebar list, status counts, "Problem X of Y" pager,
+    Next/Previous handlers, submit-confirmation copy, and the per-problem
+    state initializer).
+  - The module-level `PROBLEMS` array is unchanged; only the in-component
+    view of it is shuffled.
+- Lint: `bun run lint` → 0 errors, 0 warnings.
+- Dev server returned HTTP 200 on `/` after the edit.
+
+Stage Summary:
+- "Continue to Coding" on the aptitude result screen now:
+  1. enters fullscreen mode,
+  2. locks navigation,
+  3. routes to `candidate-coding` (the strict candidate test, NOT the
+     prep Coding Arena),
+  4. starts the candidate on a RANDOM problem (shuffled order). Each
+     candidate session sees a different first question.
+- Sidebar still shows all 3 problems (in shuffled order) so the
+  candidate can navigate; only the starting problem is randomized.
+- No other screens touched.

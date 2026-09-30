@@ -109,6 +109,20 @@ const PROBLEMS: Problem[] = [
   },
 ];
 
+/**
+ * Fisher-Yates shuffle. Returns a new array (does not mutate the input).
+ * Used to randomize the order of problems each candidate sees, so the
+ * first problem shown when entering the coding test is random.
+ */
+function shuffle<T>(arr: readonly T[]): T[] {
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 const LANGUAGES = ["Python", "JavaScript"];
 const TEST_DURATION_SEC = 60 * 60;
 
@@ -145,13 +159,17 @@ export function CandidateCodingTest() {
   });
 
   const [language, setLanguage] = useState<string>("Python");
+  // Shuffle the problem order ONCE on mount so each candidate starts on a
+  // random question. The candidate still sees all problems in the sidebar;
+  // only the order (and thus the first problem shown) is randomized.
+  const [problems] = useState<Problem[]>(() => shuffle(PROBLEMS));
   const [activeIdx, setActiveIdx] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TEST_DURATION_SEC);
   const [submitOpen, setSubmitOpen] = useState(false);
   const [autoSubmitted, setAutoSubmitted] = useState(false);
   const [states, setStates] = useState<Record<number, ProblemState>>(() => {
     const init: Record<number, ProblemState> = {};
-    for (const p of PROBLEMS) init[p.id] = emptyState(p);
+    for (const p of problems) init[p.id] = emptyState(p);
     return init;
   });
 
@@ -224,7 +242,7 @@ export function CandidateCodingTest() {
     set("candidate-coding-result");
   };
 
-  const active = PROBLEMS[activeIdx];
+  const active = problems[activeIdx];
   const activeState = states[active.id];
 
   const setCode = (code: string) => {
@@ -274,8 +292,8 @@ export function CandidateCodingTest() {
     return "unsolved";
   };
 
-  const solvedCount = PROBLEMS.filter((p) => problemStatus(p) === "solved").length;
-  const attemptedCount = PROBLEMS.filter((p) => problemStatus(p) === "attempted").length;
+  const solvedCount = problems.filter((p) => problemStatus(p) === "solved").length;
+  const attemptedCount = problems.filter((p) => problemStatus(p) === "attempted").length;
 
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
@@ -310,7 +328,7 @@ export function CandidateCodingTest() {
               Round 2 <span className="text-violet-500 dark:text-violet-400">Coding Test</span>
             </h1>
             <p className="mt-1 text-xs text-muted-foreground">
-              {PROBLEMS.length} problems · 60 minutes · one submission per problem
+              {problems.length} problems · 60 minutes · one submission per problem
             </p>
           </div>
           <div className={cn(
@@ -333,7 +351,7 @@ export function CandidateCodingTest() {
                 Problems
               </div>
               <ul className="space-y-1.5">
-                {PROBLEMS.map((p, i) => {
+                {problems.map((p, i) => {
                   const status = problemStatus(p);
                   const isActive = i === activeIdx;
                   return (
@@ -387,7 +405,7 @@ export function CandidateCodingTest() {
                   <p className="uppercase tracking-wider text-muted-foreground">Attempted</p>
                 </div>
                 <div>
-                  <p className="font-mono text-sm font-semibold text-muted-foreground">{PROBLEMS.length - solvedCount - attemptedCount}</p>
+                  <p className="font-mono text-sm font-semibold text-muted-foreground">{problems.length - solvedCount - attemptedCount}</p>
                   <p className="uppercase tracking-wider text-muted-foreground">Unsolved</p>
                 </div>
               </div>
@@ -570,9 +588,9 @@ export function CandidateCodingTest() {
                 Previous Problem
               </Button>
               <span className="text-xs text-muted-foreground">
-                Problem {activeIdx + 1} of {PROBLEMS.length}
+                Problem {activeIdx + 1} of {problems.length}
               </span>
-              {activeIdx === PROBLEMS.length - 1 ? (
+              {activeIdx === problems.length - 1 ? (
                 <Button
                   size="sm"
                   onClick={() => setSubmitOpen(true)}
@@ -584,7 +602,7 @@ export function CandidateCodingTest() {
               ) : (
                 <Button
                   size="sm"
-                  onClick={() => setActiveIdx((i) => Math.min(PROBLEMS.length - 1, i + 1))}
+                  onClick={() => setActiveIdx((i) => Math.min(problems.length - 1, i + 1))}
                   className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
                 >
                   Next Problem
@@ -629,7 +647,7 @@ export function CandidateCodingTest() {
           <DialogHeader>
             <DialogTitle>Submit the coding round?</DialogTitle>
             <DialogDescription>
-              You have solved {solvedCount} of {PROBLEMS.length} problems and attempted {attemptedCount}.
+              You have solved {solvedCount} of {problems.length} problems and attempted {attemptedCount}.
               This action cannot be undone. All unsaved progress on unsubmitted problems will be lost.
             </DialogDescription>
           </DialogHeader>

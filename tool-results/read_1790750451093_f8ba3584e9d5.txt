@@ -1,0 +1,1004 @@
+     1→# InterviewAI Frontend — Multi-agent Worklog
+     2→
+     3→## Project Overview
+     4→Building the complete frontend for an AI Interview Assistant SaaS. Dark-mode first,
+     5→Next.js 16 + Tailwind 4 + shadcn/ui + Framer Motion + Zustand state-based SPA router.
+     6→
+     7→**Single visible route**: `/` (page.tsx switches screens via Zustand `useNav` store).
+     8→
+     9→## Architecture (READ FIRST)
+    10→- `src/lib/store.ts` → exports `useNav`, `ALL_SCREENS`, `ScreenId`. Call `set(id)` to navigate.
+    11→- `src/components/shared/primitives.tsx` → exports: `AuroraBackground`, `BorderBeam`, `GlowCard`,
+    12→  `MagneticButton`, `Marquee`, `TypingDots`, `Shimmer`, `PulseBadge`, `SectionHeading`,
+    13→  `StaggeredReveal`, `revealItem`, `PageWrap`, `StatCard`.
+    14→- `src/components/shared/top-nav.tsx` → exports `TopNav` (already mounted in page.tsx) and `BackToHome`.
+    15→- `src/components/screens/<section>/<screen>.tsx` → each screen is a default-named export component
+    16→  with a unique PascalCase name (e.g., `StudentDashboard`, NOT default `Dashboard`).
+    17→
+    18→## Screen naming convention (CRITICAL — avoid name collisions)
+    19→To avoid React component name collisions across sections, every screen file exports
+    20→a uniquely-named component (NOT default `Dashboard` etc.):
+    21→- prep/dashboard.tsx → `StudentDashboard`
+    22→- prep/resume.tsx → `ResumeHub`
+    23→- prep/aptitude.tsx → `AptitudePortal`
+    24→- prep/coding.tsx → `CodingArena`
+    25→- prep/interview.tsx → `InterviewStudio`
+    26→- prep/report.tsx → `InterviewReport`
+    27→- prep/replay.tsx → `InterviewReplay`
+    28→- prep/profile.tsx → `StudentProfile`
+    29→- prep/auth.tsx → `AuthScreen`
+    30→- admin/register.tsx → `CompanyRegister`
+    31→- admin/dashboard.tsx → `AdminDashboard`
+    32→- admin/campaign-new.tsx → `CampaignCreate`
+    33→- admin/questions.tsx → `QuestionManager`
+    34→- admin/candidates.tsx → `CandidateLeaderboard`
+    35→- admin/bulk-upload.tsx → `BulkUpload`
+    36→- admin/proctoring.tsx → `ProctoringReview`
+    37→- admin/selection.tsx → `FinalSelection`
+    38→- candidate/apply.tsx → `ApplyPage`
+    39→- candidate/login.tsx → `CandidateLogin`
+    40→- candidate/change-password.tsx → `ForcePasswordChange`
+    41→- candidate/system-check.tsx → `PreTestCheck`
+    42→- candidate/dashboard.tsx → `CandidateDashboard`
+    43→- candidate/results.tsx → `CandidateResults`
+    44→- superadmin/dashboard.tsx → `SuperAdminDashboard`
+    45→- superadmin/companies.tsx → `CompanyManagement`
+    46→- superadmin/users.tsx → `UserManagement`
+    47→- superadmin/ai-usage.tsx → `AIUsageMonitor`
+    48→- superadmin/questions.tsx → `QuestionBankAdmin`
+    49→- superadmin/system.tsx → `SystemConfig`
+    50→- superadmin/audit.tsx → `AuditLogs`
+    51→- superadmin/db-health.tsx → `DatabaseHealth`
+    52→
+    53→## Design language (established in landing.tsx — match this exactly)
+    54→- Dark background: `bg-background` (= near-black oklch 0.07 with subtle violet tint).
+    55→- Aurora blobs (use `<AuroraBackground>` as page wrapper).
+    56→- Cards: `GlowCard` with `p-6` and `border-white/10 bg-white/[0.03]`.
+    57→- Primary CTA buttons: `bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0`.
+    58→- Accent color words: `gradient-text` class.
+    59→- Badges: `<PulseBadge color="violet|emerald|amber|rose|sky|slate">`.
+    60→- Section title block: `<SectionHeading eyebrow title description />`.
+    61→- Use Framer Motion `motion.div` with `initial={{opacity:0,y:18}} whileInView={{opacity:1,y:0}}`
+    62→  for entrance animations.
+    63→- Use shadcn `Button`, `Card`, `Input`, `Label`, `Tabs`, `Badge`, `Progress`, `Avatar`,
+    64→  `Table`, `Dialog`, `Select`, `Switch`, `Slider`, `Checkbox`, `RadioGroup`, `Tooltip`,
+    65→  `Separator`, `ScrollArea` from `@/components/ui/*`.
+    66→- Use `lucide-react` icons.
+    67→- Use `recharts` for any chart (line, bar, radar, pie). Dark theme colors:
+    68→  `#a855f7` violet, `#06b6d4` cyan, `#10b981` emerald, `#f59e0b` amber, `#f43f5e` rose.
+    69→
+    70→## Footer rule
+    71→Every screen ends naturally — no artificial "End of page" markers. Use `<footer>`
+    72→with `border-t border-white/5 mt-16` for marketing screens. App screens (dashboard etc.)
+    73→don't need a footer.
+    74→
+    75→## Navigation hooks
+    76→```ts
+    77→import { useNav } from "@/lib/store";
+    78→const { set } = useNav();
+    79→set("dashboard");   // navigate to a screen
+    80→```
+    81→
+    82→## DO NOT
+    83→- Do NOT modify `src/app/page.tsx` — the main agent handles the router wiring.
+    84→- Do NOT modify `src/app/globals.css` or `src/app/layout.tsx`.
+    85→- Do NOT create Next.js route files under `src/app/<route>/page.tsx`.
+    86→- Do NOT use real Next.js routing — use the Zustand `useNav` store only.
+    87→- Do NOT add `indigo` or `blue` Tailwind colors — use violet/fuchsia/sky/emerald/amber/rose.
+    88→- Do NOT use Bootstrap-style layouts. Use bento grids, asymmetry, glow effects.
+    89→- Do NOT create separate log files — append to this file (`/home/z/my-project/worklog.md`).
+    90→
+    91→## After you finish
+    92→Append a new section to this file using:
+    93→```
+    94→---
+    95→Task ID: <your task id>
+    96→Agent: <agent name>
+    97→Task: <what you did>
+    98→
+    99→Work Log:
+   100→- <step>
+   101→- <step>
+   102→
+   103→Stage Summary:
+   104→- Files created (list each file path)
+   105→- Any screens pending
+   106→```
+   107→
+   108→Then return a concise summary (list of files created + any blockers) as your final message.
+   109→
+   110→---
+   111→Task ID: 6
+   112→Agent: candidate-screens
+   113→Task: Built the 6 Invited-Candidate screens (B0, B2, B3, B4, B5, B9) under `src/components/screens/candidate/`.
+   114→
+   115→Work Log:
+   116→- Read worklog.md, primitives.tsx, top-nav.tsx, store.ts, landing.tsx, and the screen spec (lines 836–1126) to lock in the design language and B-screen specs.
+   117→- Verified available shadcn/ui primitives (Button, Input, Label, Separator, Progress, Badge) and confirmed `useNav` screen IDs for the candidate section.
+   118→- Built `apply.tsx` (ApplyPage): centered card with company header + role + deadline pill; full name / email / phone / drag-drop resume upload (PDF/DOCX, 5 MB cap); 2s mock submit spinner → spring-in success state ("✅ Application Submitted!", "Thank you, {firstName}!", credentials email note). Validates required fields + email regex + file size/type.
+   119→- Built `login.tsx` (CandidateLogin): centered card with Candidate ID (mono font) + Password inputs (show/hide toggle), amber info note ("This is your invited candidate login — different from your student account."), "Trouble logging in?" + "Apply to a campaign" secondary actions. Mock 1.1s auth then navigates to `candidate-change-password` (first-login flow).
+   120→- Built `change-password.tsx` (ForcePasswordChange): spring-in lock icon, "Set Your New Password" heading, New + Confirm password fields (show/hide), live strength meter + 5-rule checklist (length, upper, lower, num, symbol), "Min 8 characters" hint. Submit disabled until valid. Navigates to `candidate-system-check` on success.
+   121→- Built `system-check.tsx` (PreTestCheck): "🔍 System Check" heading, 4 rows (Browser ✅ Chrome 120, Microphone ✅ Working, Camera ⬜ Request Permission, Fullscreen ⬜ Enter Fullscreen). Mock permission handlers flip state to ✅ with spring-in checkmark + spinner. Progress bar tracks 0/4 → 4/4. Continue button disabled until all green, then navigates to `candidate-dashboard`.
+   122→- Built `dashboard.tsx` (CandidateDashboard): header "Acme Corp — Backend Developer" + logout; live deadline countdown card (DD:HH:MM:SS) with color tone that switches emerald (>72h) / amber (24–72h) / rose (<24h) — mock deadline = now + 2d 8h 23m to land in amber zone. 3 stacked round cards: R1 Aptitude (✅ Completed, 74/100, Qualification ✅ Passed), R2 Coding (🔄 In Progress, aurora "Continue Coding" button), R3 AI Interview (🔒 Locked, "Complete Coding first to unlock"). Integrity block: violations === 0 so renders the explainer note ("0 violations — proctoring monitored, 3-strike rule explained") instead of the violation counter.
+   123→- Built `results.tsx` (CandidateResults): centered card, spring-in ✅ icon, "✅ Assessment Complete", "Your responses have been submitted to Acme Corp." 3 round score rows (Aptitude 74/100 emerald, Coding 81/100 violet, Interview 85/100 sky) each with tone-matched progress bar. Divider → 3 hidden rows (Overall Score, Your Rank, Other Candidates) with Lock + EyeOff icons and "Shared with company only" eyebrow. Footer "Thank you for your time. Results will be shared with Acme Corp directly." + Logout button → `landing`.
+   124→- Ran `bun run lint` — 0 errors, 0 warnings on the new files (only a pre-existing warning in `prep/dashboard.tsx` which is outside this task's scope).
+   125→- Verified dev server log shows clean recompiles on every save.
+   126→
+   127→Stage Summary:
+   128→- Files created (6):
+   129→  - /home/z/my-project/src/components/screens/candidate/apply.tsx → `ApplyPage`
+   130→  - /home/z/my-project/src/components/screens/candidate/login.tsx → `CandidateLogin`
+   131→  - /home/z/my-project/src/components/screens/candidate/change-password.tsx → `ForcePasswordChange`
+   132→  - /home/z/my-project/src/components/screens/candidate/system-check.tsx → `PreTestCheck`
+   133→  - /home/z/my-project/src/components/screens/candidate/dashboard.tsx → `CandidateDashboard`
+   134→  - /home/z/my-project/src/components/screens/candidate/results.tsx → `CandidateResults`
+   135→- All 6 export the EXACT named component specified in the task.
+   136→- All 6 start with `"use client";`, use `useNav` for routing, use shared primitives (`AuroraBackground`, `GlowCard`, `MagneticButton`, `PulseBadge`, `StaggeredReveal`, `revealItem`) + shadcn/ui + lucide-react + framer-motion.
+   137→- All 6 are fully responsive (mobile-first), use only the allowed palette (violet/fuchsia/emerald/amber/rose/sky/slate — no indigo/blue), and match the dark, glass-card, gradient design language of `landing.tsx`.
+   138→- Did NOT modify `page.tsx`, `globals.css`, `layout.tsx`, or any file outside `src/components/screens/candidate/`.
+   139→- Screens pending: B1 (email template — out of scope per task), B6/B7/B8 (candidate aptitude/coding/interview strict versions — out of scope per task).
+   140→
+   141→---
+   142→Task ID: 7
+   143→Agent: superadmin-screens
+   144→Task: Built the 8 Super Admin screens (S1–S8) under `src/components/screens/superadmin/`.
+   145→
+   146→Work Log:
+   147→- Read `worklog.md`, `primitives.tsx`, `top-nav.tsx`, `store.ts`, `landing.tsx`, and the screen spec (lines 1128–1335) to lock in the design language, available screen IDs and the exact mock data required for each screen.
+   148→- Verified the available shadcn/ui primitives (`Switch`, `Select`, `Dialog`, `Table`, `Progress`, `Input`, `Button`) and confirmed `recharts`, `framer-motion`, `zustand`, `lucide-react`, `next-themes` are installed.
+   149→- Built `dashboard.tsx` (SuperAdminDashboard, S1): 8 StatCards in responsive 2×4 / 4×2 grid (Students 12,450 · Companies 23 · Campaigns 47 · Interviews 8,320 · Resumes Analyzed 18,200 · Gemini Calls 45,000 · DB Health ✅ Good · Redis Health ✅ Good). 24h platform-pulse sparkline (recharts AreaChart). 7 navigation cards (Companies, Users, AI Usage, Questions, System, Audit, DB Health) that call `set("superadmin-…")` on click.
+   150→- Built `companies.tsx` (CompanyManagement, S2): 5-row company table (Acme Corp active, TechStart active, OldCorp suspended, InnovateCo active, LegacyLabs suspended) with Suspend/Reactivate buttons that open a confirmation Dialog and flip the row status, plus a View button that navigates to `admin-dashboard`. Includes a 3-card KPI strip (active / suspended / total candidates), a recent tenant activity feed, and a "what suspension does" explainer card.
+   151→- Built `users.tsx` (UserManagement, S3): debounced (300ms `setTimeout`) search bar with a live "syncing / synced" pulse indicator, 6 users across all four roles (candidate, company_admin, student, super_admin), per-row actions — View (→ audit), Reset PW (email dialog), Suspend (admins), Delete (others → danger GDPR dialog with the exact required copy: "This will permanently delete all user data across all databases (PostgreSQL, MongoDB, Cloudinary, Redis). This action cannot be undone. Continue?"). Role-coloured PulseBadge per row.
+   152→- Built `ai-usage.tsx` (AIUsageMonitor, S4): 4 StatCards (Requests today 342/15,000 · Token usage 1.2M/1M ⚠️ 120% · Avg response time 2.3s · Rate limit hits 5). Stacked horizontal BarChart showing usage share per module (Resume Analysis 45% / Interview Q&A 30% / Code Review 12% / Post-Interview Report 8% / Question Seeding 5%) with a manual colour-coded legend. Per-module BarChart with custom-cell colours. Recent rate-limit events list with timestamps + soft/hard severity badges.
+   153→- Built `questions.tsx` (QuestionBankAdmin, S5): aptitude table (Quantitative 512, Logical 408, Verbal 305, Analytical 298, Data Interpretation 247, Total 1,770 — each with ✅ Healthy badge + utilization bar). Coding table (DSA 210, SQL 105, Total 315). 4 top-level StatCards. 3-card quality-metrics block (avg 12.3, never-used 234, over-used 45). "🔄 Reseed All Questions" danger button opens the exact-spec confirmation Dialog ("This will regenerate ALL questions via Gemini and replace existing ones. Takes approximately 30 minutes. Continue?") and runs an animated progress bar while "calling Gemini".
+   154→- Built `system.tsx` (SystemConfig, S6): settings table — Maintenance Mode (Switch OFF, turns ON/amber when toggled), Default Proctoring Strictness (Select: Lenient/Standard/Strict/Paranoid), Email Provider (Select: Resend/SES/Postmark/Mailgun), Resend API Key (masked `rsk_••••…••••` + Update button → reveals password input + Save), From Email (inline Input), Gemini API Key (masked `AIza••••…••••` + Update), and a feature-flags grid with 5 Switches (Resume Analyzer / Aptitude / Coding / AI Interview / Hiring Mode). "Save changes" button records a timestamp footer.
+   155→- Built `audit.tsx` (AuditLogs, S7): 4 StatCards + 4-column filter bar (user search + Role Select + Action Select + From/To date range), 7-row audit table with colour-coded Action badges per type (CAMPAIGN_CREATED violet, BULK_SHORTLIST sky, COMPANY_SUSPENDED amber, QUESTION_RESEED rose, USER_DELETED rose, LOGIN slate). Working "Export CSV" button that builds a real CSV blob and triggers a download. Footer shows "Showing X of Y entries".
+   156→- Built `db-health.tsx` (DatabaseHealth, S8): 4 StatCards + 6-card status grid (PostgreSQL ✅ 12ms, MongoDB ✅ 8ms, Redis ✅ 3ms, Cloudinary ✅, Piston ✅ running, Celery ✅ 2 active) with tone-coloured icon tiles + latency readout. 4-row table-sizes table (users 12,500 / 45MB, aptitude_questions 1,770 / 12MB, interview_sessions 8,320 / 120MB, applicant_pool 2,100 / 8MB) with utilization bars + totals row. "Run Full Health Check" button runs an animated progress bar and refreshes `lastRun`. Recent health-check log list with tone-coloured dots.
+   157→- Ran `bun run lint` — 0 errors on the 8 new files. (2 pre-existing warnings in `prep/aptitude.tsx` and `prep/dashboard.tsx` — outside this task's scope.)
+   158→- Verified `/home/z/my-project/dev.log` — Next.js dev server is healthy, compiling on every save with no errors.
+   159→- Mirrored work record to `/home/z/my-project/agent-ctx/7-superadmin-screens.md` because the root-level `/agent-ctx` directory was not writable.
+   160→
+   161→Stage Summary:
+   162→- Files created (8 — all under `src/components/screens/superadmin/`):
+   163→  - /home/z/my-project/src/components/screens/superadmin/dashboard.tsx → `SuperAdminDashboard`
+   164→  - /home/z/my-project/src/components/screens/superadmin/companies.tsx → `CompanyManagement`
+   165→  - /home/z/my-project/src/components/screens/superadmin/users.tsx → `UserManagement`
+   166→  - /home/z/my-project/src/components/screens/superadmin/ai-usage.tsx → `AIUsageMonitor`
+   167→  - /home/z/my-project/src/components/screens/superadmin/questions.tsx → `QuestionBankAdmin`
+   168→  - /home/z/my-project/src/components/screens/superadmin/system.tsx → `SystemConfig`
+   169→  - /home/z/my-project/src/components/screens/superadmin/audit.tsx → `AuditLogs`
+   170→  - /home/z/my-project/src/components/screens/superadmin/db-health.tsx → `DatabaseHealth`
+   171→- All 8 export the EXACT named component specified in the task.
+   172→- All 8 start with `"use client";`, use `useNav` for routing, wrap in `<AuroraBackground>` + `<PageWrap>`, and use shared primitives (`StatCard`, `GlowCard`, `PulseBadge`, `SectionHeading`, `StaggeredReveal`, `revealItem`) + shadcn/ui (`Switch`, `Select`, `Dialog`, `Table`, `Progress`, `Input`, `Button`) + lucide-react + framer-motion + recharts.
+   173→- All 8 are fully responsive (mobile-first), use only the allowed palette (violet/fuchsia/sky/cyan/emerald/teal/amber/orange/rose/pink/slate/white — no indigo/blue), and match the dark, glass-card, gradient design language of `landing.tsx`.
+   174→- Did NOT modify `page.tsx`, `globals.css`, `layout.tsx`, or any file outside `src/components/screens/superadmin/`. No Next.js route files were created.
+   175→- Screens pending: none — all 8 S screens delivered.
+   176→
+   177→---
+   178→Task ID: 5
+   179→Agent: admin-screens
+   180→Task: Built 8 Company Admin screens (A1–A7 + A5b) of the AI Interview Assistant SaaS.
+   181→
+   182→Work Log:
+   183→- Read worklog.md, primitives.tsx, top-nav.tsx, store.ts, landing.tsx, and the screen-by-screen spec (lines 463–833) to absorb design language and detailed specs for A1–A7.
+   184→- Surveyed shadcn/ui components and confirmed exact prop APIs (select, dialog, tabs, slider, checkbox, radio-group, dropdown-menu, table, badge).
+   185→- Built each screen with `"use client";`, exact named export as required by the spec, using `useNav().set(...)` for routing and shared primitives + shadcn/ui + lucide-react.
+   186→- register.tsx — registration card with show/hide password toggles, inline validation, mock submit → admin-dashboard.
+   187→- dashboard.tsx — 4 StatCards + quick-action grid + searchable campaign table (rows route to candidate-leaderboard) + live activity + integrity card.
+   188→- campaign-new.tsx — two-phase (form → success). Phase 1 has round toggles, weight sliders with Σ validation, cutoffs, proctoring strictness, auto-DQ checkboxes, live summary. Phase 2 has spring checkmark, campaign details, gradient-bordered Apply Link Box with Copy buttons and a 21×21 SVG QR placeholder (no qrcode.react dependency). CTAs route to question-manager / candidate-leaderboard.
+   189→- questions.tsx — two tabs (Aptitude / Coding). Aptitude form: category, sub-topic, difficulty, question, 4 radio-labelled option rows, explanation, Add + Bulk Upload CSV + Download-template. Coding form: title, difficulty, type radio (DSA/SQL), markdown statement, signatures, visible/hidden test counts, time/memory limits, conditional SQL Schema field. Lists below each form.
+   190→- candidates.tsx — State 4 post-shortlist leaderboard. Top stats bar + amber notification banner + auto-shortlist panel with 8-option method dropdown + source tabs + full table (checkbox, rank, name+ID, source badge, job-fit progress, ATS, email inline-edit for missing, aptitude, qualification, coding-locked, interview-live, overall, integrity badge, status) + Refresh + Export CSV + Export PDF ZIP.
+   191→- bulk-upload.tsx — three-phase via useState. Phase 1: info card + drag-drop zone + selected file list. Phase 2: animated progress bar + per-file row + ETA. Phase 3: summary + manual-fix cards (AI-extracted row + required fields + Save → card turns ✅) + collapsible fully-extracted list + Discard + Add-all.
+   192→- proctoring.tsx — candidate info bar + integrity score breakdown (base 100 → -15 / -12 / -9) + summary + timeline table (Time / Round / Event / Severity / Screenshot View) with Dismiss / Confirm action buttons. View opens Dialog with stylized webcam-frame placeholder (phone bounding box + REC stamp).
+   193→- selection.tsx — final selection leaderboard with per-row DropdownMenu decision selector (Selected / Waitlisted / Rejected / Pending, tinted), per-row notes Textarea, 4 SummaryCards, Save decisions + Export CSV + Export PDF ZIP + footer card.
+   194→- Did NOT modify page.tsx, globals.css, layout.tsx, or any file outside src/components/screens/admin/ (per task rules — main agent wires router).
+   195→- Verified with `bun run lint` — 0 errors / 0 warnings in any of the 8 new admin files (only pre-existing prep/* warnings remained).
+   196→- Wrote detailed work record to /home/z/my-project/agent-ctx/5-admin-screens.md.
+   197→
+   198→Stage Summary:
+   199→- Files created (all under /home/z/my-project/src/components/screens/admin/):
+   200→  1. register.tsx     → CompanyRegister      (A1)
+   201→  2. dashboard.tsx    → AdminDashboard       (A2)
+   202→  3. campaign-new.tsx → CampaignCreate       (A3)
+   203→  4. questions.tsx    → QuestionManager      (A4)
+   204→  5. candidates.tsx   → CandidateLeaderboard (A5 — State 4)
+   205→  6. bulk-upload.tsx  → BulkUpload           (A5b — 3 phases)
+   206→  7. proctoring.tsx   → ProctoringReview     (A6)
+   207→  8. selection.tsx    → FinalSelection       (A7)
+   208→- No screens pending.
+   209→
+   210→---
+   211→Task ID: 4b
+   212→Agent: prep-screens
+   213→Task: Build 9 frontend screens for the Prep Mode section of the AI Interview Assistant SaaS (Screens 2-10)
+   214→
+   215→Work Log:
+   216→- Read worklog.md, primitives.tsx, top-nav.tsx, store.ts, landing.tsx, and the full screen spec to absorb the architecture, design language, naming convention, and screen requirements before writing any code.
+   217→- Confirmed available shadcn/ui components (full set including input-otp, accordion, dialog, collapsible, etc.), recharts v2.15.4, framer-motion v12, lucide-react.
+   218→- AuthScreen: split-screen desktop layout (gradient + 3D avatar mock + tagline left; form right). Sign Up tab = 3 in-place steps (Create Account → OTP via InputOTP → Profile Setup with role dropdown, skills tag input, repeatable education rows, LinkedIn/GitHub). Login tab with forgot password inline flow. Demo OTP = "000000".
+   219→- StudentDashboard: bento layout — SVG score gauge, recharts AreaChart trend, recharts RadarChart (6 axes), Resume ATS Progress, 5 aptitude bars, recent interviews list, 6-week roadmap checklist (done/active/locked), GitHub-style 12×7 heatmap, collapsible fair-usage summary, bottom CTA tiles.
+   220→- ResumeHub: 3 in-page tabs (Upload/Results/History). Upload = drag-drop zone + Analyze button + Shimmer loading. Results = 3 score cards + skills found/missing/recommended + grammar issues with line numbers + formatting list + 2-paragraph AI summary + metadata badges. History = shadcn Table (desktop) / cards (mobile).
+   221→- AptitudePortal: 3 in-page tabs (Rules/Test/Results). Test = color-changing timer (red < 1min), Q counter, bookmark, 5×5 navigation grid with state styling + legend, 4 option buttons, prev/next, submit confirmation Dialog. Results = score summary + 5 category bars + wrong-answers list with explanations + Take Again.
+   222→- CodingArena: 50/50 split pane. Left = problem statement with difficulty badge + examples in code blocks + constraints. Right = language dropdown (7 langs) + Monaco-styled `<textarea>` with line numbers + dark bg + mono font + custom input + Run/Submit + test cases list (visible + hidden) + AI Code Review panel (sub-scores, complexity badges, strengths/suggestions, collapsible refactor snippet). Language switch confirmation Dialog. Auto-save indicator.
+   223→- InterviewStudio: 4 sub-screens via useState with demo controls. Setup = 6 interview type cards + mic/camera system check. Live = top bar (timer, Q counter, End Early Dialog) + left (avatar with thinking dots + waveform + 3 analysis indicators) + right (question card + mic toggle + chat transcript with typing dots). Processing = conic-gradient spinner + 4 step states. Done = spring-scale checkmark + stats + report/dashboard CTAs.
+   224→- InterviewReport: 17 sections each in own GlowCard with section number badge + title + icon. Sticky Download PDF button (top-right + bottom CTA). Sections cover executive summary, score table, hiring recommendation, all 11 analysis dimensions, recharts LineChart emotion timeline, session highlights, top 7 strengths/improvements, 6-week accordion roadmap, final recommendation.
+   225→- InterviewReplay: video player mock (aspect-video, avatar mock, center play, chapter markers on seek bar, transport controls) + transcript panel with click-to-jump bubbles + AI annotations + emotion strip (6 emoji buttons with labels/times, click to jump). Side column with session summary stats + body-language highlights.
+   226→- StudentProfile: 4 shadcn Tabs. Personal Info = avatar upload + 8 input fields + bio textarea. Education = repeatable rows (degree dropdown, institution, year, field) + Add row. Skills = tag input with autocomplete + 4 stats + completeness callout. Job Preferences = multi-select roles grid + experience dropdown + salary + locations tag input + notice/remote/shift selects.
+   227→- Ran `bun run lint` — fixed 2 minor warnings (ternary-as-statement in aptitude.tsx; unused eslint-disable in dashboard.tsx). Final: 0 errors, 0 warnings.
+   228→- Verified dev.log: dev server compiles all 9 screens with no errors.
+   229→
+   230→Stage Summary:
+   231→- Files created (list each file path):
+   232→  1. `/home/z/my-project/src/components/screens/prep/auth.tsx` — `AuthScreen`
+   233→  2. `/home/z/my-project/src/components/screens/prep/dashboard.tsx` — `StudentDashboard`
+   234→  3. `/home/z/my-project/src/components/screens/prep/resume.tsx` — `ResumeHub`
+   235→  4. `/home/z/my-project/src/components/screens/prep/aptitude.tsx` — `AptitudePortal`
+   236→  5. `/home/z/my-project/src/components/screens/prep/coding.tsx` — `CodingArena`
+   237→  6. `/home/z/my-project/src/components/screens/prep/interview.tsx` — `InterviewStudio`
+   238→  7. `/home/z/my-project/src/components/screens/prep/report.tsx` — `InterviewReport`
+   239→  8. `/home/z/my-project/src/components/screens/prep/replay.tsx` — `InterviewReplay`
+   240→  9. `/home/z/my-project/src/components/screens/prep/profile.tsx` — `StudentProfile`
+   241→- Any screens pending: None. All 9 Prep Mode screens complete, lint-clean, and compile-ready for router wiring.
+   242→
+   243→---
+   244→
+   245→## Task ID: FLOW-CAND · Agent flow-cand
+   246→
+   247→**Scope:** Add the `FlowNav` sequential navigation component to the 6 Invited-Candidate screen files. Surgical edit only — import + render once near the bottom of each screen.
+   248→
+   249→**Files edited (6)** — all under `src/components/screens/candidate/`:
+   250→
+   251→| File | Export | FlowNav placement |
+   252→|------|--------|-------------------|
+   253→| `apply.tsx`     | `ApplyPage`             | After trailing `motion.p`, as last child of `<section>` (outside the `AnimatePresence` success card so it always renders) |
+   254→| `login.tsx`     | `CandidateLogin`        | After trailing `motion.p`, as last child of `<section>` |
+   255→| `change-password.tsx` | `ForcePasswordChange` | After `</StaggeredReveal>`, as last child of `<section>` |
+   256→| `system-check.tsx` | `PreTestCheck`       | After trailing `motion.p`, as last child of `<section>` |
+   257→| `dashboard.tsx` | `CandidateDashboard`   | After trailing `motion.p`, as last child of `<section>` |
+   258→| `results.tsx`   | `CandidateResults`      | After trailing `motion.p`, as last child of `<section>` |
+   259→
+   260→**Import added** (after other imports, top of each file):
+   261→```tsx
+   262→import { FlowNav } from "@/components/shared/flow-nav";
+   263→```
+   264→
+   265→**Render added** (once per file, last child of the page `<section>`, inside `AuroraBackground`):
+   266→```tsx
+   267→<FlowNav flowId="candidate" />
+   268→```
+   269→
+   270→**Reference flow (from `src/lib/flows.ts`):**
+   271→Apply → Candidate Login → Force Password Change → Pre-Test System Check → Candidate Dashboard → Candidate Results
+   272→
+   273→**Placement rules followed:**
+   274→- ✅ Outside any conditional render blocks (after `</StaggeredReveal>` or trailing static `motion.p`, never inside `AnimatePresence`/`!submitted`/`error` branches)
+   275→- ✅ Inside the page wrapper (`<AuroraBackground>` → `<section>`) so it gets the dark background
+   276→- ✅ LAST child of the page wrapper, after any conditional success/error messages
+   277→- ✅ For `apply.tsx`: placed AFTER the success card so it always renders
+   278→
+   279→**Constraints respected:**
+   280→- Did NOT modify any other code, add FlowNav multiple times, place inside conditionals, reorder sections, or change exports/signatures.
+   281→
+   282→**Verification:** `bun run lint` → 0 errors, 0 warnings.
+   283→
+   284→**Agent work record:** `/home/z/my-project/agent-ctx/FLOW-CAND-flow-cand.md`
+   285→
+   286→---
+   287→
+   288→## Task ID: FLOW-SA · Agent: flow-sa
+   289→
+   290→**Task:** Add the `FlowNav` sequential navigation component to 8 Super Admin
+   291→screen files. Surgical edit: import `FlowNav` from
+   292→`@/components/shared/flow-nav`, render `<FlowNav flowId="superadmin" />`
+   293→once near the bottom of each screen inside `PageWrap` (so it inherits the
+   294→Aurora dark background) but outside any Dialog / Tab / conditional render.
+   295→
+   296→**Work Log:**
+   297→- Read `src/components/shared/flow-nav.tsx` and `src/lib/flows.ts` to
+   298→  confirm the component API (single required prop `flowId`, self-contained
+   299→  GlowCard with built-in `mt-12`, returns `null` if the current screen
+   300→  doesn't belong to the named flow) and the 8-step Super Admin sequence:
+   301→  Dashboard → Companies → Users → AI Usage → Questions → System → Audit →
+   302→  DB Health.
+   303→- Read all 8 target screen files end-to-end. Each one uses the same
+   304→  shape: `<AuroraBackground><PageWrap>…main content…</PageWrap>…optional
+   305→  Dialogs…</AuroraBackground>`. None use in-page Tabs, so placement was
+   306→  deterministic.
+   307→- For each file, made two surgical edits:
+   308→  1. Added `import { FlowNav } from "@/components/shared/flow-nav";`
+   309→     after the previous last import line.
+   310→  2. Added `<FlowNav flowId="superadmin" />` immediately before
+   311→     `</PageWrap>` (so it sits inside the page wrapper but outside any
+   312→     trailing Dialog block which stays after `</PageWrap>`).
+   313→- No other code touched. No reordering, no signature changes, no class
+   314→  adjustments. Diff per file = +1 import +2 render lines (incl. blank).
+   315→
+   316→**Files Edited (8):**
+   317→1. `src/components/screens/superadmin/dashboard.tsx`
+   318→2. `src/components/screens/superadmin/companies.tsx`
+   319→3. `src/components/screens/superadmin/users.tsx`
+   320→4. `src/components/screens/superadmin/ai-usage.tsx`
+   321→5. `src/components/screens/superadmin/questions.tsx`
+   322→6. `src/components/screens/superadmin/system.tsx`
+   323→7. `src/components/screens/superadmin/audit.tsx`
+   324→8. `src/components/screens/superadmin/db-health.tsx`
+   325→
+   326→**Verification:**
+   327→- `bun run lint` → exit code 0, 0 errors, 0 warnings.
+   328→- dev.log shows clean compilation of all 8 files after edits.
+   329→- Work record written to `/home/z/my-project/agent-ctx/FLOW-SA-flow-sa.md`.
+   330→
+   331→**Stage Summary:**
+   332→- 8 files edited, ~16 lines added total. FlowNav now renders as the last
+   333→  child of `PageWrap` on every Super Admin screen, providing a persistent
+   334→  stepper + Continue CTA through the 8-screen platform-tour flow.
+   335→
+   336→---
+   337→
+   338→### FLOW-ADMIN · flow-admin — Add `FlowNav` to 8 Company Admin screens
+   339→
+   340→**Task**: Surgically inject the `FlowNav` sequential navigation component at the bottom of every screen in the Company Admin flow (defined in `src/lib/flows.ts` as `ADMIN_FLOW`).
+   341→
+   342→**Reference flow** (8 steps): Company Register → Admin Dashboard → Campaign New → Question Manager → Candidate Leaderboard → Bulk Upload → Proctoring Review → Final Selection.
+   343→
+   344→**Files edited (8)** — all under `src/components/screens/admin/`:
+   345→
+   346→| File | Export | Placement |
+   347→|------|--------|-----------|
+   348→| `register.tsx`     | `CompanyRegister`        | After 2-col grid `</div>`, last child of `PageWrap` |
+   349→| `dashboard.tsx`    | `AdminDashboard`         | After bottom strip `</div>` (Live activity + Integrity), last child of `PageWrap` |
+   350→| `campaign-new.tsx` | `CampaignCreate`        | **Outside** `<AnimatePresence>` phase switch — shows in BOTH `form` + `success` phases |
+   351→| `questions.tsx`    | `QuestionManager`        | **Outside** `<Tabs>` — shows regardless of active tab (aptitude/coding) |
+   352→| `candidates.tsx`  | `CandidateLeaderboard`  | After bottom actions `</div>` (Refresh / Export row), last child of `PageWrap` |
+   353→| `bulk-upload.tsx`  | `BulkUpload`            | **Outside** `<AnimatePresence>` phase switch — shows in all 3 phases (upload/processing/results) |
+   354→| `proctoring.tsx`   | `ProctoringReview`      | After bottom CTA `</div>`, last child of `PageWrap` (BEFORE the `<Dialog>` which sits outside `PageWrap`) |
+   355→| `selection.tsx`    | `FinalSelection`        | After footer `</GlowCard>`, last child of `PageWrap` |
+   356→
+   357→**Import added** (after other imports, top of each file):
+   358→```tsx
+   359→import { FlowNav } from "@/components/shared/flow-nav";
+   360→```
+   361→
+   362→**Render added** (once per file, last child of `PageWrap`, inside `AuroraBackground`):
+   363→```tsx
+   364→<FlowNav flowId="admin" />
+   365→```
+   366→
+   367→**Placement rules followed:**
+   368→- ✅ Outside any conditional render blocks / phase switches / Tabs / Dialog content (specifically: outside `<AnimatePresence>` in campaign-new & bulk-upload, outside `<Tabs>` in questions, before the `<Dialog>` in proctoring)
+   369→- ✅ Inside the page wrapper (`<AuroraBackground>` → `<PageWrap>` → `<section>`) so it gets the dark aurora background
+   370→- ✅ LAST child of `PageWrap`, after the existing final section
+   371→- ✅ Self-contained card (built-in `mt-12` spacing — no extra margin classes added)
+   372→
+   373→**Constraints respected:**
+   374→- ❌ Did NOT modify any other code, add FlowNav multiple times, place inside a Tab/Dialog/conditional, reorder sections, or change exports/signatures.
+   375→
+   376→**Verification:** `bun run lint` → 0 errors, 0 warnings. `rg FlowNav src/components/screens/admin` → 16 hits across 8 files (8 imports + 8 renders), confirming exactly one FlowNav per file.
+   377→
+   378→**Agent work record:** `/home/z/my-project/agent-ctx/FLOW-ADMIN-flow-admin.md`
+   379→
+   380→---
+   381→
+   382→## Task ID: FLOW-PREP · Agent: flow-prep
+   383→
+   384→**Task:** Surgically inject the `FlowNav` sequential navigation component at the bottom of every screen in the Prep Mode flow (defined in `src/lib/flows.ts` as `PREP_FLOW`).
+   385→
+   386→**Reference flow** (9 steps): Landing → Auth → Dashboard → Resume → Aptitude → Coding → Interview → Report → Replay.
+   387→
+   388→**Files edited (10)** — all under `src/components/screens/prep/` (the 9 PREP_FLOW steps + `profile.tsx` for consistency):
+   389→
+   390→| File | Export | Placement |
+   391→|------|--------|-----------|
+   392→| `landing.tsx`  | `LandingScreen` | Between the final CTA `</section>` ("Ready to ace your next interview?") and the `{/* FOOTER */}` comment — sits at the AuroraBackground sibling level, ABOVE the `<footer>` |
+   393→| `auth.tsx`     | `AuthScreen`   | After the root grid `</div>` (the 2-col marketing/form layout), directly before `</AuroraBackground>` (skipped the `<div className="px-4 pb-12">` wrapper because the screen wraps in `<AuroraBackground>`) |
+   394→| `dashboard.tsx`| `DashboardScreen` | Last child of `PageWrap`, after the quick-actions grid `</div>` |
+   395→| `resume.tsx`   | `ResumeHub`    | Last child of `PageWrap`, after the footer CTA `</div>` ("Want tailored interview questions...") |
+   396→| `aptitude.tsx` | `AptitudePortal` | Last child of `PageWrap`, after the `<AnimatePresence>` results block `</div>` |
+   397→| `coding.tsx`   | `CodingArena`  | Last child of `PageWrap`, after the stats strip `</div>` — placed BEFORE the `<Dialog>` (language-switch confirm) which sits OUTSIDE `PageWrap` between `</PageWrap>` and `</AuroraBackground>` |
+   398→| `interview.tsx`| `InterviewScreen` | Last child of `PageWrap`, after the `<AnimatePresence>` phase switch `</div>` |
+   399→| `report.tsx`   | `ReportScreen` | Last child of `PageWrap`, after the Download-PDF CTA `</div>` |
+   400→| `replay.tsx`   | `ReplayScreen` | Last child of `PageWrap`, after the bottom GlowCard `</div>` ("Start New") |
+   401→| `profile.tsx`  | `ProfileScreen` | Last child of `PageWrap`, after the Tabs `</div>` (profile is not in PREP_FLOW but `flowId="prep"` was still applied — falls back to landing as current step, acceptable) |
+   402→
+   403→**Import added** (top of each file, after `import { cn } from "@/lib/utils";`):
+   404→```tsx
+   405→import { FlowNav } from "@/components/shared/flow-nav";
+   406→```
+   407→
+   408→**Render added** (once per file):
+   409→```tsx
+   410→<FlowNav flowId="prep" />
+   411→```
+   412→
+   413→**Placement rules followed:**
+   414→- ✅ Outside any Tabs / Dialog / AnimatePresence / conditional render blocks — every FlowNav is a sibling of the main content container, not inside a tab panel
+   415→- ✅ Inside `AuroraBackground` so it gets the dark aurora background (inside `PageWrap` everywhere except `landing.tsx` and `auth.tsx`, where it lives directly inside `AuroraBackground` because those screens don't use a single `PageWrap`)
+   416→- ✅ LAST child of its container (last child of `PageWrap` for 8 files; for `landing.tsx` it sits between the final CTA `<section>` and `<footer>` so the footer remains at the bottom; for `auth.tsx` it sits at the bottom of `AuroraBackground` below the form)
+   417→- ✅ Self-contained card — built-in `mt-12` spacing, no extra margin classes added
+   418→
+   419→**Constraints respected:**
+   420→- ❌ Did NOT modify any other code in the files
+   421→- ❌ Did NOT add FlowNav multiple times in any file (verified: `rg FlowNav src/components/screens/prep` → 20 hits across 10 files = 10 imports + 10 renders)
+   422→- ❌ Did NOT place FlowNav inside a Tab, Dialog, or conditional render block
+   423→- ❌ Did NOT reorder existing sections, change screen exports, or change function signatures
+   424→
+   425→**Verification:** `bun run lint` → 0 errors, 0 warnings.
+   426→
+   427→**Agent work record:** `/home/z/my-project/agent-ctx/FLOW-PREP-flow-prep.md`
+   428→
+   429→---
+   430→
+   431→## Task ID: FLOWNAV-CLEANUP · Agent: flownav-cleanup
+   432→
+   433→**Task:** `FlowNav` was promoted to a GLOBAL render in `src/app/page.tsx` (between `TopNav` and the active screen). Remove the per-screen `FlowNav` import + render from ALL screen files under `src/components/screens/` so only the global one remains (otherwise every screen would show TWO FlowNav bars).
+   434→
+   435→**Files edited (33)** — all under `src/components/screens/`:
+   436→
+   437→| Group | Files | Count |
+   438→|-------|-------|-------|
+   439→| Prep | `auth`, `dashboard`, `resume`, `aptitude`, `coding`, `interview`, `report`, `replay`, `profile`, `landing` | 10 |
+   440→| Admin | `landing`, `register`, `dashboard`, `campaign-new`, `questions`, `candidates`, `bulk-upload`, `proctoring`, `selection` | 9 |
+   441→| Candidate | `apply`, `login`, `change-password`, `system-check`, `dashboard`, `results` | 6 |
+   442→| Super Admin | `dashboard`, `companies`, `users`, `ai-usage`, `questions`, `system`, `audit`, `db-health` | 8 |
+   443→
+   444→**Edits per file (exactly 2 via `MultiEdit`):**
+   445→
+   446→1. **Removed the import line** (matched with trailing newline so no blank line was left behind):
+   447→   ```tsx
+   448→   import { FlowNav } from "@/components/shared/flow-nav";
+   449→   ```
+   450→
+   451→2. **Removed the JSX render** (matched with trailing newline):
+   452→   - Simple pattern (32 files): `<FlowNav flowId="prep|admin|candidate|superadmin" />` (6- or 8-space indent per file)
+   453→   - Wrapped pattern (`admin/landing.tsx` only): removed the entire block — the `{/* Sequential flow nav at bottom */}` comment + two wrapping `<div>`s (which existed ONLY to hold FlowNav) + the `<FlowNav flowId="admin" />` line
+   454→
+   455→**Post-edit cleanup:** `prep/landing.tsx` had blank lines on BOTH sides of the original FlowNav render; removing the line left a double-blank between `</section>` and `{/* FOOTER */}`. A follow-up `Edit` collapsed the double blank back to a single blank line to keep ESLint's `no-multiple-empty-lines` happy. All other files had only a single adjacent blank line, so no further cleanup was needed.
+   456→
+   457→**⚠ Discrepancy note:** The task instructions claimed "the prep `landing.tsx` does NOT have FlowNav — skip it" and listed the total as 32 files. In reality, `prep/landing.tsx` DID contain FlowNav (line 40 import + line 531 render — added by the earlier FLOW-PREP agent). To satisfy the explicit verification criterion (`rg "FlowNav" src/components/screens/` → ZERO matches) and the overall stated goal ("only the global one remains"), `prep/landing.tsx` was ALSO cleaned up (bringing the actual total to 33 files). Details are documented in the agent work record.
+   458→
+   459→**Constraints respected:**
+   460→- ✅ Did NOT modify any other code, change exports/signatures, reorder sections, or remove any other imports.
+   461→- ✅ Did NOT touch the FlowNav component definition (`src/components/shared/flow-nav.tsx`) or the global render (`src/app/page.tsx`).
+   462→
+   463→**Verification:**
+   464→- `rg "FlowNav" src/components/screens/` → **No matches found** (ZERO per-screen references) ✅
+   465→- `bun run lint` → **exit code 0** (0 errors, 0 warnings) ✅
+   466→- `rg "FlowNav" src/` → only 4 matches remain, all in the expected locations:
+   467→  - `src/app/page.tsx:6` (import) + `src/app/page.tsx:96` (global `<FlowNav />` render)
+   468→  - `src/components/shared/flow-nav.tsx:43` (JSDoc) + `src/components/shared/flow-nav.tsx:54` (`export function FlowNav()`)
+   469→
+   470→**Agent work record:** `/home/z/my-project/agent-ctx/FLOWNAV-CLEANUP-flownav-cleanup.md`
+   471→
+   472→---
+   473→
+   474→## Task DESIGN-ADMIN · design-admin · 2025
+   475→
+   476→**Agent:** design-admin
+   477→**Scope:** Apply professional design edits to 8 Company Admin screen files to match the redesigned landing page (prep/landing.tsx) quality bar.
+   478→
+   479→**Files edited (8):**
+   480→1. `src/components/screens/admin/register.tsx` → `CompanyRegister`
+   481→2. `src/components/screens/admin/dashboard.tsx` → `AdminDashboard`
+   482→3. `src/components/screens/admin/campaign-new.tsx` → `CampaignCreate`
+   483→4. `src/components/screens/admin/questions.tsx` → `QuestionManager`
+   484→5. `src/components/screens/admin/candidates.tsx` → `CandidateLeaderboard`
+   485→6. `src/components/screens/admin/bulk-upload.tsx` → `BulkUpload`
+   486→7. `src/components/screens/admin/proctoring.tsx` → `ProctoringReview`
+   487→8. `src/components/screens/admin/selection.tsx` → `FinalSelection`
+   488→
+   489→**Surgical edits applied per file:**
+   490→
+   491→A. **AuroraBackground removed** — replaced `<AuroraBackground>` wrapper with `<div className="min-h-screen bg-background text-foreground">`. Removed import.
+   492→
+   493→B. **Emojis removed from copy** — verified zero matches for the emoji character class `[✅🔄🔒📋🚀⚠️❌✨🎯🔥💡📥📤📊👥🟢🔴]` across all 8 files. Replaced the inline `✓` text character in questions.tsx with the `<Check>` icon, and the `✗`/`🚫`/`⚠️` indicators in selection.tsx with `<X>` and `<ShieldAlert>` icons respectively.
+   494→
+   495→C. **Em dashes removed** — replaced `—` with `.` (in copy) or `-` (in placeholders and JSX comments). All em dashes in rendered copy converted: e.g. "in a week — not a quarter." → "in a week. Not a quarter.", "auto-submitted — 3+ tab" → "Auto-submitted. 3+ tab", "Disqualified — phone detected" → "Disqualified. Phone detected", "versioned — every change" → "versioned. Every change". Table-cell null placeholders (`—`) replaced with regular hyphen `-`.
+   496→
+   497→D. **Sparkles icon removed** — import and all JSX usages deleted from every file (was used in register.tsx pitch card, dashboard.tsx Active Campaigns stat icon, and campaign-new.tsx Create button).
+   498→
+   499→E. **Harsh button gradients removed** — all `bg-gradient-to-r from-violet-500 to-fuchsia-500` (and br/to-fuchsia-400 hover variants) replaced with solid `bg-violet-500 hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600`. Same treatment applied to slider range fills, progress bars, and avatar backgrounds (now `bg-violet-500/10 text-violet-700 dark:text-violet-300`).
+   500→
+   501→F. **Glow shadows removed** — `shadow-[0_0_24px_-4px_rgba(168,85,247,0.6)]` and similar glow box-shadows replaced with `shadow-sm`. Verified zero `shadow-[` custom-class matches remain across the 8 files.
+   502→
+   503→G. **BorderBeam removed** — was not present in any of the 8 edited files (only in admin/landing.tsx, which was off-limits).
+   504→
+   505→H. **MagneticButton removed** — replaced with plain `<Button>` and removed import. All `onClick`, `disabled`, `className`, `type`, and `variant` props preserved.
+   506→
+   507→I. **PulseBadge removed** — replaced with native `<span>` elements using the same color tokens (`border-X-400/30 bg-X-500/10 text-X-700 dark:text-X-300`). For the dashboard header label and candidates.tsx eyebrow, used simpler `border-black/15 dark:border-white/15` muted pills (eyebrow restraint: max 1 per 3 sections, most converted to plain eyebrow text).
+   508→
+   509→J. **Shape consistency fixed** — all card containers now use `rounded-lg` (GlowCard used `rounded-xl`); all action buttons now use `rounded-full`. Inner pills/badges stay `rounded-full`. The pseudo-QR code box, dropzone, avatar circles, and form inputs retain their appropriate radii.
+   510→
+   511→K. **"it's not X, it's Y" copy removed** — verified zero matches for `it's not|It's not` across all 8 files.
+   512→
+   513→L. **Filler verbs removed** — verified zero matches for `Elevate|Unleash|Seamless|Next-Gen|Revolutionize`.
+   514→
+   515→M. **Functionality preserved** — all tabs, tables, forms, modals, QR placeholder generator, dropzone handlers, processing animation, dropdown menus, score sliders, integrity timeline, screenshot dialog, decision select, and state hooks left intact. No features removed.
+   516→
+   517→N. **Named exports preserved** — every `export function <Name>()` kept with the original name (verified via `rg "^export function"` across all 8 files).
+   518→
+   519→O. **useNav navigation preserved** — every file still imports `useNav` from `@/lib/store` and calls `set(...)` for navigation. Verified via `rg -c "useNav"` (each file shows 2: 1 import + 1 usage).
+   520→
+   521→**Additional refinements:**
+   522→- Realistic company name: `Acme Labs Pvt Ltd` → `Northwind Labs Pvt Ltd` in dashboard.tsx and register.tsx (sample placeholder email `priya@acme.com` → `priya@northwind.com`).
+   523→- `Plan: "Teams · 50 seats"` → `"Teams. 50 seats"` (middot preserved; would have failed em-dash rule otherwise — but middots are allowed per spec).
+   524→- Light-mode contrast: all `text-X-200/300` accent text classes paired with `dark:` variants using `text-X-700/600` so accents are readable on white backgrounds (works in conjunction with the existing globals.css `:root:not(.dark)` overrides).
+   525→- `border-white/10` → `border-black/10 dark:border-white/10` and `bg-white/[0.03]` → `bg-muted/30` on cards/containers for native light-mode visibility without relying solely on the globals.css overrides.
+   526→- `hover:text-white` → `hover:text-foreground` on text-only buttons.
+   527→- All removed `motion` imports from candidates.tsx, questions.tsx, proctoring.tsx, and selection.tsx (those files no longer use framer-motion after edits, and unused imports would trip ESLint).
+   528→- Faux webcam frame in proctoring.tsx dialog converted from gradient fills to solid slate shades; the bobbing motion on the phone overlay was removed (the spec's "hover animations → minimal color changes" spirit applies — and the bob was infinite, not hover-driven, but still removed for restraint).
+   529→
+   530→**Verification (all passing):**
+   531→- `bun run lint` → exit code 0, 0 errors, 0 warnings ✅
+   532→- `rg "[✅🔄🔒📋🚀⚠️❌✨🎯🔥💡📥📤📊👥🟢🔴]" src/components/screens/admin/{8 files}` → no matches ✅
+   533→- `rg "—" src/components/screens/admin/{8 files}` → no matches ✅ (JSX comments cleaned too)
+   534→- `rg "AuroraBackground|Sparkles|MagneticButton|BorderBeam" src/components/screens/admin/{8 files}` → no matches ✅ (only `admin/landing.tsx` retains these, per the "do not touch" instruction)
+   535→- `rg "bg-gradient-to-(r|br|b)" src/components/screens/admin/{8 files}` → no matches ✅
+   536→- `rg "shadow-\[" src/components/screens/admin/{8 files}` → no matches ✅
+   537→- `rg "text-glow|gradient-text" src/components/screens/admin/{8 files}` → no matches ✅
+   538→- `rg "hover:text-white" src/components/screens/admin/{8 files}` → no matches ✅
+   539→- `rg "Elevate|Unleash|Seamless|Next-Gen|Revolutionize" src/components/screens/admin/{8 files}` → no matches ✅
+   540→- `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/` → 200 ✅
+   541→- `rg "^export function"` → all 8 named exports preserved ✅
+   542→- `rg -c "useNav"` → all 8 files still wired to the nav store ✅
+   543→
+   544→**Out of scope (NOT touched, per task constraints):**
+   545→- `src/components/screens/admin/landing.tsx` — explicitly listed as already redesigned; left intact despite it still containing AuroraBackground/Sparkles/MagneticButton/BorderBeam/GlowCard/PulseBadge (the task owner is aware — that file is the "do not touch" carve-out).
+   546→- All non-admin screen files, primitives.tsx, globals.css, package.json.
+   547→
+   548→**Agent work record:** `/home/z/my-project/agent-ctx/DESIGN-ADMIN-design-admin.md`
+   549→
+   550→---
+   551→
+   552→## Task ID: DESIGN-CAND-SA — Candidate & Super Admin Screen Redesign
+   553→
+   554→**Agent:** design-cand-sa
+   555→**Scope:** Apply professional design quality to 14 screen files (6 candidate + 8 super admin), bringing them to the same quality level as the redesigned landing page (`src/components/screens/prep/landing.tsx`).
+   556→
+   557→**Design references applied:**
+   558→- Landing page (`prep/landing.tsx`) — shape consistency (rounded-lg cards, rounded-full buttons), one accent (violet-500), no em dashes, no emojis, eyebrow restraint.
+   559→- Taste Skill v2 rules — no filler verbs, no "it's not X, it's Y", motion spring `[0.16, 1, 0.3, 1]` (kept existing motion), opacity + y only.
+   560→- 30-things-to-avoid list — applied surgically to each file.
+   561→
+   562→**Surgical edits applied to all 14 files:**
+   563→
+   564→A. **AuroraBackground** → replaced with `<div className="min-h-screen bg-background text-foreground">` (14 wrappers removed).
+   565→
+   566→B. **Emojis removed** from all copy (✅ 🔍 ⚠️ 🔄). Status indicators swapped to either:
+   567→   - Icons (`AlertTriangle`, `CheckCircle2`, `Loader2`, etc.)
+   568→   - Inline dot spans (`<span className="h-2 w-2 rounded-full bg-emerald-500" />`)
+   569→
+   570→C. **Em dashes (—)** → replaced with `. ` or `- ` (16 occurrences across user-facing copy + comments).
+   571→
+   572→D. **Sparkles icon** → removed import and JSX in 6 files where present.
+   573→
+   574→E. **Harsh button gradients** (`bg-gradient-to-r from-violet-500 to-fuchsia-500`) → solid `bg-violet-500 hover:bg-violet-600` (and analogous rose/emerald/amber/sky variants).
+   575→
+   576→F. **Glow shadows** on icon containers (`bg-gradient-to-br from-X/30 to-Y/30`) → solid `bg-X/10` tints.
+   577→
+   578→G. **BorderBeam** → none in scope (0 occurrences).
+   579→
+   580→H. **MagneticButton** → replaced with `<Button>` in 6 files (apply, login, change-password, system-check, dashboard, results).
+   581→
+   582→I. **PulseBadge** → replaced with `<Badge variant="outline">` (or inline span where Badge didn't fit). Added `BADGE_TONE_CLASS` lookup map in users.tsx and audit.tsx to preserve the color-coded badges for roles and audit actions.
+   583→
+   584→J. **Shape consistency** — icon containers `rounded-xl`/`rounded-2xl` → `rounded-lg`; primary buttons already `rounded-full`. Header pills standardized to `rounded-full`.
+   585→
+   586→K. **"It's not X, it's Y" copy** — removed from login.tsx (the "invited candidate login — different from your student account" line rewritten to a flat factual sentence).
+   587→
+   588→L. **Filler verbs** — none found in scope; left meaningful verbs intact.
+   589→
+   590→M. **All functionality preserved** — tabs, tables, forms, modals, dialogs, charts (recharts), progress bars, switches, selects, search debounce, CSV export, file upload, password strength meter, countdown timer.
+   591→
+   592→N. **All 14 named exports preserved** (verified via grep).
+   593→
+   594→O. **All useNav navigation preserved** (verified via grep).
+   595→
+   596→**Additional light-mode contrast fixes applied:**
+   597→- `text-white` (no slash) on transparent card backgrounds → `text-foreground` (apply.tsx, results.tsx, dashboard.tsx).
+   598→- `hover:text-white` on ghost buttons → `hover:text-foreground` (login.tsx, dashboard.tsx, results.tsx, change-password.tsx).
+   599→- `text-violet-200/300/400` and similar low-contrast hues → paired with explicit `dark:` variants + `text-violet-600/700` for light mode (dashboard.tsx, results.tsx, system.tsx, audit.tsx, db-health.tsx, ai-usage.tsx, users.tsx, companies.tsx, questions.tsx).
+   600→- `text-white/40` and `text-white/20` decorative elements → `text-muted-foreground` / `text-muted-foreground/30` (dashboard.tsx timer colons, results.tsx hidden-row icons).
+   601→- `gradient-text` → `text-violet-500 dark:text-violet-400` (matches landing-page accent style).
+   602→- `text-glow` → removed (CSS light-mode override already nullifies, but cleaner to drop).
+   603→
+   604→**Files edited (14):**
+   605→
+   606→Candidate (6):
+   607→1. `src/components/screens/candidate/apply.tsx` → `ApplyPage`
+   608→2. `src/components/screens/candidate/login.tsx` → `CandidateLogin`
+   609→3. `src/components/screens/candidate/change-password.tsx` → `ForcePasswordChange`
+   610→4. `src/components/screens/candidate/system-check.tsx` → `PreTestCheck`
+   611→5. `src/components/screens/candidate/dashboard.tsx` → `CandidateDashboard`
+   612→6. `src/components/screens/candidate/results.tsx` → `CandidateResults`
+   613→
+   614→Super Admin (8):
+   615→7. `src/components/screens/superadmin/dashboard.tsx` → `SuperAdminDashboard`
+   616→8. `src/components/screens/superadmin/companies.tsx` → `CompanyManagement`
+   617→9. `src/components/screens/superadmin/users.tsx` → `UserManagement`
+   618→10. `src/components/screens/superadmin/ai-usage.tsx` → `AIUsageMonitor`
+   619→11. `src/components/screens/superadmin/questions.tsx` → `QuestionBankAdmin`
+   620→12. `src/components/screens/superadmin/system.tsx` → `SystemConfig`
+   621→13. `src/components/screens/superadmin/audit.tsx` → `AuditLogs`
+   622→14. `src/components/screens/superadmin/db-health.tsx` → `DatabaseHealth`
+   623→
+   624→**Verification (all pass):**
+   625→- `bun run lint` → exit code 0 (0 errors, 0 warnings)
+   626→- `rg "[✅🔄🔒⚠️❌✨🎯🔥💡📥📊🟢🔴⚡🔍📁]" src/components/screens/candidate/ src/components/screens/superadmin/` → **No matches**
+   627→- `rg "—" src/components/screens/candidate/ src/components/screens/superadmin/` → **No matches**
+   628→- `rg "AuroraBackground|Sparkles|MagneticButton|BorderBeam|PulseBadge" src/components/screens/candidate/ src/components/screens/superadmin/` → **No matches**
+   629→- `rg "bg-gradient-to-(r|br)" src/components/screens/candidate/ src/components/screens/superadmin/` → **No matches** (no harsh gradients left)
+   630→- Dev server (`bun run dev`) compiled all 14 files cleanly with `GET / 200` responses (verified via `dev.log`).
+   631→
+   632→**Agent work record:** `/home/z/my-project/agent-ctx/DESIGN-CAND-SA-design-cand-sa.md`
+   633→
+   634→---
+   635→
+   636→## Task ID: DESIGN-PREP · Agent: design-prep
+   637→### Date: 2025-09-25
+   638→### Summary: Redesigned 9 Prep Mode screens to match the redesigned landing page quality
+   639→
+   640→### Files Edited (9):
+   641→1. `src/components/screens/prep/auth.tsx` — AuthScreen
+   642→2. `src/components/screens/prep/dashboard.tsx` — StudentDashboard
+   643→3. `src/components/screens/prep/resume.tsx` — ResumeHub
+   644→4. `src/components/screens/prep/aptitude.tsx` — AptitudePortal
+   645→5. `src/components/screens/prep/coding.tsx` — CodingArena
+   646→6. `src/components/screens/prep/interview.tsx` — InterviewStudio
+   647→7. `src/components/screens/prep/report.tsx` — InterviewReport
+   648→8. `src/components/screens/prep/replay.tsx` — InterviewReplay
+   649→9. `src/components/screens/prep/profile.tsx` — StudentProfile
+   650→
+   651→### Key Changes Applied (per the 30-things-to-avoid list + Taste Skill v2 + Motion Skill):
+   652→
+   653→**A. AuroraBackground removed** — All 9 files: replaced `<AuroraBackground>` with `<div className="min-h-screen bg-background text-foreground">`. Aurora orbs and dot grid eliminated.
+   654→
+   655→**B. Emojis removed from all copy** — Removed 👋 (dashboard welcome), 🎉 (aptitude perfect score), and 6 emotion-strip emojis (😐🙂😊🤔 in replay). Status indicators replaced with CheckCircle2/XCircle icons. Emotion strip replaced with colored dots.
+   656→
+   657→**C. Em dashes removed** — All `—` characters replaced with periods or hyphens across all 9 files (roadmap themes, AI summary text, proctoring copy, transcript notes, report strengths/improvements, interview type descriptions, etc.).
+   658→
+   659→**D. Sparkles icon removed** — Removed from all imports and JSX. Replaced with Video, Code2, FileText, Info, Award, or Briefcase depending on context.
+   660→
+   661→**E. Harsh gradients removed** — All `bg-gradient-to-r from-violet-500 to-fuchsia-500` on buttons replaced with solid `bg-violet-500 hover:bg-violet-600`. Gradient text replaced with solid `text-violet-500 dark:text-violet-400`.
+   662→
+   663→**F. Glow shadows removed** — All `shadow-[0_0_24px_-4px_rgba(168,85,247,0.6)]` and `shadow-2xl` replaced with `shadow-sm` or removed.
+   664→
+   665→**G. BorderBeam removed** — Not present in these 9 files (was already absent).
+   666→
+   667→**H. MagneticButton removed** — All `<MagneticButton>` in auth.tsx replaced with regular `<Button>`.
+   668→
+   669→**I. PulseBadge removed** — All `<PulseBadge>` replaced with `<Badge>` or `<span>`.
+   670→
+   671→**J. Shape consistency fixed** — All cards now use `rounded-lg` (replaced GlowCard's rounded-xl with plain divs using rounded-lg). Buttons use `rounded-full`. Dropzone changed from rounded-2xl to rounded-lg.
+   672→
+   673→**K. "It's not X, it's Y" copy removed** — None found in these files; verified.
+   674→
+   675→**L. Filler verbs removed** — No Elevate/Unleash/Seamless/Next-Gen/Revolutionize/Transform found in copy.
+   676→
+   677→**M. Terms + Privacy links added** — auth.tsx footer now has `<a href="#">Terms</a>` and `<a href="#">Privacy</a>` links.
+   678→
+   679→**N. All functionality preserved** — All tabs, sub-screens, forms, tables, charts, modals, dialogs, accordions, and interactive elements kept intact.
+   680→
+   681→**O. All named exports preserved** — AuthScreen, StudentDashboard, ResumeHub, AptitudePortal, CodingArena, InterviewStudio, InterviewReport, InterviewReplay, StudentProfile all unchanged.
+   682→
+   683→**P. All useNav navigation preserved** — All `set("...")` calls unchanged.
+   684→
+   685→### Additional Design Fixes:
+   686→- **GlowCard replaced** with plain `<div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">` across all files (GlowCard used backdrop-blur and rounded-xl, violating #8 and #19).
+   687→- **Terminal window chrome removed** — coding.tsx editor: removed fake traffic-light dots (red/amber/green circles).
+   688→- **Pure black removed** — coding.tsx editor background changed from `#0a0a0f` to `bg-zinc-900`.
+   689→- **Rainbow coloring reduced** — dashboard stat tones consolidated; interview.tsx ConicSpinner changed from rainbow conic gradient to single-violet gradient.
+   690→- **Animated arrows removed** — dashboard.tsx bottom action buttons: removed `group-hover:translate-x-0.5` on ArrowRight.
+   691→- **Bounce easing removed** — interview.tsx done screen: spring changed from `stiffness: 200, damping: 14` to `stiffness: 120, damping: 20` (gentle). report.tsx download icon: `animate-bounce` replaced with `animate-spin`.
+   692→- **Checkmark characters removed** — dashboard.tsx roadmap: `✓` character replaced with CheckCircle2 icon. aptitude.tsx: `🎉` replaced with CheckCircle2 icon.
+   693→- **Color consistency** — one accent (violet-500) across all sections. Text colors use `dark:` variants for proper light/dark contrast.
+   694→- **Light-mode overrides respected** — Used `bg-black/[0.02]` and `dark:bg-white/[0.02]` patterns that work with the globals.css light-mode contrast fixes.
+   695→
+   696→### Verification Results:
+   697→- `bun run lint` → 0 errors ✓
+   698→- `rg "AuroraBackground|Sparkles|MagneticButton|BorderBeam|PulseBadge|GlowCard" src/components/screens/prep/` → only landing.tsx (untouched) ✓
+   699→- `rg "—" src/components/screens/prep/` → 0 results (excluding landing.tsx) ✓
+   700→- `rg "[👋✅🔄🔒🎤📷📥📋🚀⚠️❌✨🎯🔥💡🎉😐🙂😊🤔]" src/components/screens/prep/` → 0 results ✓
+   701→- All 9 named exports verified present ✓
+   702→- All `set("...")` navigation calls verified preserved ✓
+   703→- Dev server compiles successfully (GET / 200) ✓
+   704→
+   705→---
+   706→
+   707→## Task ID: DESIGN-ADMIN-LANDING · Agent: design-admin-landing
+   708→
+   709→**Date:** 2025
+   710→**Scope:** Clean up banned design patterns in `src/components/screens/admin/landing.tsx` (CompanyLanding component) to match the redesigned prep landing page (`src/components/screens/prep/landing.tsx`).
+   711→
+   712→### File edited (1)
+   713→| # | File | Named export |
+   714→|---|---|---|
+   715→| 1 | `src/components/screens/admin/landing.tsx` | `CompanyLanding` |
+   716→
+   717→### What was changed
+   718→
+   719→**A. AuroraBackground removed** — Replaced `<AuroraBackground>...</AuroraBackground>` wrapper with `<div className="min-h-screen bg-background text-foreground">...</div>`. Removed the import from `@/components/shared/primitives`.
+   720→
+   721→**B. Sparkles icon removed** — Removed from the lucide-react import list and from the JSX (the "Most popular" Badge in the Growth pricing tier no longer has a Sparkles icon, just the text). Also removed 5 other unused lucide imports (`ArrowDown`, `Download`, `Plug`, `Star`, `Trophy`) that were dead from a prior version.
+   722→
+   723→**C. MagneticButton removed** — All 3 `<MagneticButton>` instances (hero primary CTA, hero secondary CTA, final-CTA primary) replaced with plain `<Button>`. All props (`size`, `variant`, `className`, `onClick`) preserved. Removed the import.
+   724→
+   725→**D. BorderBeam removed** — All 4 `<BorderBeam />` elements removed (pipeline callout GlowCard, pricing popular GlowCard, final-CTA GlowCard, CompanyMockup GlowCard). Removed the import.
+   726→
+   727→**E. PulseBadge removed** — All 3 `<PulseBadge>` instances replaced with native `<span>` pills using the same color tokens:
+   728→- Hero "For Companies · Hiring Mode" (emerald) → `<span className="...border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">`
+   729→- Pipeline callout "The killer automation" (emerald) → same emerald pill
+   730→- Proctoring spotlight "Proctoring & integrity" (amber) → `<span className="...border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">`
+   731→Removed the import.
+   732→
+   733→**F. All em dashes (—) removed** — 16 instances replaced with periods, commas, or colons:
+   734→- `"automatically — no manual data entry"` → `"automatically. No manual data entry"`
+   735→- `"High — gut feel"` → `"High. Gut feel"`
+   736→- `"manual filter — and we saved"` → `"manual filter, and we saved"`
+   737→- `"the platform — we would have"` → `"the platform. We would have"`
+   738→- `"project depth — never name"` → `"project depth. Never name"`
+   739→- `"Question Set Manager — add aptitude"` → `"Question Set Manager. Add aptitude"`
+   740→- `"Enterprise is custom — talk to us"` → `"Enterprise is custom. Talk to us"`
+   741→- `"ranked leaderboard — no scheduling"` → `"ranked leaderboard. No scheduling"`
+   742→- `"final shortlist — without scheduling"` → `"final shortlist. Without scheduling"`
+   743→- `"the login URL + deadline — all in 2 seconds"` → `"the login URL + deadline. All in 2 seconds"`
+   744→- `"Three strikes — tab switch ... anomaly — and the test"` → `"Three strikes: tab switch ... anomaly, and the test"`
+   745→- `"leaderboard — ✅ Clean / ⚠️ Flags / 🚫 Penalty"` → `"leaderboard. Clean / Flags / Penalty"` (emojis also dropped)
+   746→- `"Hit us up — we'll get back"` → `"Hit us up. We'll get back"`
+   747→- `"final shortlist — automated"` → `"final shortlist. Automated"`
+   748→- JSDoc comment `"sees —"` → `"sees."`
+   749→
+   750→**G. Harsh button gradients removed** — All `bg-gradient-to-r from-violet-500 to-fuchsia-500` (with `hover:from-violet-400 hover:to-fuchsia-400`) replaced with solid `bg-violet-500 hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600`. Applied to: hero primary CTA, pipeline "See the leaderboard" button, pricing popular-tier CTA, final-CTA primary button, footer "Get Sales" button.
+   751→
+   752→**H. Decorative gradients removed** — All non-button `bg-gradient-to-*` patterns replaced with solid colors to match the prep landing's zero-gradient standard:
+   753→- Feature icon container: `bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20` → `bg-violet-500/10`
+   754→- Testimonial avatars + footer logo + mockup candidate avatars: `bg-gradient-to-br from-violet-500 to-fuchsia-500` → `bg-violet-500`
+   755→- Billing toggle active pill: `bg-gradient-to-r from-violet-500 to-fuchsia-500` → `bg-violet-500`
+   756→- Mockup progress-bar fill + "Shortlist & Send Invites" pill: gradient → `bg-violet-500`
+   757→- Testimonial card `bg-gradient-to-br` with `t.accent` → removed (dropped the `accent` field from TESTIMONIALS data)
+   758→- Two decorative `absolute inset-0 bg-gradient-to-br` overlay divs (pipeline callout, final CTA) → removed entirely
+   759→
+   760→**I. Gradient text + glow removed** — All 12 `gradient-text` class instances replaced with `text-violet-500 dark:text-violet-400`. The single `text-glow` class (hero headline) removed.
+   761→
+   762→**J. Glow shadow removed** — `FloatingChip` `shadow-2xl` → `shadow-sm`. No `shadow-[0_0_...]` patterns existed in the file.
+   763→
+   764→**K. Light/dark token consistency** — Section bands, card borders, and backgrounds updated from dark-mode-only (`border-white/5`, `bg-white/[0.01]`) to dual tokens (`border-black/10 dark:border-white/10`, `bg-black/[0.02] dark:bg-white/[0.02]`) matching the prep landing pattern. `hover:text-white` → `hover:text-foreground`. Accent text colors paired with `dark:` variants for light-mode readability.
+   765→
+   766→### Preserved (unchanged)
+   767→- **`CompanyLanding` named export** — verified present at line 257.
+   768→- **All 11 `useNav` navigation calls** — `company-register`, `candidate-leaderboard`, `proctoring-review`, `company-landing` (×3), `apply`, `admin-dashboard` all intact.
+   769→- **All sections** — hero, ROI stats, pain points, bento features, automation pipeline, comparison table, proctoring spotlight, logo cloud, testimonials, pricing (3 tiers + monthly/yearly toggle), FAQ accordion, final CTA, footer, and the floating CompanyMockup dashboard preview.
+   770→- **All data constants** — COMPANY_LOGOS, ROI_STATS, PAIN_POINTS, FEATURES, PIPELINE_STEPS, COMPARISON, TESTIMONIALS, PRICING, FAQ (only the cosmetic `accent` field was dropped from TESTIMONIALS).
+   771→- **All interactivity** — billing toggle state, FAQ accordion state, scroll-to-pipeline, mockup floating chips animation.
+   772→- **GlowCard, Marquee, SectionHeading, StaggeredReveal, revealItem** primitives — kept (not in the banned list); only their className props were restyled.
+   773→
+   774→### Verification (all passing)
+   775→| Check | Result |
+   776→|---|---|
+   777→| `bun run lint` | exit 0, 0 errors ✓ |
+   778→| `rg "AuroraBackground\|Sparkles\|MagneticButton\|BorderBeam\|PulseBadge" src/components/screens/admin/landing.tsx` | no matches ✓ |
+   779→| `rg "—" src/components/screens/admin/landing.tsx` | no matches ✓ |
+   780→| `rg "bg-gradient-to\|gradient-text\|text-glow\|shadow-\[" src/components/screens/admin/landing.tsx` | no matches ✓ |
+   781→| `rg "^export function CompanyLanding"` | present ✓ |
+   782→| `rg -c "useNav"` | 1 import + 11 `set(...)` calls ✓ |
+   783→| dev server | `GET / 200` (compiled successfully) ✓ |
+   784→
+   785→---
+   786→
+   787→## REBUILD-A · rebuild-a · Recreated 6 deleted shared-infrastructure files
+   788→
+   789→**Scope:** Recreate 6 files that were accidentally deleted from the coding interview platform. These files form the shared infrastructure for the Coding Arena, proctoring engine, and full-screen control surface. All other agents working on coding-test, candidate dashboard, or admin proctoring review screens depend on these modules.
+   790→
+   791→**Files created (all under `/home/z/my-project/src/`):**
+   792→
+   793→| # | Path | Purpose | LOC |
+   794→|---|---|---|---|
+   795→| 1 | `lib/fullscreen.ts` | Fullscreen API wrapper (handles webkit prefix) + `useFullscreen()` React hook | ~120 |
+   796→| 2 | `lib/proctoring.ts` | Proctoring engine with `useProctoring()` hook + 4 detectors (TabSwitch, Keyboard, CopyPaste, DevTools) + webcam frame capture | ~265 |
+   797→| 3 | `lib/coding-problems.ts` | Pure-data module: 24 problems across 6 topics (Arrays 5, Strings 4, DP 5, Graphs 3, SQL 3, Misc 4), 10 test cases each | ~430 |
+   798→| 4 | `components/shared/proctoring-warning.tsx` | z-700 modal: strikes 1+2 amber advisory, strike 3 rose terminal with "Go to result" CTA | ~175 |
+   799→| 5 | `components/shared/coding-heatmap.tsx` | GitHub-style 7×N heatmap, default 12 weeks, 5 intensity buckets, "Less / More" legend | ~165 |
+   800→| 6 | `components/shared/problem-list-table.tsx` | LeetCode-style index: search + Random button, topic filter pills, 6 topic progress cards, difficulty filter, CodingHeatmap, full problem table | ~280 |
+   801→
+   802→**Design / pattern decisions:**
+   803→- `"use client"` directive on every TSX file and on `lib/fullscreen.ts` + `lib/proctoring.ts` (they call React hooks). `lib/coding-problems.ts` is intentionally pure data with no directive so it can be imported anywhere.
+   804→- `useRef` + `useEffect` for the proctoring mode/callback refs (instead of mutating refs during render, which trips the React lint rule).
+   805→- Every `setState` call inside an effect body or event listener is wrapped in `queueMicrotask(...)` to satisfy the `react-hooks/set-state-in-effect` rule and avoid cascading renders.
+   806→- `KeyboardMonitor` defines its blocked-key combos as `{ test, type, detail(e) }` records so the `detail` string can interpolate the actual key without evaluating it eagerly inside the effect.
+   807→- Solid `bg-violet-500` accent everywhere (no indigo/blue, no gradients on buttons).
+   808→- All copy reviewed for em dashes and emojis — none present.
+   809→- Lucide icons used throughout (`AlertOctagon`, `AlertTriangle`, `ArrowRight`, `ShieldAlert`, `CheckCircle2`, `Circle`, `Search`, `Shuffle`, etc.).
+   810→- framer-motion `useReducedMotion` honoured in both animated components.
+   811→
+   812→**Lint / build verification:**
+   813→- `bun run lint` → **0 errors**, 6 warnings (all pre-existing `react-hooks/exhaustive-deps` unused-disable-directive warnings in `aptitude-test.tsx` and `coding-test.tsx`, untouched by this task).
+   814→- The only `react-hooks/set-state-in-effect` error that surfaced during the first pass (initial `setIsFullscreen` call in `useFullscreen`) was fixed by deferring the call to `queueMicrotask`.
+   815→- Pre-existing `Module not found: '@/components/screens/candidate/interview-test'` error in `dev.log` is unrelated to this task (out of scope for REBUILD-A).
+   816→
+   817→**Notes for downstream agents:**
+   818→- The coding screen (`components/screens/prep/coding.tsx`) currently inlines a single problem and its test cases. With `coding-problems.ts` and `problem-list-table.tsx` now restored, a follow-up task can replace the inline data with `<ProblemListTable>` and `getProblemById(id)`.
+   819→- The candidate coding-test screen can now wire up `useProctoring({ mode: "strict" })` + `<ProctoringWarning>` + `useFullscreen()` to deliver the full proctored experience.
+   820→- `captureWebcamFrame(video)` is exported but not yet consumed; a follow-up that records periodic webcam snapshots during strict-mode tests should call it on an interval.
+   821→
+   822→
+   823→---
+   824→
+   825→## Task ID: REBUILD-C · Agent: rebuild-c
+   826→
+   827→**Task:** Recreate 5 strict-proctoring candidate test screens (aptitude test, aptitude result, coding test, coding result, interview test) for the invited-candidate hiring flow. The candidate flow is a strict flow-through: System Check → Aptitude → Aptitude Result → Coding → Coding Result → Interview → Final Summary. No dashboard, no retakes.
+   828→
+   829→### Reference files read first
+   830→- `src/components/screens/candidate/system-check.tsx` (PreTestCheck) — confirmed the candidate-screen design language: violet-500 solid CTAs, rounded-full buttons, rounded-lg cards, GlowCard with `border-white/10 bg-white/[0.03]`, dark mode first, no emojis / no em dashes, `bg-card`/`border-black/10 dark:border-white/10` patterns.
+   831→- `src/components/screens/candidate/results.tsx` (CandidateResults) — confirmed the result-screen layout pattern (Badge → spring-in icon → score headline → result card with category breakdown → CTA). Reused for the aptitude-result and coding-result screens.
+   832→- `src/components/screens/prep/aptitude.tsx`, `src/components/screens/prep/coding.tsx`, `src/components/screens/prep/interview.tsx` — borrowed UI patterns (5×5 question grid, dark zinc-900 editor with line numbers, ConicSpinner processing screen, AvatarBlock + Waveform + AnalysisIndicators live interview layout).
+   833→- `src/lib/store.ts` — confirmed `useNav`, `ScreenId` union, `ALL_SCREENS` registry. The existing candidate section had only 6 IDs (apply, candidate-login, candidate-change-password, candidate-system-check, candidate-dashboard, candidate-results); the 5 new IDs were missing.
+   834→- `src/lib/flows.ts` — confirmed `CANDIDATE_FLOW` (6 steps, includes the dashboard). Did NOT touch flows.ts because the strict-proctoring flow is flow-through and doesn't need a stepper; the FlowNav component is intentionally bypassed when navigation is locked.
+   835→- `src/components/shared/primitives.tsx` — confirmed available primitives (GlowCard, StaggeredReveal, revealItem, PageWrap). Decided to use plain `bg-card` divs for the test screens to keep them visually distinct from marketing pages (matches the existing system-check / results pattern).
+   836→- `src/components/shared/flow-nav.tsx` — confirmed FlowNav auto-renders for screens in CANDIDATE_FLOW. The 5 new screens are NOT in CANDIDATE_FLOW (they live between candidate-system-check and candidate-results), so FlowNav correctly stays hidden on them.
+   837→
+   838→### Assumed-existing dependencies (created by parallel agent REBUILD-A/REBUILD-B)
+   839→Per the task brief, I assumed these files exist and imported them as specified:
+   840→- `src/lib/fullscreen.ts` → `requestFullscreen`, `exitFullscreen`, `isCurrentlyFullscreen`, `onFullscreenChange`, `useFullscreen`
+   841→- `src/lib/proctoring.ts` → `useProctoring({ mode: "strict" })` returning `{ strikes, events, isAutoSubmitted, totalViolations, recordViolation, reset, startMonitoring, stopMonitoring, isStrict }`, plus `captureWebcamFrame`, `ViolationType`, `ProctoringEvent`
+   842→- `src/components/shared/proctoring-warning.tsx` → `ProctoringWarning` component with props `{ strikeNumber, violationType, onAcknowledge, onAutoSubmit?, open }`
+   843→
+   844→### Files created (5)
+   845→
+   846→1. **`src/components/screens/candidate/aptitude-test.tsx`** → `CandidateAptitudeTest`
+   847→   - 25 hardcoded MCQs: 5 Quantitative, 5 Logical, 5 Verbal, 5 Analytical, 5 Data Interpretation. Each with 4 options (A/B/C/D) and a `correct` index.
+   848→   - 30-minute countdown (`TEST_DURATION_SEC = 30 * 60`). When timer hits 0, `queueMicrotask(() => setAutoSubmitted(true))` fires and shows the "Time up" overlay, then navigates to `candidate-aptitude-result` after 1.2s.
+   849→   - Question card: category badge, question text, 4 selectable option buttons (violet when selected), Previous/Next buttons.
+   850→   - Right sidebar: 5×5 navigation grid (current=violet, answered=emerald, unanswered=muted), category-attempt tally per category, "Submit Test" button.
+   851→   - Proctoring: `useProctoring({ mode: "strict" })`. Proctor held in `useRef` and updated each render via `useEffect(() => { proctorRef.current = proctor; })`. **Never** put `proctor` in any `useEffect` deps array.
+   852→   - On mount: `setNavigationLocked(true) + requestFullscreen() + proctorRef.current.startMonitoring()`. On unmount: `stopMonitoring()`.
+   853→   - 3-strike system: when `proctor.strikes >= 3`, after a 1.5s delay (so the user sees the warning), `exitFullscreen() + setNavigationLocked(false) + stopMonitoring()` and navigate to `candidate-aptitude-result`. The `<ProctoringWarning>` component is rendered when `0 < strikes < 3`.
+   854→   - Submit-confirmation dialog with "Keep Going" vs "Submit Now".
+   855→   - Proctoring footer: `Tab switches: X · Strikes: Y/3 · Integrity: Clean/Flags/Penalty`.
+   856→   - NO "Take Again" button. No retakes anywhere.
+   857→
+   858→2. **`src/components/screens/candidate/aptitude-result.tsx`** → `CandidateAptitudeResult`
+   859→   - On mount: `exitFullscreen() + setNavigationLocked(false)`.
+   860→   - Headline: `Aptitude: 74/100` (mock). Score and qualifying cutoff (50) shown via progress bar.
+   861→   - Category breakdown: 5 rows (Quant 80%, Logical 60%, Verbal 100%, Analytical 60%, DI 40%) with progress bars (emerald ≥ 60%, amber < 60%).
+   862→   - Integrity status block: "Clean" (emerald).
+   863→   - If qualified (`score >= 50`): "You qualified for the Coding round." + "Continue to Coding →" button → `requestFullscreen() + setNavigationLocked(true)` + navigate to `candidate-coding`.
+   864→   - If not qualified: "You did not meet the qualifying criteria." + "Exit" button → navigate to `landing`.
+   865→   - Footer: "You cannot retake this round."
+   866→
+   867→3. **`src/components/screens/candidate/coding-test.tsx`** → `CandidateCodingTest`
+   868→   - 3 hardcoded problems: Two Sum (Easy), Valid Parentheses (Medium), Binary Tree Level Order (Hard). Each with starter code (Python + JavaScript) and 3 test cases (1 hidden).
+   869→   - Sidebar: problem list with status pills (unsolved=number, attempted=amber AlertTriangle, solved=emerald CheckCircle2) + 3-stat tally + "Submit Round" button.
+   870→   - Main area: problem statement (with example I/O blocks), dark zinc-900 editor with line numbers + language dropdown (Python/JavaScript), action bar with "Run Tests" + "Submit" (one submission per problem — Submit disabled after first click and shows "Submitted. No retry allowed.").
+   871→   - Test results panel: per-case pass/fail with runtime + expected vs got.
+   872→   - 60-minute countdown. Auto-submit on timer expiry → navigate to `candidate-coding-result`.
+   873→   - 3-strike system with `<ProctoringWarning>`. Strike 3 → auto-submit → navigate to `candidate-coding-result`.
+   874→   - "Submit Round" → confirmation dialog → `exitFullscreen() + setNavigationLocked(false) + stopMonitoring()` → navigate to `candidate-coding-result`.
+   875→   - Proctor held in `useRef`. `queueMicrotask` for all setState inside effects.
+   876→
+   877→4. **`src/components/screens/candidate/coding-result.tsx`** → `CandidateCodingResult`
+   878→   - On mount: `exitFullscreen() + setNavigationLocked(false)`.
+   879→   - Headline: `Coding: 81/100` (mock).
+   880→   - Per-problem breakdown: 3 rows (Two Sum solved 3/3, Valid Parentheses solved 3/3, Binary Tree Level Order failed 1/3) with solved/failed badge, weight, difficulty.
+   881→   - Qualifying rule: ≥ 2 of 3 solved. Solved count = 2, so qualified=true.
+   882→   - If qualified: "You qualified for the Interview round." + "Continue to Interview →" → `requestFullscreen() + setNavigationLocked(true)` + navigate to `candidate-interview`.
+   883→   - If not: "Exit" → navigate to `landing`.
+   884→   - Integrity: Clean.
+   885→
+   886→5. **`src/components/screens/candidate/interview-test.tsx`** → `CandidateInterviewTest`
+   887→   - 4 sub-screens via `useState<SubScreen>("confirm" | "live" | "processing" | "done")`.
+   888→   - **confirm**: "You're about to start the AI interview. Mic + camera are already verified." Interview type card "Technical - General" (mock). Two pre-verified emerald cards (Microphone, Camera). Amber strict-proctoring notice. "Begin Interview" button → `requestFullscreen() + setNavigationLocked(true) + proctorRef.current.startMonitoring()` + switch to "live".
+   889→   - **live**: Top bar (Live timer + Q 3 of 12 + End Early). Left card: AvatarBlock (violet circle with Video icon, floating "thinking" pill) + Waveform (24 bars) + AnalysisIndicators (Emotion/Eye Contact/Posture) + WebcamPreview (REC pill). Right card: AI Question bubble + scrollable transcript (4 alternating AI/user bubbles + TypingDots). End Early button opens a confirmation Dialog → `exitFullscreen() + setNavigationLocked(false) + stopMonitoring()` + switch to "processing".
+   890→   - **processing**: `exitFullscreen() + setNavigationLocked(false)` on entry (in the same `useEffect` that schedules the auto-advance). ConicSpinner + 4 processing steps (Transcribing / Evaluating / Generating report / Calculating scores). Auto-advances to "done" after 3 seconds via `setTimeout` → `queueMicrotask(() => setSub("done"))`.
+   891→   - **done**: "Interview complete." + checkmark circle + 3 stat cards (12 questions / 1m 12s avg / Clean integrity) + "View Final Summary" button → navigate to `candidate-results`.
+   892→   - Strike 3 during live: 1.2s delay → end interview → switch to processing.
+   893→   - Proctor in `useRef`, never in deps. `queueMicrotask` for all setState in effects.
+   894→
+   895→### Supporting edits (2)
+   896→1. **`src/lib/store.ts`** — Added 5 new ScreenId values to the union (`candidate-aptitude`, `candidate-aptitude-result`, `candidate-coding`, `candidate-coding-result`, `candidate-interview`), registered them in `ALL_SCREENS`, and added the new `navigationLocked: boolean` + `setNavigationLocked(v: boolean)` state to the `NavState` interface and store initializer. The lock lets test screens prevent TopNav/FlowNav navigation during a proctored round.
+   897→2. **`src/app/page.tsx`** — Imported the 5 new components and registered them in the `SCREENS` map alongside the existing candidate screens.
+   898→
+   899→### Critical implementation rules honored
+   900→- Every file starts with `"use client";`.
+   901→- Imports: `requestFullscreen` / `exitFullscreen` from `@/lib/fullscreen`, `useProctoring` from `@/lib/proctoring`, `ProctoringWarning` from `@/components/shared/proctoring-warning`, `useNav` from `@/lib/store`.
+   902→- Navigation: `useNav((s) => s.set)` for screen changes, `useNav((s) => s.setNavigationLocked)` for the proctoring lock.
+   903→- No emojis anywhere. Status uses `CheckCircle2`, `XCircle`, `AlertTriangle`, `ShieldCheck`, `ShieldAlert` from lucide-react.
+   904→- No em dashes (verified via `rg "—" src/components/screens/candidate/aptitude-test.tsx …` returns no matches).
+   905→- Solid `bg-violet-500 hover:bg-violet-600` buttons (no gradients). `rounded-lg` cards, `rounded-full` buttons.
+   906→- `useReducedMotion` from framer-motion used to gate all entrance animations.
+   907→- **CRITICAL**: `proctor` is held in a `useRef` and updated each render via `useEffect(() => { proctorRef.current = proctor; })`. It is NEVER in any `useEffect` deps array — this prevents the infinite loop where `useProctoring` returns a new object on every render.
+   908→- **CRITICAL**: All `setState` calls inside `useEffect` bodies are wrapped in `queueMicrotask(() => setState(...))` to avoid React's setState-in-effect lint warning and unnecessary re-renders.
+   909→
+   910→### Verification
+   911→- `bun run lint` → 0 errors, 0 warnings across all 5 new files (plus the 2 supporting edits). Auto-fixed 9 unused `eslint-disable` directives via `bun run lint --fix`.
+   912→- Dev server (`bun run dev`) compiled all 5 new files cleanly. `GET /` returns 200 in ~55ms. The earlier "Module not found" log entries were transient — they appeared during the brief window when `page.tsx` had been saved with the new imports but `interview-test.tsx` hadn't been written yet. After all 5 files were created, the dev server recompiled successfully.
+   913→- All 5 named exports verified present via `rg "^export function (CandidateAptitudeTest|CandidateAptitudeResult|CandidateCodingTest|CandidateCodingResult|CandidateInterviewTest)"`.
+   914→
+   915→### Notes for downstream agents
+   916→- The 5 new screens are reachable today via the "All Screens" navigator in the top nav (TopNav → LayoutGrid button). They are NOT yet wired into the candidate entry flow: `system-check.tsx` still navigates to `candidate-dashboard` on "Continue to Assessment". To make the strict flow-through work end-to-end, a future surgical edit should change that one `set(...)` call from `"candidate-dashboard"` to `"candidate-aptitude"`. Similarly, the `candidate-dashboard.tsx` "Continue Coding" button currently calls `set("aptitude")` (the prep aptitude) and could be redirected to `set("candidate-aptitude")` if a dashboard fallback is kept. I left both untouched because they were outside this 5-file scope.
+   917→- The new `navigationLocked` store flag is set to `true` by all 3 strict-test screens on mount and `false` on unmount/exit. TopNav and FlowNav currently ignore it (they will still render and respond to clicks). A future small edit to those two shared components could suppress their CTAs when `navigationLocked === true` to enforce "no leaving mid-test" at the UI level. (The real enforcement is the proctoring strikes — three strikes auto-submits — so the flag is a UX safety net, not the only line of defense.)
+   918→
+   919→### Stage Summary
+   920→- Files created (5):
+   921→  - `/home/z/my-project/src/components/screens/candidate/aptitude-test.tsx` → `CandidateAptitudeTest`
+   922→  - `/home/z/my-project/src/components/screens/candidate/aptitude-result.tsx` → `CandidateAptitudeResult`
+   923→  - `/home/z/my-project/src/components/screens/candidate/coding-test.tsx` → `CandidateCodingTest`
+   924→  - `/home/z/my-project/src/components/screens/candidate/coding-result.tsx` → `CandidateCodingResult`
+   925→  - `/home/z/my-project/src/components/screens/candidate/interview-test.tsx` → `CandidateInterviewTest`
+   926→- Files edited (2):
+   927→  - `/home/z/my-project/src/lib/store.ts` — added 5 ScreenId values, 5 ALL_SCREENS entries, `navigationLocked` state.
+   928→  - `/home/z/my-project/src/app/page.tsx` — imported + registered the 5 new screens.
+   929→- Lint: 0 errors, 0 warnings.
+   930→- Dev server: 200 OK on `/`.
+   931→- Blockers: none. The 5 strict-proctoring candidate test screens are functional and lint-clean.
+   932→
+   933→---
+   934→
+   935→## Task ID: PREP-UPGRADE · Agent: prep-upgrade
+   936→
+   937→**Task:** Upgrade 3 prep-mode screen files (coding, aptitude, interview) to add
+   938→fullscreen + coding arena LeetCode-style split. The files had been restored
+   939→from git but lost the Stream B upgrades (fullscreen lifecycle, navigation
+   940→lock, ProblemListTable integration, re-enter-fullscreen modal).
+   941→
+   942→### Files modified (3)
+   943→1. **`src/components/screens/prep/coding.tsx`** (MAJOR UPGRADE) — split
+   944→   `CodingArena` into two views via `useNav(s => s.codingView)`:
+   945→   - **"list"** → `<ProblemListTable>` with store props (`solvedProblems`,
+   946→     `attemptedProblems`, `submissions` converted from string IDs to numbers).
+   947→     `onPickProblem` sets current problem, switches to editor, requests
+   948→     fullscreen, locks navigation. `onRandomQuestion` picks a random unsolved
+   949→     problem then does the same.
+   950→   - **"editor"** → fullscreen + navigation-locked. Top bar with Back /
+   951→     title+difficulty / Next. LEFT pane shows problem statement from
+   952→     `getProblemById`. RIGHT pane keeps the Monaco-styled editor, language
+   953→     dropdown (Python/JavaScript), Run/Submit, test cases, AI review panel.
+   954→     On submit success: `markSolved + recordSubmission(true)` + success modal.
+   955→     Esc exit → amber "Re-enter fullscreen" modal (no penalty).
+   956→2. **`src/components/screens/prep/aptitude.tsx`** (ADD FULLSCREEN) —
+   957→   Rules sub-screen gains optional Mic/Camera `Switch` toggles (off by
+   958→   default). Start Test → `requestFullscreen + setNavigationLocked(true) +
+   959→   setPhase("test")`. Test sub-screen watches `onFullscreenChange`; Esc →
+   960→   re-enter modal. Submit Now → `exitFullscreen + setNavigationLocked(false)
+   961→   + setPhase("results")`. Results → Take Again returns to rules (unlimited
+   962→   retakes).
+   963→3. **`src/components/screens/prep/interview.tsx`** (ADD FULLSCREEN) —
+   964→   Begin Interview → `requestFullscreen + setNavigationLocked(true) +
+   965→   setSub("live")`. Live sub-screen watches `onFullscreenChange`; Esc →
+   966→   re-enter modal. End Early → `exitFullscreen + setNavigationLocked(false)
+   967→   + setSub("processing")`. Processing entry useEffect calls
+   968→   `exitFullscreen + setNavigationLocked(false)` (idempotent). Done →
+   969→   normal mode, FlowNav visible.
+   970→
+   971→### Critical rules honored
+   972→- Fullscreen utilities imported from `@/lib/fullscreen`.
+   973→- `setNavigationLocked` read from `@/lib/store` via `useNav`.
+   974→- `useEffect` for fullscreen entry/exit (no direct calls in render body).
+   975→- `queueMicrotask(() => setState(...))` for every setState inside useEffect
+   976→  bodies or listeners registered by useEffect.
+   977→- `useReducedMotion` from framer-motion applied to all phase/sub-screen
+   978→  transitions. Used `exit={reduce ? undefined : ...}` (not `false`) to avoid
+   979→  the TypeScript error seen in the candidate screens.
+   980→- No emojis, no em dashes (verified via grep).
+   981→- All existing functionality preserved (editor, test cases, AI review, 25
+   982→  MCQs + navigator, interview avatar/transcript/processing).
+   983→- Named exports kept: `CodingArena`, `AptitudePortal`, `InterviewStudio`.
+   984→- No files outside `src/components/screens/prep/` were modified.
+   985→
+   986→### Verification
+   987→- `bun run lint` → 0 errors, 0 warnings.
+   988→- `npx tsc --noEmit --skipLibCheck` → no type errors in the 3 prep files.
+   989→- `grep -c` checks: coding.tsx = 21, aptitude.tsx = 8, interview.tsx = 11
+   990→  (all > 0).
+   991→- Named exports verified at coding.tsx:114, aptitude.tsx:102,
+   992→  interview.tsx:83.
+   993→- Dev server recompiled cleanly after each edit.
+   994→
+   995→### Stage Summary
+   996→- Files modified (3):
+   997→  - `src/components/screens/prep/coding.tsx` → `CodingArena` (list + editor split)
+   998→  - `src/components/screens/prep/aptitude.tsx` → `AptitudePortal` (fullscreen + toggles)
+   999→  - `src/components/screens/prep/interview.tsx` → `InterviewStudio` (fullscreen lifecycle)
+  1000→- Lint: 0 errors, 0 warnings.
+  1001→- TypeScript: 0 errors in prep files.
+  1002→- Dev server: 200 OK on `/`.
+  1003→- Blockers: none.
+  1004→

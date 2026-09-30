@@ -1,0 +1,686 @@
+     1→"use client";
+     2→
+     3→import { useEffect, useRef, useState } from "react";
+     4→import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+     5→import {
+     6→  AlertTriangle,
+     7→  ArrowRight,
+     8→  CheckCircle2,
+     9→  ChevronLeft,
+    10→  ChevronRight,
+    11→  Clock,
+    12→  Code2,
+    13→  ListChecks,
+    14→  Play,
+    15→  ShieldAlert,
+    16→  ShieldCheck,
+    17→  Terminal,
+    18→  XCircle,
+    19→} from "lucide-react";
+    20→import { Button } from "@/components/ui/button";
+    21→import { Badge } from "@/components/ui/badge";
+    22→import { Progress } from "@/components/ui/progress";
+    23→import { Separator } from "@/components/ui/separator";
+    24→import {
+    25→  Select,
+    26→  SelectContent,
+    27→  SelectItem,
+    28→  SelectTrigger,
+    29→  SelectValue,
+    30→} from "@/components/ui/select";
+    31→import {
+    32→  Dialog,
+    33→  DialogContent,
+    34→  DialogDescription,
+    35→  DialogFooter,
+    36→  DialogHeader,
+    37→  DialogTitle,
+    38→} from "@/components/ui/dialog";
+    39→import { useNav } from "@/lib/store";
+    40→import { cn } from "@/lib/utils";
+    41→import { requestFullscreen, exitFullscreen } from "@/lib/fullscreen";
+    42→import { useProctoring } from "@/lib/proctoring";
+    43→import { ProctoringWarning } from "@/components/shared/proctoring-warning";
+    44→
+    45→interface TestCase {
+    46→  id: number;
+    47→  input: string;
+    48→  expected: string;
+    49→  hidden?: boolean;
+    50→}
+    51→
+    52→interface Problem {
+    53→  id: number;
+    54→  title: string;
+    55→  difficulty: "Easy" | "Medium" | "Hard";
+    56→  description: string;
+    57→  starterCode: Record<string, string>;
+    58→  tests: TestCase[];
+    59→}
+    60→
+    61→const PROBLEMS: Problem[] = [
+    62→  {
+    63→    id: 1,
+    64→    title: "Two Sum",
+    65→    difficulty: "Easy",
+    66→    description:
+    67→      "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input has exactly one solution, and you may not use the same element twice.",
+    68→    starterCode: {
+    69→      Python: "def two_sum(nums, target):\n    # your code here\n    pass\n",
+    70→      JavaScript: "function twoSum(nums, target) {\n  // your code here\n}\n",
+    71→    },
+    72→    tests: [
+    73→      { id: 1, input: "nums = [2,7,11,15], target = 9", expected: "[0,1]" },
+    74→      { id: 2, input: "nums = [3,2,4], target = 6", expected: "[1,2]" },
+    75→      { id: 3, input: "nums = [3,3], target = 6", expected: "[0,1]", hidden: true },
+    76→    ],
+    77→  },
+    78→  {
+    79→    id: 2,
+    80→    title: "Valid Parentheses",
+    81→    difficulty: "Medium",
+    82→    description:
+    83→      "Given a string s containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid. A string is valid if open brackets are closed by the same type and in the correct order.",
+    84→    starterCode: {
+    85→      Python: "def is_valid(s):\n    # your code here\n    pass\n",
+    86→      JavaScript: "function isValid(s) {\n  // your code here\n}\n",
+    87→    },
+    88→    tests: [
+    89→      { id: 1, input: 's = "()"', expected: "true" },
+    90→      { id: 2, input: 's = "()[]{}"', expected: "true" },
+    91→      { id: 3, input: 's = "(]"', expected: "false", hidden: true },
+    92→    ],
+    93→  },
+    94→  {
+    95→    id: 3,
+    96→    title: "Binary Tree Level Order",
+    97→    difficulty: "Hard",
+    98→    description:
+    99→      "Given the root of a binary tree, return the level order traversal of its nodes' values (i.e., from left to right, level by level).",
+   100→    starterCode: {
+   101→      Python: "def level_order(root):\n    # your code here\n    pass\n",
+   102→      JavaScript: "function levelOrder(root) {\n  // your code here\n}\n",
+   103→    },
+   104→    tests: [
+   105→      { id: 1, input: "root = [3,9,20,null,null,15,7]", expected: "[[3],[9,20],[15,7]]" },
+   106→      { id: 2, input: "root = [1]", expected: "[[1]]" },
+   107→      { id: 3, input: "root = []", expected: "[]", hidden: true },
+   108→    ],
+   109→  },
+   110→];
+   111→
+   112→const LANGUAGES = ["Python", "JavaScript"];
+   113→const TEST_DURATION_SEC = 60 * 60;
+   114→
+   115→type ProblemStatus = "unsolved" | "attempted" | "solved";
+   116→interface ProblemState {
+   117→  code: Record<string, string>;
+   118→  results: TestCaseResult[] | null;
+   119→  submitted: boolean;
+   120→  running: boolean;
+   121→}
+   122→interface TestCaseResult {
+   123→  id: number;
+   124→  status: "pass" | "fail";
+   125→  runtime: string;
+   126→  got?: string;
+   127→}
+   128→
+   129→const emptyState = (problem: Problem): ProblemState => ({
+   130→  code: { ...problem.starterCode },
+   131→  results: null,
+   132→  submitted: false,
+   133→  running: false,
+   134→});
+   135→
+   136→export function CandidateCodingTest() {
+   137→  const reduce = useReducedMotion();
+   138→  const set = useNav((s) => s.set);
+   139→  const setNavigationLocked = useNav((s) => s.setNavigationLocked);
+   140→
+   141→  const proctor = useProctoring({ mode: "strict" });
+   142→  const proctorRef = useRef(proctor);
+   143→  useEffect(() => {
+   144→    proctorRef.current = proctor;
+   145→  });
+   146→
+   147→  const [language, setLanguage] = useState<string>("Python");
+   148→  const [activeIdx, setActiveIdx] = useState(0);
+   149→  const [timeLeft, setTimeLeft] = useState(TEST_DURATION_SEC);
+   150→  const [submitOpen, setSubmitOpen] = useState(false);
+   151→  const [autoSubmitted, setAutoSubmitted] = useState(false);
+   152→  const [states, setStates] = useState<Record<number, ProblemState>>(() => {
+   153→    const init: Record<number, ProblemState> = {};
+   154→    for (const p of PROBLEMS) init[p.id] = emptyState(p);
+   155→    return init;
+   156→  });
+   157→
+   158→  // Lock + fullscreen + start monitoring on mount
+   159→  useEffect(() => {
+   160→    setNavigationLocked(true);
+   161→    requestFullscreen();
+   162→    proctorRef.current.startMonitoring();
+   163→    return () => {
+   164→      proctorRef.current.stopMonitoring();
+   165→    };
+   166→     
+   167→  }, []);
+   168→
+   169→  // Countdown
+   170→  useEffect(() => {
+   171→    const t = setInterval(() => {
+   172→      setTimeLeft((prev) => {
+   173→        if (prev <= 1) {
+   174→          clearInterval(t);
+   175→          queueMicrotask(() => setAutoSubmitted(true));
+   176→          return 0;
+   177→        }
+   178→        return prev - 1;
+   179→      });
+   180→    }, 1000);
+   181→    return () => clearInterval(t);
+   182→  }, []);
+   183→
+   184→  // Auto-submit via proctor
+   185→  useEffect(() => {
+   186→    if (proctor.isAutoSubmitted) {
+   187→      queueMicrotask(() => setAutoSubmitted(true));
+   188→    }
+   189→  }, [proctor.isAutoSubmitted]);
+   190→
+   191→  // Strike 3 -> navigate
+   192→  useEffect(() => {
+   193→    if (proctor.strikes >= 3) {
+   194→      const t = setTimeout(() => {
+   195→        exitFullscreen();
+   196→        setNavigationLocked(false);
+   197→        proctorRef.current.stopMonitoring();
+   198→        set("candidate-coding-result");
+   199→      }, 1500);
+   200→      return () => clearTimeout(t);
+   201→    }
+   202→     
+   203→  }, [proctor.strikes]);
+   204→
+   205→  // Auto-submit -> navigate
+   206→  useEffect(() => {
+   207→    if (autoSubmitted) {
+   208→      const t = setTimeout(() => {
+   209→        exitFullscreen();
+   210→        setNavigationLocked(false);
+   211→        proctorRef.current.stopMonitoring();
+   212→        set("candidate-coding-result");
+   213→      }, 1200);
+   214→      return () => clearTimeout(t);
+   215→    }
+   216→     
+   217→  }, [autoSubmitted]);
+   218→
+   219→  const handleSubmitRound = () => {
+   220→    exitFullscreen();
+   221→    setNavigationLocked(false);
+   222→    proctorRef.current.stopMonitoring();
+   223→    setSubmitOpen(false);
+   224→    set("candidate-coding-result");
+   225→  };
+   226→
+   227→  const active = PROBLEMS[activeIdx];
+   228→  const activeState = states[active.id];
+   229→
+   230→  const setCode = (code: string) => {
+   231→    setStates((p) => ({
+   232→      ...p,
+   233→      [active.id]: { ...p[active.id], code: { ...p[active.id].code, [language]: code } },
+   234→    }));
+   235→  };
+   236→
+   237→  const runTests = () => {
+   238→    setStates((p) => ({ ...p, [active.id]: { ...p[active.id], running: true } }));
+   239→    setTimeout(() => {
+   240→      const results: TestCaseResult[] = active.tests.map((tc, i) => ({
+   241→        id: tc.id,
+   242→        status: (i === 2 ? "fail" : "pass") as "pass" | "fail",
+   243→        runtime: `${8 + Math.floor(Math.random() * 12)}ms`,
+   244→        got: i === 2 ? "wrong answer" : undefined,
+   245→      }));
+   246→      setStates((p) => ({
+   247→        ...p,
+   248→        [active.id]: { ...p[active.id], running: false, results },
+   249→      }));
+   250→    }, 900);
+   251→  };
+   252→
+   253→  const submitProblem = () => {
+   254→    setStates((p) => ({ ...p, [active.id]: { ...p[active.id], running: true } }));
+   255→    setTimeout(() => {
+   256→      const results: TestCaseResult[] = active.tests.map((tc, i) => ({
+   257→        id: tc.id,
+   258→        status: (i === 2 ? "fail" : "pass") as "pass" | "fail",
+   259→        runtime: `${8 + Math.floor(Math.random() * 12)}ms`,
+   260→        got: i === 2 ? "wrong answer" : undefined,
+   261→      }));
+   262→      setStates((p) => ({
+   263→        ...p,
+   264→        [active.id]: { ...p[active.id], running: false, results, submitted: true },
+   265→      }));
+   266→    }, 1200);
+   267→  };
+   268→
+   269→  // Status per problem
+   270→  const problemStatus = (p: Problem): ProblemStatus => {
+   271→    const s = states[p.id];
+   272→    if (s.submitted && s.results && s.results.every((r) => r.status === "pass")) return "solved";
+   273→    if (s.results || s.submitted) return "attempted";
+   274→    return "unsolved";
+   275→  };
+   276→
+   277→  const solvedCount = PROBLEMS.filter((p) => problemStatus(p) === "solved").length;
+   278→  const attemptedCount = PROBLEMS.filter((p) => problemStatus(p) === "attempted").length;
+   279→
+   280→  const mins = Math.floor(timeLeft / 60);
+   281→  const secs = timeLeft % 60;
+   282→  const pad = (n: number) => String(n).padStart(2, "0");
+   283→  const lowTime = timeLeft < 300;
+   284→
+   285→  const integrity =
+   286→    proctor.strikes === 0
+   287→      ? { label: "Clean", tone: "text-emerald-600 dark:text-emerald-300" }
+   288→      : proctor.strikes < 3
+   289→        ? { label: "Flags", tone: "text-amber-600 dark:text-amber-300" }
+   290→        : { label: "Penalty", tone: "text-rose-600 dark:text-rose-300" };
+   291→
+   292→  const tabSwitches = proctor.events.filter((e) => e.type === "tab-switch" || e.type === "visibility-change").length;
+   293→
+   294→  return (
+   295→    <div className="min-h-screen bg-background text-foreground">
+   296→      <section className="mx-auto w-full max-w-[1400px] px-4 pb-32 pt-6 sm:px-6 lg:px-8">
+   297→        {/* Header */}
+   298→        <motion.div
+   299→          initial={reduce ? false : { opacity: 0, y: 12 }}
+   300→          animate={{ opacity: 1, y: 0 }}
+   301→          transition={{ duration: 0.4 }}
+   302→          className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+   303→        >
+   304→          <div>
+   305→            <Badge variant="outline" className="mb-2 rounded-full border-amber-400/40 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300">
+   306→              <ShieldAlert className="mr-1 h-3 w-3" />
+   307→              Strict Proctoring
+   308→            </Badge>
+   309→            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+   310→              Round 2 <span className="text-violet-500 dark:text-violet-400">Coding Test</span>
+   311→            </h1>
+   312→            <p className="mt-1 text-xs text-muted-foreground">
+   313→              {PROBLEMS.length} problems · 60 minutes · one submission per problem
+   314→            </p>
+   315→          </div>
+   316→          <div className={cn(
+   317→            "flex items-center gap-2 rounded-lg border px-4 py-2 font-mono text-lg font-semibold tabular-nums sm:text-2xl",
+   318→            lowTime
+   319→              ? "border-rose-400/40 bg-rose-500/10 text-rose-600 dark:text-rose-300"
+   320→              : "border-amber-400/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+   321→          )}>
+   322→            <Clock className="h-4 w-4" />
+   323→            {pad(mins)}:{pad(secs)}
+   324→          </div>
+   325→        </motion.div>
+   326→
+   327→        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[260px_1fr]">
+   328→          {/* Sidebar: problem list */}
+   329→          <aside className="space-y-4">
+   330→            <div className="rounded-lg border border-black/10 bg-card p-4 shadow-sm dark:border-white/10">
+   331→              <div className="mb-3 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+   332→                <ListChecks className="h-3.5 w-3.5" />
+   333→                Problems
+   334→              </div>
+   335→              <ul className="space-y-1.5">
+   336→                {PROBLEMS.map((p, i) => {
+   337→                  const status = problemStatus(p);
+   338→                  const isActive = i === activeIdx;
+   339→                  return (
+   340→                    <li key={p.id}>
+   341→                      <button
+   342→                        onClick={() => setActiveIdx(i)}
+   343→                        className={cn(
+   344→                          "flex w-full items-center gap-2.5 rounded-md border px-3 py-2.5 text-left text-sm transition-colors",
+   345→                          isActive
+   346→                            ? "border-violet-500 bg-violet-500/10"
+   347→                            : "border-black/10 bg-black/[0.02] hover:border-violet-400/40 dark:border-white/10 dark:bg-white/[0.02]",
+   348→                        )}
+   349→                      >
+   350→                        <span className={cn(
+   351→                          "grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-semibold",
+   352→                          status === "solved"
+   353→                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
+   354→                            : status === "attempted"
+   355→                              ? "bg-amber-500/15 text-amber-600 dark:text-amber-300"
+   356→                              : "bg-black/5 text-muted-foreground dark:bg-white/10",
+   357→                        )}>
+   358→                          {status === "solved" ? (
+   359→                            <CheckCircle2 className="h-3.5 w-3.5" />
+   360→                          ) : status === "attempted" ? (
+   361→                            <AlertTriangle className="h-3.5 w-3.5" />
+   362→                          ) : (
+   363→                            <span>{i + 1}</span>
+   364→                          )}
+   365→                        </span>
+   366→                        <div className="min-w-0 flex-1">
+   367→                          <p className={cn("truncate text-sm", isActive ? "font-semibold" : "font-medium")}>
+   368→                            {p.title}
+   369→                          </p>
+   370→                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+   371→                            {status === "solved" ? "Solved" : status === "attempted" ? "Attempted" : "Unsolved"} · {p.difficulty}
+   372→                          </p>
+   373→                        </div>
+   374→                      </button>
+   375→                    </li>
+   376→                  );
+   377→                })}
+   378→              </ul>
+   379→              <Separator className="my-3 bg-black/5 dark:bg-white/5" />
+   380→              <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+   381→                <div>
+   382→                  <p className="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-300">{solvedCount}</p>
+   383→                  <p className="uppercase tracking-wider text-muted-foreground">Solved</p>
+   384→                </div>
+   385→                <div>
+   386→                  <p className="font-mono text-sm font-semibold text-amber-600 dark:text-amber-300">{attemptedCount}</p>
+   387→                  <p className="uppercase tracking-wider text-muted-foreground">Attempted</p>
+   388→                </div>
+   389→                <div>
+   390→                  <p className="font-mono text-sm font-semibold text-muted-foreground">{PROBLEMS.length - solvedCount - attemptedCount}</p>
+   391→                  <p className="uppercase tracking-wider text-muted-foreground">Unsolved</p>
+   392→                </div>
+   393→              </div>
+   394→            </div>
+   395→
+   396→            <Button
+   397→              onClick={() => setSubmitOpen(true)}
+   398→              className="w-full rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   399→            >
+   400→              <CheckCircle2 className="mr-1.5 h-4 w-4" />
+   401→              Submit Round
+   402→            </Button>
+   403→          </aside>
+   404→
+   405→          {/* Right: problem statement + editor + tests */}
+   406→          <div className="space-y-5">
+   407→            {/* Problem statement */}
+   408→            <motion.div
+   409→              key={active.id}
+   410→              initial={reduce ? false : { opacity: 0, y: 8 }}
+   411→              animate={{ opacity: 1, y: 0 }}
+   412→              transition={{ duration: 0.25 }}
+   413→              className="rounded-lg border border-black/10 bg-card p-5 shadow-sm sm:p-6 dark:border-white/10"
+   414→            >
+   415→              <div className="flex items-center justify-between">
+   416→                <h2 className="text-lg font-semibold tracking-tight">
+   417→                  <span className="font-mono text-muted-foreground">#{active.id}</span> {active.title}
+   418→                </h2>
+   419→                <Badge className={cn(
+   420→                  "border",
+   421→                  active.difficulty === "Easy"
+   422→                    ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+   423→                    : active.difficulty === "Medium"
+   424→                      ? "border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+   425→                      : "border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+   426→                )}>
+   427→                  {active.difficulty}
+   428→                </Badge>
+   429→              </div>
+   430→              <p className="mt-3 text-sm text-foreground/85">
+   431→                {active.description}
+   432→              </p>
+   433→              <div className="mt-4">
+   434→                <p className="text-xs uppercase tracking-wider text-muted-foreground">Examples</p>
+   435→                <div className="mt-2 space-y-2">
+   436→                  {active.tests.filter((t) => !t.hidden).map((tc) => (
+   437→                    <div key={tc.id} className="rounded-md border border-black/10 bg-zinc-900 p-3 font-mono text-xs dark:border-white/10">
+   438→                      <p className="text-emerald-300">Input: <span className="text-white/80">{tc.input}</span></p>
+   439→                      <p className="mt-1 text-violet-300">Output: <span className="text-white/80">{tc.expected}</span></p>
+   440→                    </div>
+   441→                  ))}
+   442→                </div>
+   443→              </div>
+   444→            </motion.div>
+   445→
+   446→            {/* Editor */}
+   447→            <div className="overflow-hidden rounded-lg border border-black/10 bg-card shadow-sm dark:border-white/10">
+   448→              {/* Editor chrome */}
+   449→              <div className="flex items-center justify-between border-b border-black/10 px-4 py-2 dark:border-white/5">
+   450→                <span className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
+   451→                  <Terminal className="h-3 w-3" />
+   452→                  solution.{language === "Python" ? "py" : "js"}
+   453→                </span>
+   454→                <div className="flex items-center gap-2">
+   455→                  <Select value={language} onValueChange={setLanguage}>
+   456→                    <SelectTrigger size="sm" className="w-32 rounded-md border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/5">
+   457→                      <SelectValue />
+   458→                    </SelectTrigger>
+   459→                    <SelectContent>
+   460→                      {LANGUAGES.map((l) => (
+   461→                        <SelectItem key={l} value={l}>{l}</SelectItem>
+   462→                      ))}
+   463→                    </SelectContent>
+   464→                  </Select>
+   465→                </div>
+   466→              </div>
+   467→
+   468→              {/* Code area */}
+   469→              <div className="relative bg-zinc-900">
+   470→                <div className="flex">
+   471→                  <div className="select-none border-r border-white/5 px-2 py-3 text-right font-mono text-xs text-white/30">
+   472→                    {(activeState.code[language] ?? "").split("\n").map((_, i) => (
+   473→                      <div key={i} className="leading-6">{i + 1}</div>
+   474→                    ))}
+   475→                  </div>
+   476→                  <textarea
+   477→                    value={activeState.code[language] ?? ""}
+   478→                    onChange={(e) => setCode(e.target.value)}
+   479→                    spellCheck={false}
+   480→                    disabled={activeState.submitted}
+   481→                    className="flex-1 resize-none bg-transparent p-3 font-mono text-xs leading-6 text-emerald-100 outline-none disabled:opacity-60"
+   482→                    style={{ minHeight: 240, tabSize: 4 }}
+   483→                  />
+   484→                </div>
+   485→              </div>
+   486→
+   487→              {/* Action bar */}
+   488→              <div className="flex flex-wrap items-center gap-2 border-t border-black/10 p-4 dark:border-white/5">
+   489→                <Button
+   490→                  variant="outline"
+   491→                  size="sm"
+   492→                  onClick={runTests}
+   493→                  disabled={activeState.running}
+   494→                  className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   495→                >
+   496→                  {activeState.running ? <Clock className="mr-1.5 h-4 w-4 animate-spin" /> : <Play className="mr-1.5 h-4 w-4" />}
+   497→                  Run Tests
+   498→                </Button>
+   499→                <Button
+   500→                  size="sm"
+   501→                  onClick={submitProblem}
+   502→                  disabled={activeState.running || activeState.submitted}
+   503→                  className="rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
+   504→                >
+   505→                  {activeState.submitted ? <CheckCircle2 className="mr-1.5 h-4 w-4" /> : <Code2 className="mr-1.5 h-4 w-4" />}
+   506→                  {activeState.submitted ? "Submitted" : "Submit"}
+   507→                </Button>
+   508→                {activeState.submitted && (
+   509→                  <span className="text-[11px] text-amber-600 dark:text-amber-300">
+   510→                    Submitted. No retry allowed.
+   511→                  </span>
+   512→                )}
+   513→              </div>
+   514→
+   515→              {/* Test results */}
+   516→              {activeState.results && (
+   517→                <div className="border-t border-black/10 p-4 dark:border-white/5">
+   518→                  <div className="mb-3 flex items-center justify-between">
+   519→                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Test Results</p>
+   520→                    <span className={cn(
+   521→                      "text-xs font-semibold",
+   522→                      activeState.results.every((r) => r.status === "pass")
+   523→                        ? "text-emerald-600 dark:text-emerald-300"
+   524→                        : "text-rose-600 dark:text-rose-300",
+   525→                    )}>
+   526→                      {activeState.results.filter((r) => r.status === "pass").length}/{activeState.results.length} passed
+   527→                    </span>
+   528→                  </div>
+   529→                  <ul className="space-y-1.5">
+   530→                    {activeState.results.map((r) => {
+   531→                      const tc = active.tests.find((t) => t.id === r.id);
+   532→                      return (
+   533→                        <li
+   534→                          key={r.id}
+   535→                          className={cn(
+   536→                            "flex items-center gap-3 rounded-md border px-3 py-2 text-xs",
+   537→                            r.status === "pass"
+   538→                              ? "border-emerald-400/30 bg-emerald-500/5"
+   539→                              : "border-rose-400/30 bg-rose-500/5",
+   540→                          )}
+   541→                        >
+   542→                          {r.status === "pass" ? (
+   543→                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+   544→                          ) : (
+   545→                            <XCircle className="h-3.5 w-3.5 text-rose-500" />
+   546→                          )}
+   547→                          <span className="flex-1 font-mono text-foreground/80">
+   548→                            Case {r.id}{tc?.hidden ? " (hidden)" : ""}: {tc?.input}
+   549→                          </span>
+   550→                          <span className="font-mono text-muted-foreground">{r.runtime}</span>
+   551→                          {r.got && <span className="font-mono text-rose-600 dark:text-rose-300">got: {r.got}</span>}
+   552→                        </li>
+   553→                      );
+   554→                    })}
+   555→                  </ul>
+   556→                </div>
+   557→              )}
+   558→            </div>
+   559→
+   560→            {/* Problem navigation */}
+   561→            <div className="flex items-center justify-between">
+   562→              <Button
+   563→                variant="outline"
+   564→                size="sm"
+   565→                onClick={() => setActiveIdx((i) => Math.max(0, i - 1))}
+   566→                disabled={activeIdx === 0}
+   567→                className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] disabled:opacity-40 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   568→              >
+   569→                <ChevronLeft className="mr-1 h-4 w-4" />
+   570→                Previous Problem
+   571→              </Button>
+   572→              <span className="text-xs text-muted-foreground">
+   573→                Problem {activeIdx + 1} of {PROBLEMS.length}
+   574→              </span>
+   575→              {activeIdx === PROBLEMS.length - 1 ? (
+   576→                <Button
+   577→                  size="sm"
+   578→                  onClick={() => setSubmitOpen(true)}
+   579→                  className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   580→                >
+   581→                  Submit Round
+   582→                  <ChevronRight className="ml-1 h-4 w-4" />
+   583→                </Button>
+   584→              ) : (
+   585→                <Button
+   586→                  size="sm"
+   587→                  onClick={() => setActiveIdx((i) => Math.min(PROBLEMS.length - 1, i + 1))}
+   588→                  className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   589→                >
+   590→                  Next Problem
+   591→                  <ChevronRight className="ml-1 h-4 w-4" />
+   592→                </Button>
+   593→              )}
+   594→            </div>
+   595→          </div>
+   596→        </div>
+   597→
+   598→        {/* Proctoring footer */}
+   599→        <div className="mt-6 flex flex-col items-start justify-between gap-2 rounded-lg border border-black/10 bg-card px-4 py-3 text-xs shadow-sm sm:flex-row sm:items-center dark:border-white/10">
+   600→          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
+   601→            <span>Tab switches: <span className="font-semibold text-foreground">{tabSwitches}</span></span>
+   602→            <span>Strikes: <span className="font-semibold text-foreground">{proctor.strikes}/3</span></span>
+   603→            <span className="flex items-center gap-1">
+   604→              Integrity:
+   605→              <span className={cn("flex items-center gap-1 font-semibold", integrity.tone)}>
+   606→                {proctor.strikes === 0 ? <ShieldCheck className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+   607→                {integrity.label}
+   608→              </span>
+   609→            </span>
+   610→          </div>
+   611→          <p className="text-[11px] text-muted-foreground">
+   612→            Each problem allows one submission. Three strikes will auto-submit your round.
+   613→          </p>
+   614→        </div>
+   615→      </section>
+   616→
+   617→      {/* Strike warning */}
+   618→      <ProctoringWarning
+   619→        open={proctor.strikes > 0 && proctor.strikes < 3}
+   620→        strikeNumber={proctor.strikes}
+   621→        violationType={proctor.events[proctor.events.length - 1]?.type ?? "tab-switch"}
+   622→        onAcknowledge={() => proctor.reset()}
+   623→        onAutoSubmit={() => setAutoSubmitted(true)}
+   624→      />
+   625→
+   626→      {/* Submit round confirmation */}
+   627→      <Dialog open={submitOpen} onOpenChange={setSubmitOpen}>
+   628→        <DialogContent className="border-black/10 bg-card dark:border-white/10">
+   629→          <DialogHeader>
+   630→            <DialogTitle>Submit the coding round?</DialogTitle>
+   631→            <DialogDescription>
+   632→              You have solved {solvedCount} of {PROBLEMS.length} problems and attempted {attemptedCount}.
+   633→              This action cannot be undone. All unsaved progress on unsubmitted problems will be lost.
+   634→            </DialogDescription>
+   635→          </DialogHeader>
+   636→          <DialogFooter className="mt-4 flex gap-2">
+   637→            <Button variant="ghost" onClick={() => setSubmitOpen(false)} className="rounded-full">
+   638→              Keep Going
+   639→            </Button>
+   640→            <Button
+   641→              onClick={handleSubmitRound}
+   642→              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   643→            >
+   644→              <CheckCircle2 className="mr-1.5 h-4 w-4" />
+   645→              Submit Round
+   646→              <ArrowRight className="ml-1.5 h-4 w-4" />
+   647→            </Button>
+   648→          </DialogFooter>
+   649→        </DialogContent>
+   650→      </Dialog>
+   651→
+   652→      {/* Auto-submit overlay */}
+   653→      <AnimatePresence>
+   654→        {autoSubmitted && (
+   655→          <motion.div
+   656→            initial={{ opacity: 0 }}
+   657→            animate={{ opacity: 1 }}
+   658→            exit={{ opacity: 0 }}
+   659→            className="fixed inset-0 z-[80] grid place-items-center bg-background/80 backdrop-blur-sm"
+   660→          >
+   661→            <motion.div
+   662→              initial={reduce ? false : { scale: 0.9, opacity: 0 }}
+   663→              animate={{ scale: 1, opacity: 1 }}
+   664→              className="mx-4 max-w-sm rounded-lg border border-black/10 bg-card p-6 text-center shadow-lg dark:border-white/10"
+   665→            >
+   666→              {proctor.strikes >= 3 ? (
+   667→                <AlertTriangle className="mx-auto h-10 w-10 text-rose-500" />
+   668→              ) : (
+   669→                <XCircle className="mx-auto h-10 w-10 text-amber-500" />
+   670→              )}
+   671→              <h3 className="mt-3 text-lg font-semibold tracking-tight">
+   672→                {proctor.strikes >= 3 ? "Auto-submitted" : "Time up"}
+   673→              </h3>
+   674→              <p className="mt-1 text-xs text-muted-foreground">
+   675→                {proctor.strikes >= 3
+   676→                  ? "Three proctoring strikes. Your round has been submitted automatically."
+   677→                  : "The 60-minute timer has elapsed. Submitting your round now."}
+   678→              </p>
+   679→            </motion.div>
+   680→          </motion.div>
+   681→        )}
+   682→      </AnimatePresence>
+   683→    </div>
+   684→  );
+   685→}
+   686→
