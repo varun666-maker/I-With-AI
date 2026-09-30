@@ -1,0 +1,746 @@
+     1→"use client";
+     2→
+     3→import { useMemo, useState } from "react";
+     4→import { AnimatePresence, motion } from "framer-motion";
+     5→import {
+     6→  AlertTriangle,
+     7→  Brain,
+     8→  Check,
+     9→  CheckCircle2,
+    10→  ChevronLeft,
+    11→  Clipboard,
+    12→  Code2,
+    13→  Copy,
+    14→  Link2,
+    15→  Mic,
+    16→  Plus,
+    17→  QrCode,
+    18→  ShieldAlert,
+    19→  Sliders,
+    20→  Users,
+    21→} from "lucide-react";
+    22→import { PageWrap } from "@/components/shared/primitives";
+    23→import { Button } from "@/components/ui/button";
+    24→import { Input } from "@/components/ui/input";
+    25→import { Label } from "@/components/ui/label";
+    26→import { Textarea } from "@/components/ui/textarea";
+    27→import { Checkbox } from "@/components/ui/checkbox";
+    28→import { Slider } from "@/components/ui/slider";
+    29→import {
+    30→  Select,
+    31→  SelectContent,
+    32→  SelectItem,
+    33→  SelectTrigger,
+    34→  SelectValue,
+    35→} from "@/components/ui/select";
+    36→import { useNav } from "@/lib/store";
+    37→import { cn } from "@/lib/utils";
+    38→
+    39→type Rounds = { aptitude: boolean; coding: boolean; interview: boolean };
+    40→
+    41→export function CampaignCreate() {
+    42→  const { set } = useNav();
+    43→  const [phase, setPhase] = useState<"form" | "success">("form");
+    44→  const [loading, setLoading] = useState(false);
+    45→
+    46→  // Form state
+    47→  const [name, setName] = useState("Backend SDE-1. Campus Drive 2025");
+    48→  const [role, setRole] = useState("Backend Developer");
+    49→  const [deadline, setDeadline] = useState("2025-01-30T23:59");
+    50→  const [rounds, setRounds] = useState<Rounds>({
+    51→    aptitude: true,
+    52→    coding: true,
+    53→    interview: true,
+    54→  });
+    55→  const [weights, setWeights] = useState({
+    56→    aptitude: 30,
+    57→    coding: 30,
+    58→    interview: 40,
+    59→  });
+    60→  const [minAptitude, setMinAptitude] = useState("50");
+    61→  const [minCoding, setMinCoding] = useState("2");
+    62→  const [strictness, setStrictness] = useState<"relaxed" | "standard" | "strict">(
+    63→    "standard",
+    64→  );
+    65→  const [autoDq, setAutoDq] = useState({
+    66→    tab: true,
+    67→    phone: true,
+    68→    person: false,
+    69→  });
+    70→
+    71→  const totalWeight = weights.aptitude + weights.coding + weights.interview;
+    72→  const weightInvalid = rounds.aptitude && rounds.coding && rounds.interview
+    73→    ? totalWeight !== 100
+    74→    : false;
+    75→
+    76→  const submit = (e: React.FormEvent) => {
+    77→    e.preventDefault();
+    78→    if (weightInvalid) return;
+    79→    setLoading(true);
+    80→    setTimeout(() => {
+    81→      setLoading(false);
+    82→      setPhase("success");
+    83→    }, 900);
+    84→  };
+    85→
+    86→  return (
+    87→    <div className="min-h-screen bg-background text-foreground">
+    88→      <PageWrap className="pt-8">
+    89→        <button
+    90→          onClick={() => set("admin-dashboard")}
+    91→          className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+    92→        >
+    93→          <ChevronLeft className="h-3.5 w-3.5" />
+    94→          Back to dashboard
+    95→        </button>
+    96→
+    97→        <AnimatePresence mode="wait">
+    98→          {phase === "form" ? (
+    99→            <motion.div
+   100→              key="form"
+   101→              initial={{ opacity: 0, y: 16 }}
+   102→              animate={{ opacity: 1, y: 0 }}
+   103→              exit={{ opacity: 0, y: -10 }}
+   104→              transition={{ duration: 0.4 }}
+   105→            >
+   106→              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+   107→                <div>
+   108→                  <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-700 dark:text-violet-300">
+   109→                    Step 1. Configure
+   110→                  </span>
+   111→                  <h1 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
+   112→                    Create a new hiring campaign
+   113→                  </h1>
+   114→                  <p className="mt-1 text-sm text-muted-foreground">
+   115→                    Configure rounds, weights and proctoring. We&apos;ll
+   116→                    generate a public apply link as soon as you save.
+   117→                  </p>
+   118→                </div>
+   119→              </div>
+   120→
+   121→              <form
+   122→                onSubmit={submit}
+   123→                className="mt-6 grid gap-5 lg:grid-cols-[1.4fr_1fr]"
+   124→              >
+   125→                {/* LEFT. main form */}
+   126→                <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   127→                  <div className="grid gap-5 sm:grid-cols-2">
+   128→                    <div className="space-y-1.5">
+   129→                      <Label className="text-xs text-muted-foreground">
+   130→                        Campaign Name *
+   131→                      </Label>
+   132→                      <Input
+   133→                        value={name}
+   134→                        onChange={(e) => setName(e.target.value)}
+   135→                        className="h-10"
+   136→                        placeholder="Campus Drive 2025 - Backend"
+   137→                      />
+   138→                    </div>
+   139→                    <div className="space-y-1.5">
+   140→                      <Label className="text-xs text-muted-foreground">
+   141→                        Job Role *
+   142→                      </Label>
+   143→                      <Input
+   144→                        value={role}
+   145→                        onChange={(e) => setRole(e.target.value)}
+   146→                        className="h-10"
+   147→                        placeholder="Backend Developer"
+   148→                      />
+   149→                    </div>
+   150→                    <div className="space-y-1.5 sm:col-span-2">
+   151→                      <Label className="text-xs text-muted-foreground">
+   152→                        Deadline *
+   153→                      </Label>
+   154→                      <Input
+   155→                        type="datetime-local"
+   156→                        value={deadline}
+   157→                        onChange={(e) => setDeadline(e.target.value)}
+   158→                        className="h-10"
+   159→                      />
+   160→                      <p className="text-xs text-muted-foreground">
+   161→                        Candidates can&apos;t submit past this date.
+   162→                      </p>
+   163→                    </div>
+   164→                  </div>
+   165→
+   166→                  {/* Active rounds */}
+   167→                  <div className="mt-6">
+   168→                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   169→                      Active Rounds
+   170→                    </p>
+   171→                    <div className="mt-3 grid gap-3 sm:grid-cols-3">
+   172→                      <RoundToggle
+   173→                        icon={<Brain className="h-4 w-4" />}
+   174→                        label="Aptitude"
+   175→                        desc="25 MCQs · 30 min"
+   176→                        checked={rounds.aptitude}
+   177→                        onToggle={() =>
+   178→                          setRounds({ ...rounds, aptitude: !rounds.aptitude })
+   179→                        }
+   180→                      />
+   181→                      <RoundToggle
+   182→                        icon={<Code2 className="h-4 w-4" />}
+   183→                        label="Coding"
+   184→                        desc="3 problems · 60 min"
+   185→                        checked={rounds.coding}
+   186→                        onToggle={() =>
+   187→                          setRounds({ ...rounds, coding: !rounds.coding })
+   188→                        }
+   189→                      />
+   190→                      <RoundToggle
+   191→                        icon={<Mic className="h-4 w-4" />}
+   192→                        label="Interview"
+   193→                        desc="Live AI · 20 min"
+   194→                        checked={rounds.interview}
+   195→                        onToggle={() =>
+   196→                          setRounds({ ...rounds, interview: !rounds.interview })
+   197→                        }
+   198→                      />
+   199→                    </div>
+   200→                  </div>
+   201→
+   202→                  {/* Score weights */}
+   203→                  {(
+   204→                    [rounds.aptitude, rounds.coding, rounds.interview].filter(
+   205→                      Boolean,
+   206→                    ).length > 1
+   207→                  ) && (
+   208→                    <div className="mt-6">
+   209→                      <div className="flex items-center justify-between">
+   210→                        <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   211→                          Score Weights
+   212→                        </p>
+   213→                        <span
+   214→                          className={cn(
+   215→                            "rounded-full border px-2.5 py-0.5 text-xs font-medium",
+   216→                            weightInvalid
+   217→                              ? "border-rose-400/40 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+   218→                              : "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+   219→                          )}
+   220→                        >
+   221→                          Σ {totalWeight}%
+   222→                        </span>
+   223→                      </div>
+   224→                      <div className="mt-4 space-y-5">
+   225→                        {rounds.aptitude && (
+   226→                          <WeightSlider
+   227→                            label="Aptitude"
+   228→                            icon={<Brain className="h-3.5 w-3.5" />}
+   229→                            value={weights.aptitude}
+   230→                            onChange={(v) =>
+   231→                              setWeights({ ...weights, aptitude: v[0] })
+   232→                            }
+   233→                          />
+   234→                        )}
+   235→                        {rounds.coding && (
+   236→                          <WeightSlider
+   237→                            label="Coding"
+   238→                            icon={<Code2 className="h-3.5 w-3.5" />}
+   239→                            value={weights.coding}
+   240→                            onChange={(v) =>
+   241→                              setWeights({ ...weights, coding: v[0] })
+   242→                            }
+   243→                          />
+   244→                        )}
+   245→                        {rounds.interview && (
+   246→                          <WeightSlider
+   247→                            label="Interview"
+   248→                            icon={<Mic className="h-3.5 w-3.5" />}
+   249→                            value={weights.interview}
+   250→                            onChange={(v) =>
+   251→                              setWeights({ ...weights, interview: v[0] })
+   252→                            }
+   253→                          />
+   254→                        )}
+   255→                      </div>
+   256→                      {weightInvalid && (
+   257→                        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-rose-600 dark:text-rose-300">
+   258→                          <AlertTriangle className="h-3.5 w-3.5" />
+   259→                          Weights must sum to 100% before you can create the
+   260→                          campaign.
+   261→                        </p>
+   262→                      )}
+   263→                    </div>
+   264→                  )}
+   265→
+   266→                  {/* Qualification cutoffs */}
+   267→                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+   268→                    <div className="space-y-1.5">
+   269→                      <Label className="text-xs text-muted-foreground">
+   270→                        Min Aptitude Score to Qualify (%)
+   271→                      </Label>
+   272→                      <Input
+   273→                        type="number"
+   274→                        min={0}
+   275→                        max={100}
+   276→                        value={minAptitude}
+   277→                        onChange={(e) => setMinAptitude(e.target.value)}
+   278→                        className="h-10"
+   279→                      />
+   280→                      <p className="text-xs text-muted-foreground">
+   281→                        Below this, Coding round stays locked. Leave blank for
+   282→                        no cutoff.
+   283→                      </p>
+   284→                    </div>
+   285→                    <div className="space-y-1.5">
+   286→                      <Label className="text-xs text-muted-foreground">
+   287→                        Min Coding Questions to Attempt
+   288→                      </Label>
+   289→                      <Input
+   290→                        type="number"
+   291→                        min={0}
+   292→                        value={minCoding}
+   293→                        onChange={(e) => setMinCoding(e.target.value)}
+   294→                        className="h-10"
+   295→                      />
+   296→                      <p className="text-xs text-muted-foreground">
+   297→                        Fewer attempts lock the Interview round.
+   298→                      </p>
+   299→                    </div>
+   300→                  </div>
+   301→                </div>
+   302→
+   303→                {/* RIGHT. proctoring + summary */}
+   304→                <div className="space-y-5">
+   305→                  <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   306→                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   307→                      Proctoring
+   308→                    </p>
+   309→                    <div className="mt-3 space-y-1.5">
+   310→                      <Label className="text-xs text-muted-foreground">
+   311→                        Strictness
+   312→                      </Label>
+   313→                      <Select
+   314→                        value={strictness}
+   315→                        onValueChange={(v) =>
+   316→                          setStrictness(v as typeof strictness)
+   317→                        }
+   318→                      >
+   319→                        <SelectTrigger className="w-full">
+   320→                          <SelectValue />
+   321→                        </SelectTrigger>
+   322→                        <SelectContent>
+   323→                          <SelectItem value="relaxed">
+   324→                            Relaxed. Warnings only
+   325→                          </SelectItem>
+   326→                          <SelectItem value="standard">
+   327→                            Standard. Auto-submit on 3rd strike
+   328→                          </SelectItem>
+   329→                          <SelectItem value="strict">
+   330→                            Strict. Auto-disqualify on 2nd strike
+   331→                          </SelectItem>
+   332→                        </SelectContent>
+   333→                      </Select>
+   334→                    </div>
+   335→
+   336→                    <div className="mt-5">
+   337→                      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   338→                        Auto-disqualify on
+   339→                      </p>
+   340→                      <div className="mt-3 space-y-3">
+   341→                        <DQToggle
+   342→                          label="3+ tab switches"
+   343→                          desc="Auto-submit + 20% penalty"
+   344→                          checked={autoDq.tab}
+   345→                          onToggle={() =>
+   346→                            setAutoDq({ ...autoDq, tab: !autoDq.tab })
+   347→                          }
+   348→                        />
+   349→                        <DQToggle
+   350→                          label="Phone detected in frame"
+   351→                          desc="Capture frame + flag for review"
+   352→                          checked={autoDq.phone}
+   353→                          onToggle={() =>
+   354→                            setAutoDq({ ...autoDq, phone: !autoDq.phone })
+   355→                          }
+   356→                        />
+   357→                        <DQToggle
+   358→                          label="Extra person in frame"
+   359→                          desc="Capture frame + flag for review"
+   360→                          checked={autoDq.person}
+   361→                          onToggle={() =>
+   362→                            setAutoDq({ ...autoDq, person: !autoDq.person })
+   363→                          }
+   364→                        />
+   365→                      </div>
+   366→                    </div>
+   367→                  </div>
+   368→
+   369→                  <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   370→                    <div className="flex items-center gap-2">
+   371→                      <Sliders className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+   372→                      <p className="text-sm font-medium">Live summary</p>
+   373→                    </div>
+   374→                    <ul className="mt-3 space-y-2 text-sm">
+   375→                      <SummaryRow label="Rounds active" value={Object.values(rounds).filter(Boolean).length + " / 3"} />
+   376→                      <SummaryRow label="Weight total" value={`${totalWeight}%`} ok={totalWeight === 100} />
+   377→                      <SummaryRow label="Proctoring" value={strictness} />
+   378→                      <SummaryRow
+   379→                        label="Auto-DQ rules"
+   380→                        value={Object.values(autoDq).filter(Boolean).length + " enabled"}
+   381→                      />
+   382→                    </ul>
+   383→                    <Button
+   384→                      type="submit"
+   385→                      disabled={weightInvalid || loading}
+   386→                      onClick={() => {}}
+   387→                      className="mt-5 h-11 w-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-600"
+   388→                    >
+   389→                      {loading ? (
+   390→                        <>
+   391→                          <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+   392→                          Creating...
+   393→                        </>
+   394→                      ) : (
+   395→                        <>
+   396→                          <Plus className="mr-2 h-4 w-4" />
+   397→                          Create Campaign &amp; Generate Link
+   398→                        </>
+   399→                      )}
+   400→                    </Button>
+   401→                  </div>
+   402→                </div>
+   403→              </form>
+   404→            </motion.div>
+   405→          ) : (
+   406→            <motion.div
+   407→              key="success"
+   408→              initial={{ opacity: 0, y: 16 }}
+   409→              animate={{ opacity: 1, y: 0 }}
+   410→              exit={{ opacity: 0, y: -10 }}
+   411→              transition={{ duration: 0.4 }}
+   412→            >
+   413→              <div className="mx-auto max-w-3xl text-center">
+   414→                <motion.div
+   415→                  initial={{ scale: 0.4, opacity: 0 }}
+   416→                  animate={{ scale: 1, opacity: 1 }}
+   417→                  transition={{
+   418→                    type: "spring",
+   419→                    stiffness: 220,
+   420→                    damping: 18,
+   421→                  }}
+   422→                  className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-500 text-white shadow-sm"
+   423→                >
+   424→                  <Check className="h-9 w-9" strokeWidth={3} />
+   425→                </motion.div>
+   426→                <h1 className="mt-6 text-3xl font-semibold tracking-tight md:text-4xl">
+   427→                  Campaign created successfully.
+   428→                </h1>
+   429→                <p className="mt-2 text-sm text-muted-foreground">
+   430→                  Share the public apply link. Resumes will appear here
+   431→                  automatically as candidates apply.
+   432→                </p>
+   433→              </div>
+   434→
+   435→              {/* Campaign details */}
+   436→              <div className="mx-auto mt-8 max-w-3xl rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   437→                <div className="grid gap-4 sm:grid-cols-3">
+   438→                  <Detail label="Campaign" value={name} />
+   439→                  <Detail label="Job role" value={role} />
+   440→                  <Detail label="Deadline" value={deadline.replace("T", " · ")} />
+   441→                </div>
+   442→              </div>
+   443→
+   444→              {/* Apply link box */}
+   445→              <ApplyLinkBox
+   446→                url="https://interviewai.com/apply/backend-sde-1-a3f2"
+   447→              />
+   448→
+   449→              {/* Actions */}
+   450→              <div className="mx-auto mt-8 flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-center">
+   451→                <Button
+   452→                  onClick={() => set("question-manager")}
+   453→                  className="h-11 rounded-full bg-violet-500 px-6 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
+   454→                >
+   455→                  <Plus className="mr-2 h-4 w-4" />
+   456→                  Add Questions
+   457→                </Button>
+   458→                <Button
+   459→                  variant="outline"
+   460→                  onClick={() => set("candidate-leaderboard")}
+   461→                  className="h-11 rounded-full px-6"
+   462→                >
+   463→                  <Users className="mr-2 h-4 w-4" />
+   464→                  View Applicants
+   465→                </Button>
+   466→              </div>
+   467→            </motion.div>
+   468→          )}
+   469→        </AnimatePresence>
+   470→
+   471→      </PageWrap>
+   472→    </div>
+   473→  );
+   474→}
+   475→
+   476→/* ---------- Apply Link Box (with QR) ---------- */
+   477→
+   478→function ApplyLinkBox({ url }: { url: string }) {
+   479→  const [copied, setCopied] = useState(false);
+   480→  const copy = () => {
+   481→    if (typeof navigator !== "undefined" && navigator.clipboard) {
+   482→      navigator.clipboard.writeText(url).catch(() => {});
+   483→    }
+   484→    setCopied(true);
+   485→    setTimeout(() => setCopied(false), 1800);
+   486→  };
+   487→
+   488→  return (
+   489→    <div className="mx-auto mt-8 max-w-3xl">
+   490→      <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   491→        <div className="flex items-center gap-2">
+   492→          <Link2 className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+   493→          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   494→            Your Public Apply Link
+   495→          </p>
+   496→        </div>
+   497→        <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center">
+   498→          <div className="flex-1">
+   499→            <code className="block select-all break-all rounded-lg border border-black/10 bg-muted/30 p-3 font-mono text-sm text-violet-700 dark:border-white/10 dark:text-violet-300">
+   500→              {url}
+   501→            </code>
+   502→            <div className="mt-3 flex flex-wrap gap-2">
+   503→              <Button
+   504→                size="sm"
+   505→                onClick={copy}
+   506→                className="h-9 rounded-full bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
+   507→              >
+   508→                {copied ? (
+   509→                  <Check className="mr-1.5 h-3.5 w-3.5" />
+   510→                ) : (
+   511→                  <Copy className="mr-1.5 h-3.5 w-3.5" />
+   512→                )}
+   513→                {copied ? "Copied" : "Copy link"}
+   514→              </Button>
+   515→              <Button
+   516→                size="sm"
+   517→                variant="outline"
+   518→                className="h-9 rounded-full"
+   519→              >
+   520→                <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+   521→                Copy with caption
+   522→              </Button>
+   523→            </div>
+   524→          </div>
+   525→
+   526→          {/* QR placeholder */}
+   527→          <div className="shrink-0">
+   528→            <div className="rounded-lg border border-black/10 bg-white p-3 dark:border-white/10">
+   529→              <QRPlaceholder />
+   530→              <p className="mt-2 text-center text-[10px] text-muted-foreground">
+   531→                Scan to apply
+   532→              </p>
+   533→            </div>
+   534→          </div>
+   535→        </div>
+   536→
+   537→        <div className="mt-4 flex items-start gap-2 rounded-lg border border-black/5 bg-muted/30 p-3 text-xs text-muted-foreground dark:border-white/5">
+   538→          <QrCode className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
+   539→          <span>
+   540→            Share this link on LinkedIn, Naukri, or send directly to
+   541→            candidates. Resumes will appear here automatically as they apply.
+   542→          </span>
+   543→        </div>
+   544→      </div>
+   545→    </div>
+   546→  );
+   547→}
+   548→
+   549→function QRPlaceholder() {
+   550→  // Deterministic pseudo-QR grid. 21x21 modules
+   551→  const cells = useMemo(() => {
+   552→    const N = 21;
+   553→    const grid: boolean[][] = Array.from({ length: N }, () =>
+   554→      Array.from({ length: N }, () => false),
+   555→    );
+   556→    // Finder patterns (top-left, top-right, bottom-left)
+   557→    const stamp = (r0: number, c0: number) => {
+   558→      for (let r = 0; r < 7; r++) {
+   559→        for (let c = 0; c < 7; c++) {
+   560→          const onOuter = r === 0 || r === 6 || c === 0 || c === 6;
+   561→          const onInner =
+   562→            r >= 2 && r <= 4 && c >= 2 && c <= 4 && (r === 2 || r === 4 || c === 2 || c === 4 || (r === 3 && c === 3));
+   563→          grid[r0 + r][c0 + c] = onOuter || (r >= 2 && r <= 4 && c >= 2 && c <= 4 && r === 3 && c === 3) || onInner;
+   564→        }
+   565→      }
+   566→    };
+   567→    stamp(0, 0);
+   568→    stamp(0, N - 7);
+   569→    stamp(N - 7, 0);
+   570→    // Pseudo-random fill
+   571→    let seed = 7;
+   572→    const rand = () => {
+   573→      seed = (seed * 9301 + 49297) % 233280;
+   574→      return seed / 233280;
+   575→    };
+   576→    for (let r = 0; r < N; r++) {
+   577→      for (let c = 0; c < N; c++) {
+   578→        // Skip finder zones
+   579→        const inFinder =
+   580→          (r < 8 && c < 8) ||
+   581→          (r < 8 && c > N - 9) ||
+   582→          (r > N - 9 && c < 8);
+   583→        if (inFinder) continue;
+   584→        grid[r][c] = rand() > 0.55;
+   585→      }
+   586→    }
+   587→    return grid;
+   588→  }, []);
+   589→
+   590→  return (
+   591→    <div className="grid h-36 w-36 grid-cols-[repeat(21,1fr)] gap-0 overflow-hidden rounded-md">
+   592→      {cells.flatMap((row, ri) =>
+   593→        row.map((on, ci) => (
+   594→          <div
+   595→            key={`${ri}-${ci}`}
+   596→            className={on ? "bg-slate-900" : "bg-white"}
+   597→            style={{ aspectRatio: "1 / 1" }}
+   598→          />
+   599→        )),
+   600→      )}
+   601→    </div>
+   602→  );
+   603→}
+   604→
+   605→/* ---------- small form sub-components ---------- */
+   606→
+   607→function RoundToggle({
+   608→  icon,
+   609→  label,
+   610→  desc,
+   611→  checked,
+   612→  onToggle,
+   613→}: {
+   614→  icon: React.ReactNode;
+   615→  label: string;
+   616→  desc: string;
+   617→  checked: boolean;
+   618→  onToggle: () => void;
+   619→}) {
+   620→  return (
+   621→    <button
+   622→      type="button"
+   623→      onClick={onToggle}
+   624→      className={cn(
+   625→        "flex items-center gap-3 rounded-lg border p-3 text-left transition-colors",
+   626→        checked
+   627→          ? "border-violet-400/40 bg-violet-500/10"
+   628→          : "border-black/10 bg-background hover:bg-muted/30 dark:border-white/10",
+   629→      )}
+   630→    >
+   631→      <span
+   632→        className={cn(
+   633→          "grid h-9 w-9 place-items-center rounded-lg",
+   634→          checked
+   635→            ? "bg-violet-500/20 text-violet-700 dark:text-violet-200"
+   636→            : "bg-muted/40 text-muted-foreground",
+   637→        )}
+   638→      >
+   639→        {icon}
+   640→      </span>
+   641→      <div className="flex-1">
+   642→        <p className="text-sm font-medium">{label}</p>
+   643→        <p className="text-xs text-muted-foreground">{desc}</p>
+   644→      </div>
+   645→      <Checkbox checked={checked} />
+   646→    </button>
+   647→  );
+   648→}
+   649→
+   650→function WeightSlider({
+   651→  label,
+   652→  icon,
+   653→  value,
+   654→  onChange,
+   655→}: {
+   656→  label: string;
+   657→  icon: React.ReactNode;
+   658→  value: number;
+   659→  onChange: (v: number[]) => void;
+   660→}) {
+   661→  return (
+   662→    <div>
+   663→      <div className="mb-2 flex items-center justify-between">
+   664→        <span className="inline-flex items-center gap-1.5 text-sm">
+   665→          <span className="text-muted-foreground">{icon}</span>
+   666→          {label}
+   667→        </span>
+   668→        <span className="text-sm font-semibold text-violet-700 dark:text-violet-300">{value}%</span>
+   669→      </div>
+   670→      <Slider
+   671→        value={[value]}
+   672→        max={100}
+   673→        step={5}
+   674→        onValueChange={onChange}
+   675→        className="[&_[data-slot=slider-range]]:bg-violet-500"
+   676→      />
+   677→    </div>
+   678→  );
+   679→}
+   680→
+   681→function DQToggle({
+   682→  label,
+   683→  desc,
+   684→  checked,
+   685→  onToggle,
+   686→}: {
+   687→  label: string;
+   688→  desc: string;
+   689→  checked: boolean;
+   690→  onToggle: () => void;
+   691→}) {
+   692→  return (
+   693→    <button
+   694→      type="button"
+   695→      onClick={onToggle}
+   696→      className="flex w-full items-start gap-3 rounded-lg border border-black/5 bg-muted/30 p-3 text-left transition-colors hover:bg-muted/50 dark:border-white/5"
+   697→    >
+   698→      <Checkbox checked={checked} className="mt-0.5" />
+   699→      <div>
+   700→        <p className="text-sm font-medium">{label}</p>
+   701→        <p className="text-xs text-muted-foreground">{desc}</p>
+   702→      </div>
+   703→      {checked && (
+   704→        <ShieldAlert className="ml-auto h-4 w-4 text-amber-600 dark:text-amber-300" />
+   705→      )}
+   706→    </button>
+   707→  );
+   708→}
+   709→
+   710→function SummaryRow({
+   711→  label,
+   712→  value,
+   713→  ok,
+   714→}: {
+   715→  label: string;
+   716→  value: string;
+   717→  ok?: boolean;
+   718→}) {
+   719→  return (
+   720→    <li className="flex items-center justify-between text-sm">
+   721→      <span className="text-muted-foreground">{label}</span>
+   722→      <span
+   723→        className={cn(
+   724→          "font-medium",
+   725→          ok === undefined && "text-foreground/90",
+   726→          ok === true && "text-emerald-600 dark:text-emerald-300",
+   727→          ok === false && "text-rose-600 dark:text-rose-300",
+   728→        )}
+   729→      >
+   730→        {value}
+   731→      </span>
+   732→    </li>
+   733→  );
+   734→}
+   735→
+   736→function Detail({ label, value }: { label: string; value: string }) {
+   737→  return (
+   738→    <div>
+   739→      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   740→        {label}
+   741→      </p>
+   742→      <p className="mt-1 text-sm font-medium text-foreground/90">{value}</p>
+   743→    </div>
+   744→  );
+   745→}
+   746→

@@ -4,16 +4,20 @@ import { useState } from "react";
 import {
   Brain,
   Check,
+  CheckCircle2,
   ChevronLeft,
   Code2,
   Database,
+  Download,
   FileText,
+  FileUp,
   Pencil,
   Plus,
   ShieldQuestion,
   Terminal,
   Trash2,
   Upload,
+  X,
 } from "lucide-react";
 import { PageWrap } from "@/components/shared/primitives";
 import { Button } from "@/components/ui/button";
@@ -29,6 +33,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -182,13 +194,14 @@ export function QuestionManager() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs uppercase tracking-wider text-muted-foreground">
-              Campaign. backend-sde-1
+              Campaign · backend-sde-1
             </p>
             <h2 className="mt-1 text-2xl font-semibold tracking-tight">
               Question Set Manager
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Aptitude MCQs and coding problems. Questions are scoped to this campaign only.
+              Aptitude MCQs and coding problems. Add one-by-one or bulk-upload
+              via CSV. Questions are scoped to this campaign only.
             </p>
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-black/15 bg-muted/30 px-3 py-1 text-xs font-medium text-muted-foreground dark:border-white/15">
@@ -250,6 +263,7 @@ function AptitudeForm() {
   const [opts, setOpts] = useState(["", "", "", ""]);
   const [correct, setCorrect] = useState<"A" | "B" | "C" | "D">("A");
   const [explanation, setExplanation] = useState("");
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const valid =
     cat && diff && sub.trim() && text.trim() && opts.every((o) => o.trim());
@@ -316,7 +330,7 @@ function AptitudeForm() {
 
       <div className="mt-4 space-y-2">
         <p className="text-xs uppercase tracking-wider text-muted-foreground">
-          Options. Select correct
+          Options · Select correct
         </p>
         <RadioGroup
           value={correct}
@@ -378,6 +392,7 @@ function AptitudeForm() {
         </Button>
         <Button
           variant="outline"
+          onClick={() => setBulkOpen(true)}
           className="h-10 rounded-full"
         >
           <Upload className="mr-1.5 h-4 w-4" />
@@ -391,6 +406,12 @@ function AptitudeForm() {
           Download template
         </Button>
       </div>
+
+      <BulkUploadDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        kind="aptitude"
+      />
     </div>
   );
 }
@@ -483,6 +504,7 @@ function CodingForm() {
   const [timeLimit, setTimeLimit] = useState(1000);
   const [memoryLimit, setMemoryLimit] = useState(256);
   const [schema, setSchema] = useState("");
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const valid =
     title.trim() && diff && statement.trim() && signatures.trim();
@@ -570,7 +592,7 @@ function CodingForm() {
           value={signatures}
           onChange={(e) => setSignatures(e.target.value)}
           rows={3}
-          placeholder="function solve(arr: number[]): number\n# python: def solve(arr: list[int]) -> list[int]"
+          placeholder="function solve(arr: number[]): number&#10;# python: def solve(arr: list[int]) -> list[int]"
           className="font-mono text-sm"
         />
       </div>
@@ -644,7 +666,7 @@ function CodingForm() {
         </div>
       )}
 
-      <div className="mt-5">
+      <div className="mt-5 flex flex-wrap gap-2">
         <Button
           disabled={!valid}
           className="h-10 rounded-full bg-violet-500 px-5 text-white hover:bg-violet-600 disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-600"
@@ -652,7 +674,28 @@ function CodingForm() {
           <Plus className="mr-1.5 h-4 w-4" />
           Add Coding Problem
         </Button>
+        <Button
+          variant="outline"
+          onClick={() => setBulkOpen(true)}
+          className="h-10 rounded-full"
+        >
+          <Upload className="mr-1.5 h-4 w-4" />
+          Bulk Upload CSV
+        </Button>
+        <Button
+          variant="ghost"
+          className="h-10 rounded-full text-muted-foreground"
+        >
+          <FileText className="mr-1.5 h-4 w-4" />
+          Download template
+        </Button>
       </div>
+
+      <BulkUploadDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        kind="coding"
+      />
     </div>
   );
 }
@@ -730,6 +773,261 @@ function CodingList() {
         </TableBody>
       </Table>
     </div>
+  );
+}
+
+/* ---------- Bulk upload dialog (shared, two variants) ---------- */
+
+function BulkUploadDialog({
+  open,
+  onOpenChange,
+  kind,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  kind: "aptitude" | "coding";
+}) {
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [stage, setStage] = useState<"select" | "preview" | "done">("select");
+  const [parsing, setParsing] = useState(false);
+
+  const isApt = kind === "aptitude";
+
+  const reset = () => {
+    setFileName(null);
+    setStage("select");
+    setParsing(false);
+  };
+
+  const close = () => {
+    onOpenChange(false);
+    setTimeout(reset, 250);
+  };
+
+  const onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFileName(f.name);
+    setParsing(true);
+    setTimeout(() => {
+      setParsing(false);
+      setStage("preview");
+    }, 700);
+  };
+
+  const onConfirmImport = () => {
+    setStage("done");
+    setTimeout(close, 1500);
+  };
+
+  // Mock preview rows shown after a "parse"
+  const previewRows = isApt
+    ? [
+        { c1: "Quant", c2: "Time & Work", c3: "Medium", c4: "If 5 men build a wall in 10 days..." },
+        { c1: "Logical", c2: "Series", c3: "Easy", c4: "Find the next: 3, 6, 11, 18..." },
+        { c1: "Verbal", c2: "Synonyms", c3: "Easy", c4: "Synonym of 'Tenacious'" },
+        { c1: "DI", c2: "Pie charts", c3: "Hard", c4: "If pie shows 30/20/50 split..." },
+      ]
+    : [
+        { c1: "DSA", c2: "Easy", c3: "3/7", c4: "Reverse a Linked List" },
+        { c1: "DSA", c2: "Medium", c3: "3/7", c4: "Kth Largest Element" },
+        { c1: "SQL", c2: "Medium", c3: "3/7", c4: "Department Top 3 Salaries" },
+        { c1: "DSA", c2: "Hard", c3: "3/7", c4: "Word Ladder II" },
+      ];
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && close()}>
+      <DialogContent className="max-w-lg border-black/10 bg-card dark:border-white/10">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileUp className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+            Bulk upload {isApt ? "aptitude questions" : "coding problems"}
+          </DialogTitle>
+          <DialogDescription>
+            Upload a CSV file. We&apos;ll parse it, show a preview, and let you
+            confirm before importing.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Stage 1: file picker */}
+        {stage === "select" && (
+          <div className="mt-3 space-y-3">
+            <label
+              htmlFor={`bulk-${kind}`}
+              className={cn(
+                "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-black/15 bg-muted/30 px-4 py-8 text-center transition-colors hover:border-violet-400/60 hover:bg-violet-500/5 dark:border-white/15",
+                fileName && "border-violet-400/60 bg-violet-500/5",
+              )}
+            >
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-300">
+                {parsing ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-violet-400/40 border-t-violet-500" />
+                ) : fileName ? (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                ) : (
+                  <Upload className="h-5 w-5" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium">
+                  {parsing
+                    ? "Parsing CSV..."
+                    : fileName
+                      ? fileName
+                      : "Click to choose a CSV file"}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {parsing
+                    ? "Validating column headers..."
+                    : "Max 5MB · UTF-8 encoded · .csv only"}
+                </p>
+              </div>
+              <input
+                id={`bulk-${kind}`}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={onFileSelected}
+                disabled={parsing}
+              />
+            </label>
+
+            <div className="rounded-lg border border-black/5 bg-muted/30 p-3 text-xs text-muted-foreground dark:border-white/5">
+              <p className="font-medium text-foreground/80">Required columns</p>
+              <code className="mt-1.5 block overflow-x-auto whitespace-pre font-mono text-[11px] text-violet-700 dark:text-violet-300">
+                {isApt
+                  ? "category,sub_topic,difficulty,question_text,option_a,option_b,option_c,option_d,correct,explanation"
+                  : "title,difficulty,type,statement,signatures,visible_tests,hidden_tests,time_limit_ms,memory_limit_kb,schema"}
+              </code>
+              <p className="mt-2">
+                Don&apos;t have a CSV yet?{" "}
+                <button
+                  type="button"
+                  className="font-medium text-violet-700 hover:underline dark:text-violet-300"
+                >
+                  <Download className="mr-1 inline h-3 w-3" />
+                  Download the template
+                </button>{" "}
+                to fill in.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Stage 2: preview */}
+        {stage === "preview" && (
+          <div className="mt-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Preview</p>
+                <p className="text-xs text-muted-foreground">
+                  Found <span className="font-semibold text-foreground/80">{previewRows.length} valid rows</span> · 0 errors
+                </p>
+              </div>
+              <button
+                onClick={() => setStage("select")}
+                className="inline-flex items-center gap-1 rounded-full border border-black/10 px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted dark:border-white/10"
+              >
+                <X className="h-3 w-3" />
+                Pick another file
+              </button>
+            </div>
+            <div className="max-h-64 overflow-y-auto rounded-lg border border-black/5 dark:border-white/5">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-black/5 hover:bg-transparent dark:border-white/5">
+                    {isApt ? (
+                      <>
+                        <TableHead className="pl-3 text-xs">Category</TableHead>
+                        <TableHead className="text-xs">Sub-topic</TableHead>
+                        <TableHead className="text-xs">Diff</TableHead>
+                        <TableHead className="pr-3 text-xs">Question</TableHead>
+                      </>
+                    ) : (
+                      <>
+                        <TableHead className="pl-3 text-xs">Type</TableHead>
+                        <TableHead className="text-xs">Diff</TableHead>
+                        <TableHead className="text-xs">Tests</TableHead>
+                        <TableHead className="pr-3 text-xs">Title</TableHead>
+                      </>
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {previewRows.map((r, i) => (
+                    <TableRow
+                      key={i}
+                      className="border-black/5 dark:border-white/5"
+                    >
+                      {isApt ? (
+                        <>
+                          <TableCell className="pl-3 py-2 text-xs">{r.c1}</TableCell>
+                          <TableCell className="py-2 text-xs">{r.c2}</TableCell>
+                          <TableCell className="py-2 text-xs">{r.c3}</TableCell>
+                          <TableCell className="pr-3 py-2 text-xs text-muted-foreground">
+                            <span className="line-clamp-1">{r.c4}</span>
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell className="pl-3 py-2 text-xs">{r.c1}</TableCell>
+                          <TableCell className="py-2 text-xs">{r.c2}</TableCell>
+                          <TableCell className="py-2 text-xs font-mono">{r.c3}</TableCell>
+                          <TableCell className="pr-3 py-2 text-xs font-medium">
+                            <span className="line-clamp-1">{r.c4}</span>
+                          </TableCell>
+                        </>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+
+        {/* Stage 3: done */}
+        {stage === "done" && (
+          <div className="mt-3 flex flex-col items-center justify-center gap-2 py-6 text-center">
+            <div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
+            <p className="text-sm font-medium">Imported successfully</p>
+            <p className="text-xs text-muted-foreground">
+              {previewRows.length} {isApt ? "questions" : "problems"} added to
+              this campaign.
+            </p>
+          </div>
+        )}
+
+        <DialogFooter className="mt-4 flex gap-2">
+          {stage !== "done" && (
+            <Button
+              variant="ghost"
+              onClick={close}
+              className="text-muted-foreground"
+              disabled={parsing}
+            >
+              Cancel
+            </Button>
+          )}
+          {stage === "preview" && (
+            <Button
+              onClick={onConfirmImport}
+              className="bg-violet-500 text-white hover:bg-violet-600"
+            >
+              <Check className="mr-1.5 h-4 w-4" />
+              Import {previewRows.length} {isApt ? "questions" : "problems"}
+            </Button>
+          )}
+          {stage === "done" && (
+            <Button onClick={close} className="bg-violet-500 text-white hover:bg-violet-600">
+              Done
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
