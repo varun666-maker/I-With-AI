@@ -1,0 +1,617 @@
+     1→"use client";
+     2→
+     3→import { useEffect, useState } from "react";
+     4→import { AnimatePresence, motion } from "framer-motion";
+     5→import {
+     6→  AlertTriangle,
+     7→  ArrowRight,
+     8→  Brain,
+     9→  Briefcase,
+    10→  Camera,
+    11→  CheckCircle2,
+    12→  ChevronRight,
+    13→  Clock,
+    14→  Code2,
+    15→  Download,
+    16→  Info,
+    17→  Loader2,
+    18→  Mic,
+    19→  MicOff,
+    20→  MonitorPlay,
+    21→  Pause,
+    22→  Play,
+    23→  RefreshCw,
+    24→  ShieldCheck,
+    25→  Square,
+    26→  Video,
+    27→  X,
+    28→  Zap,
+    29→} from "lucide-react";
+    30→import {
+    31→  PageWrap,
+    32→  SectionHeading,
+    33→  TypingDots,
+    34→} from "@/components/shared/primitives";
+    35→import { BackToHome } from "@/components/shared/top-nav";
+    36→import { Button } from "@/components/ui/button";
+    37→import { Badge } from "@/components/ui/badge";
+    38→import {
+    39→  Dialog,
+    40→  DialogContent,
+    41→  DialogDescription,
+    42→  DialogFooter,
+    43→  DialogHeader,
+    44→  DialogTitle,
+    45→} from "@/components/ui/dialog";
+    46→import { useNav } from "@/lib/store";
+    47→import { cn } from "@/lib/utils";
+    48→
+    49→type SubScreen = "setup" | "live" | "processing" | "done";
+    50→
+    51→const INTERVIEW_TYPES = [
+    52→  { id: "hr", icon: Brain, title: "HR / Behavioral", desc: "Classic HR screen. Tell me about yourself, strengths, weaknesses, motivation.", duration: "20-30 min", qCount: "8-12 Qs", tone: "violet" },
+    53→  { id: "tech-general", icon: Code2, title: "Technical - General", desc: "DSA + system design basics. Languages and Big-O analysis.", duration: "30-45 min", qCount: "10-15 Qs", tone: "sky" },
+    54→  { id: "tech-role", icon: Briefcase, title: "Technical - Role-Specific", desc: "Deep dive into your stack (e.g. backend: APIs, DB, queues).", duration: "30-45 min", qCount: "10-15 Qs", tone: "emerald" },
+    55→  { id: "managerial", icon: ShieldCheck, title: "Managerial", desc: "Project leadership, conflict resolution, stakeholder mgmt.", duration: "25-35 min", qCount: "8-10 Qs", tone: "amber" },
+    56→  { id: "company", icon: MonitorPlay, title: "Company-Specific", desc: "Mock for a specific company. Culture-fit and known formats.", duration: "25-35 min", qCount: "8-12 Qs", tone: "fuchsia" },
+    57→  { id: "full", icon: Zap, title: "Full End-to-End", desc: "Complete interview loop. HR + technical + behavioral + coding.", duration: "55-75 min", qCount: "25-40 Qs", tone: "rose" },
+    58→];
+    59→
+    60→const TONE_MAP: Record<string, string> = {
+    61→  violet: "border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-200",
+    62→  sky: "border-sky-400/30 bg-sky-500/10 text-sky-700 dark:text-sky-200",
+    63→  emerald: "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200",
+    64→  amber: "border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-200",
+    65→  fuchsia: "border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-200",
+    66→  rose: "border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-200",
+    67→};
+    68→
+    69→const PROCESSING_STEPS = [
+    70→  { label: "Transcribing audio", dur: "12s" },
+    71→  { label: "Evaluating answers", dur: "18s" },
+    72→  { label: "Generating report", dur: "20s" },
+    73→  { label: "Calculating scores", dur: "8s" },
+    74→];
+    75→
+    76→export function InterviewStudio() {
+    77→  const { set } = useNav();
+    78→  const [sub, setSub] = useState<SubScreen>("setup");
+    79→  const [selectedType, setSelectedType] = useState("hr");
+    80→  const [micStatus, setMicStatus] = useState<"idle" | "ok" | "fail">("idle");
+    81→  const [camStatus, setCamStatus] = useState<"idle" | "ok" | "fail">("idle");
+    82→  const [endOpen, setEndOpen] = useState(false);
+    83→
+    84→  return (
+    85→    <div className="min-h-screen bg-background text-foreground">
+    86→      <PageWrap wide>
+    87→        <BackToHome />
+    88→
+    89→        {/* Demo controls */}
+    90→        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+    91→          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Demo controls:</span>
+    92→          {([
+    93→            ["setup", "Setup"],
+    94→            ["live", "Live"],
+    95→            ["processing", "Processing"],
+    96→            ["done", "Done"],
+    97→          ] as const).map(([k, l]) => (
+    98→            <button
+    99→              key={k}
+   100→              onClick={() => setSub(k)}
+   101→              className={cn(
+   102→                "rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+   103→                sub === k
+   104→                  ? "border-violet-400/40 bg-violet-500/10 text-violet-700 dark:text-violet-100"
+   105→                  : "border-black/10 bg-black/[0.02] text-muted-foreground hover:text-foreground dark:border-white/10 dark:bg-white/[0.03]",
+   106→              )}
+   107→            >
+   108→              {l}
+   109→            </button>
+   110→          ))}
+   111→        </div>
+   112→
+   113→        <SectionHeading
+   114→          eyebrow="AI Interview"
+   115→          title={<>Live <span className="text-violet-500 dark:text-violet-400">AI Interviewer</span></>}
+   116→          description="A real-time conversation with a 3D avatar that asks questions, listens, generates follow-ups, and analyses your body language, emotion, and eye contact in real time."
+   117→          align="left"
+   118→        />
+   119→
+   120→        <div className="mt-6">
+   121→          <AnimatePresence mode="wait">
+   122→            {sub === "setup" && (
+   123→              <motion.div
+   124→                key="setup"
+   125→                initial={{ opacity: 0, y: 12 }}
+   126→                animate={{ opacity: 1, y: 0 }}
+   127→                exit={{ opacity: 0, y: -12 }}
+   128→                transition={{ duration: 0.25 }}
+   129→              >
+   130→                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   131→                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Step 1</p>
+   132→                  <h3 className="mt-1 text-xl font-semibold tracking-tight">Choose Interview Type</h3>
+   133→                  <p className="mt-1 text-sm text-muted-foreground">
+   134→                    Each type generates questions tailored to your resume + profile. You can switch types anytime before the interview starts.
+   135→                  </p>
+   136→                </div>
+   137→
+   138→                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   139→                  {INTERVIEW_TYPES.map((t) => {
+   140→                    const sel = selectedType === t.id;
+   141→                    return (
+   142→                      <button
+   143→                        key={t.id}
+   144→                        onClick={() => setSelectedType(t.id)}
+   145→                        className={cn(
+   146→                          "group relative flex h-full flex-col rounded-lg border p-5 text-left transition-colors",
+   147→                          sel
+   148→                            ? "border-violet-400/40 bg-violet-500/[0.06]"
+   149→                            : "border-black/10 bg-card shadow-sm hover:border-black/20 dark:border-white/10 dark:hover:border-white/20",
+   150→                        )}
+   151→                      >
+   152→                        <div className="flex items-center justify-between">
+   153→                          <span className={cn(
+   154→                            "grid h-10 w-10 place-items-center rounded-lg ring-1 ring-inset transition-colors",
+   155→                            sel ? cn(TONE_MAP[t.tone], "ring-current") : "bg-black/[0.02] text-muted-foreground ring-black/10 dark:bg-white/5 dark:ring-white/10",
+   156→                          )}>
+   157→                            <t.icon className="h-5 w-5" />
+   158→                          </span>
+   159→                          {sel && (
+   160→                            <span className="grid h-5 w-5 place-items-center rounded-full bg-violet-500 text-white">
+   161→                              <CheckCircle2 className="h-3 w-3" />
+   162→                            </span>
+   163→                          )}
+   164→                        </div>
+   165→                        <h4 className="mt-4 text-base font-semibold">{t.title}</h4>
+   166→                        <p className="mt-1 flex-1 text-xs text-muted-foreground">{t.desc}</p>
+   167→                        <div className="mt-4 flex items-center gap-3 text-[11px]">
+   168→                          <span className="inline-flex items-center gap-1 text-muted-foreground">
+   169→                            <Clock className="h-3 w-3" /> {t.duration}
+   170→                          </span>
+   171→                          <span className="inline-flex items-center gap-1 text-muted-foreground">
+   172→                            <Brain className="h-3 w-3" /> {t.qCount}
+   173→                          </span>
+   174→                        </div>
+   175→                      </button>
+   176→                    );
+   177→                  })}
+   178→                </div>
+   179→
+   180→                {/* System check */}
+   181→                <div className="mt-6 rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   182→                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Step 2</p>
+   183→                  <h3 className="mt-1 text-xl font-semibold tracking-tight">System Check</h3>
+   184→                  <p className="mt-1 text-sm text-muted-foreground">
+   185→                    We need your microphone and camera for the live interview. Video is processed locally for emotion detection. Only audio is sent for transcription.
+   186→                  </p>
+   187→                  <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+   188→                    <SystemCheckCard
+   189→                      icon={Mic}
+   190→                      label="Microphone"
+   191→                      status={micStatus}
+   192→                      onTest={() => setTimeout(() => setMicStatus("ok"), 800)}
+   193→                    />
+   194→                    <SystemCheckCard
+   195→                      icon={Camera}
+   196→                      label="Camera"
+   197→                      status={camStatus}
+   198→                      onTest={() => setTimeout(() => setCamStatus("ok"), 800)}
+   199→                    />
+   200→                  </div>
+   201→
+   202→                  <div className="mt-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+   203→                    <p className="text-[11px] text-muted-foreground">
+   204→                      <Info className="mr-1 inline h-3 w-3" />
+   205→                      Tip: Use a quiet room with frontal lighting for best body-language analysis.
+   206→                    </p>
+   207→                    <Button
+   208→                      onClick={() => setSub("live")}
+   209→                      disabled={!(micStatus === "ok" && camStatus === "ok")}
+   210→                      className="rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
+   211→                    >
+   212→                      <Video className="mr-2 h-4 w-4" /> Begin Interview
+   213→                      <ArrowRight className="ml-2 h-4 w-4" />
+   214→                    </Button>
+   215→                  </div>
+   216→                </div>
+   217→              </motion.div>
+   218→            )}
+   219→
+   220→            {sub === "live" && (
+   221→              <motion.div
+   222→                key="live"
+   223→                initial={{ opacity: 0, y: 12 }}
+   224→                animate={{ opacity: 1, y: 0 }}
+   225→                exit={{ opacity: 0, y: -12 }}
+   226→                transition={{ duration: 0.25 }}
+   227→              >
+   228→                {/* Top bar */}
+   229→                <div className="flex items-center justify-between rounded-lg border border-black/10 bg-card p-3 shadow-sm sm:p-4 dark:border-white/10">
+   230→                  <div className={cn(
+   231→                    "flex items-center gap-2 rounded-md border px-3 py-1.5 font-mono text-base font-semibold sm:text-lg",
+   232→                    "border-amber-400/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+   233→                  )}>
+   234→                    <Clock className="h-4 w-4" />
+   235→                    08:42
+   236→                  </div>
+   237→                  <div className="text-center">
+   238→                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Progress</p>
+   239→                    <p className="font-mono text-sm font-semibold">Q <span className="text-violet-500 dark:text-violet-400">3</span> of 10</p>
+   240→                  </div>
+   241→                  <Button
+   242→                    variant="ghost"
+   243→                    size="sm"
+   244→                    onClick={() => setEndOpen(true)}
+   245→                    className="rounded-full text-rose-600 hover:bg-rose-500/10 hover:text-rose-700 dark:text-rose-300 dark:hover:text-rose-200"
+   246→                  >
+   247→                    <X className="h-4 w-4" /> End Early
+   248→                  </Button>
+   249→                </div>
+   250→
+   251→                <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+   252→                  {/* Left: avatar + analysis */}
+   253→                  <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   254→                    <AvatarBlock />
+   255→                    <Waveform />
+   256→                    <AnalysisIndicators />
+   257→                  </div>
+   258→
+   259→                  {/* Right: question + transcript */}
+   260→                  <div className="flex h-full flex-col rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   261→                    <p className="text-xs uppercase tracking-wider text-muted-foreground">AI Question</p>
+   262→                    <motion.div
+   263→                      initial={{ opacity: 0, y: 6 }}
+   264→                      animate={{ opacity: 1, y: 0 }}
+   265→                      className="mt-2 rounded-lg border border-violet-400/30 bg-violet-500/10 px-4 py-3 text-sm text-violet-700 dark:text-violet-50"
+   266→                    >
+   267→                      Tell me about a recent bug you debugged. Walk me through your process. What tools did you use, and how did you isolate the root cause?
+   268→                    </motion.div>
+   269→
+   270→                    <div className="mt-4">
+   271→                      <p className="text-xs uppercase tracking-wider text-muted-foreground">Live Transcript</p>
+   272→                      <div className="mt-2 max-h-64 space-y-2 overflow-y-auto scrollbar-custom pr-1">
+   273→                        <ChatBubble role="ai" time="0:12">Great. Let&apos;s dive into a technical scenario. Tell me about a recent bug you debugged.</ChatBubble>
+   274→                        <ChatBubble role="user" time="0:24">Sure! Last month we had a memory leak in our FastAPI service. The container kept getting OOM-killed every 4 hours.</ChatBubble>
+   275→                        <ChatBubble role="ai" time="0:38">Interesting. What tools did you reach for first?</ChatBubble>
+   276→                        <ChatBubble role="user" time="0:52">I started with <code className="font-mono text-violet-700 dark:text-violet-200">tracemalloc</code> to snapshot allocations, then moved to <code className="font-mono text-violet-700 dark:text-violet-200">py-spy</code> for live profiling…</ChatBubble>
+   277→                        <div className="flex items-center gap-1.5 text-xs text-violet-500 dark:text-violet-400">
+   278→                          <TypingDots /> AI is thinking…
+   279→                        </div>
+   280→                      </div>
+   281→                    </div>
+   282→
+   283→                    {/* Mic controls */}
+   284→                    <div className="mt-4 flex items-center gap-3">
+   285→                      <MicToggle />
+   286→                      <div className="flex-1 rounded-full border border-black/10 bg-black/[0.02] px-3 py-2 text-xs text-muted-foreground dark:border-white/10 dark:bg-white/5">
+   287→                        Click the mic button to start/stop recording, or just start speaking. Auto-detect handles it.
+   288→                      </div>
+   289→                    </div>
+   290→
+   291→                    {/* Proctoring footer */}
+   292→                    <div className="mt-auto pt-4 text-[11px] text-muted-foreground">
+   293→                      <Info className="mr-1 inline h-3 w-3" />
+   294→                      Tab switches: <span className="text-foreground">1</span> · Fullscreen exits: <span className="text-foreground">0</span>. Logged for awareness only.
+   295→                    </div>
+   296→                  </div>
+   297→                </div>
+   298→
+   299→                <Dialog open={endOpen} onOpenChange={setEndOpen}>
+   300→                  <DialogContent className="border-black/10 bg-card dark:border-white/10">
+   301→                    <DialogHeader>
+   302→                      <DialogTitle>End interview early?</DialogTitle>
+   303→                      <DialogDescription>
+   304→                        You won&apos;t be able to resume this interview. Your partial transcript will still be processed into a report.
+   305→                      </DialogDescription>
+   306→                    </DialogHeader>
+   307→                    <DialogFooter className="mt-4 flex gap-2">
+   308→                      <Button variant="ghost" onClick={() => setEndOpen(false)} className="rounded-full">
+   309→                        Keep Going
+   310→                      </Button>
+   311→                      <Button
+   312→                        onClick={() => { setEndOpen(false); setSub("processing"); }}
+   313→                        className="rounded-full bg-rose-500 text-white hover:bg-rose-600"
+   314→                      >
+   315→                        End Interview
+   316→                      </Button>
+   317→                    </DialogFooter>
+   318→                  </DialogContent>
+   319→                </Dialog>
+   320→              </motion.div>
+   321→            )}
+   322→
+   323→            {sub === "processing" && (
+   324→              <motion.div
+   325→                key="processing"
+   326→                initial={{ opacity: 0, y: 12 }}
+   327→                animate={{ opacity: 1, y: 0 }}
+   328→                exit={{ opacity: 0, y: -12 }}
+   329→                transition={{ duration: 0.25 }}
+   330→              >
+   331→                <div className="rounded-lg border border-black/10 bg-card p-10 text-center shadow-sm sm:p-16 dark:border-white/10">
+   332→                  <ConicSpinner />
+   333→                  <h2 className="mt-8 text-2xl font-semibold tracking-tight sm:text-3xl">
+   334→                    Processing your interview…
+   335→                  </h2>
+   336→                  <p className="mt-2 text-sm text-muted-foreground">
+   337→                    We&apos;re transcribing your audio, scoring your answers, and generating your 17-section report. This takes approximately 60 seconds.
+   338→                  </p>
+   339→
+   340→                  <div className="mx-auto mt-8 max-w-md space-y-2 text-left">
+   341→                    {PROCESSING_STEPS.map((s, i) => {
+   342→                      const state = i < 2 ? "done" : i === 2 ? "active" : "pending";
+   343→                      return (
+   344→                        <motion.div
+   345→                          key={s.label}
+   346→                          initial={{ opacity: 0, x: -8 }}
+   347→                          animate={{ opacity: 1, x: 0 }}
+   348→                          transition={{ delay: i * 0.15 }}
+   349→                          className={cn(
+   350→                            "flex items-center justify-between rounded-md border px-3 py-2 text-sm",
+   351→                            state === "active"
+   352→                              ? "border-violet-400/40 bg-violet-500/10"
+   353→                              : state === "done"
+   354→                                ? "border-emerald-400/30 bg-emerald-500/10"
+   355→                                : "border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.02]",
+   356→                          )}
+   357→                        >
+   358→                          <div className="flex items-center gap-2">
+   359→                            {state === "done" && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+   360→                            {state === "active" && <Loader2 className="h-4 w-4 animate-spin text-violet-500 dark:text-violet-400" />}
+   361→                            {state === "pending" && <div className="h-4 w-4 rounded-full border border-black/15 dark:border-white/15" />}
+   362→                            <span className={state === "pending" ? "text-muted-foreground" : "text-foreground"}>{s.label}</span>
+   363→                          </div>
+   364→                          <span className="font-mono text-[11px] text-muted-foreground">{s.dur}</span>
+   365→                        </motion.div>
+   366→                      );
+   367→                    })}
+   368→                  </div>
+   369→
+   370→                  <p className="mt-8 text-xs text-muted-foreground">
+   371→                    Taking longer than expected? You can go to your dashboard. We&apos;ll notify you when the report is ready.
+   372→                  </p>
+   373→                  <Button
+   374→                    variant="outline"
+   375→                    onClick={() => set("dashboard")}
+   376→                    className="mt-4 rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   377→                  >
+   378→                    Go to Dashboard <ChevronRight className="ml-2 h-4 w-4" />
+   379→                  </Button>
+   380→                </div>
+   381→              </motion.div>
+   382→            )}
+   383→
+   384→            {sub === "done" && (
+   385→              <motion.div
+   386→                key="done"
+   387→                initial={{ opacity: 0, y: 12 }}
+   388→                animate={{ opacity: 1, y: 0 }}
+   389→                exit={{ opacity: 0, y: -12 }}
+   390→                transition={{ duration: 0.25 }}
+   391→              >
+   392→                <div className="rounded-lg border border-black/10 bg-card p-10 text-center shadow-sm sm:p-16 dark:border-white/10">
+   393→                  <motion.div
+   394→                    initial={{ scale: 0.4, opacity: 0 }}
+   395→                    animate={{ scale: 1, opacity: 1 }}
+   396→                    transition={{ type: "spring", stiffness: 120, damping: 20, delay: 0.1 }}
+   397→                    className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-violet-500 shadow-sm"
+   398→                  >
+   399→                    <CheckCircle2 className="h-10 w-10 text-white" />
+   400→                  </motion.div>
+   401→                  <h2 className="mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">
+   402→                    Interview Complete
+   403→                  </h2>
+   404→                  <p className="mt-3 text-sm text-muted-foreground">
+   405→                    Your 17-section report is being generated and will appear on your dashboard shortly. About 60 seconds from now you&apos;ll see a <span className="text-violet-500 dark:text-violet-400">Download Report</span> button light up.
+   406→                  </p>
+   407→                  <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+   408→                    <Button
+   409→                      onClick={() => set("report")}
+   410→                      className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   411→                    >
+   412→                      <Download className="mr-2 h-4 w-4" /> View Report
+   413→                    </Button>
+   414→                    <Button
+   415→                      onClick={() => set("dashboard")}
+   416→                      variant="outline"
+   417→                      className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   418→                    >
+   419→                      Go to Dashboard
+   420→                    </Button>
+   421→                  </div>
+   422→
+   423→                  <div className="mt-8 grid grid-cols-3 gap-3 text-left">
+   424→                    {[
+   425→                      { label: "Questions Asked", value: "10" },
+   426→                      { label: "Avg Answer Length", value: "1m 12s" },
+   427→                      { label: "Filler Words", value: "23" },
+   428→                    ].map((s) => (
+   429→                      <div key={s.label} className="rounded-lg border border-black/10 bg-black/[0.02] p-3 text-center dark:border-white/10 dark:bg-white/[0.03]">
+   430→                        <p className="text-lg font-semibold tracking-tight text-violet-500 dark:text-violet-400">{s.value}</p>
+   431→                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
+   432→                      </div>
+   433→                    ))}
+   434→                  </div>
+   435→                </div>
+   436→              </motion.div>
+   437→            )}
+   438→          </AnimatePresence>
+   439→        </div>
+   440→
+   441→      </PageWrap>
+   442→    </div>
+   443→  );
+   444→}
+   445→
+   446→/* -------------------------------------------------------------------------- */
+   447→
+   448→function SystemCheckCard({
+   449→  icon: Icon,
+   450→  label,
+   451→  status,
+   452→  onTest,
+   453→}: {
+   454→  icon: React.ComponentType<{ className?: string }>;
+   455→  label: string;
+   456→  status: "idle" | "ok" | "fail";
+   457→  onTest: () => void;
+   458→}) {
+   459→  return (
+   460→    <div className="rounded-lg border border-black/10 bg-black/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
+   461→      <div className="flex items-center justify-between">
+   462→        <div className="flex items-center gap-3">
+   463→          <span className="grid h-10 w-10 place-items-center rounded-lg bg-black/[0.02] text-muted-foreground ring-1 ring-inset ring-black/10 dark:bg-white/5 dark:ring-white/10">
+   464→            <Icon className="h-5 w-5" />
+   465→          </span>
+   466→          <div>
+   467→            <p className="text-sm font-medium">{label}</p>
+   468→            <p className="text-[11px] text-muted-foreground">
+   469→              {status === "idle" && "Not tested yet"}
+   470→              {status === "ok" && "Working"}
+   471→              {status === "fail" && "Not detected"}
+   472→            </p>
+   473→          </div>
+   474→        </div>
+   475→        {status === "ok" ? (
+   476→          <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+   477→        ) : status === "fail" ? (
+   478→          <AlertTriangle className="h-5 w-5 text-rose-500" />
+   479→        ) : null}
+   480→      </div>
+   481→      <Button
+   482→        variant="outline"
+   483→        size="sm"
+   484→        onClick={onTest}
+   485→        className="mt-3 w-full rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   486→      >
+   487→        Test {label}
+   488→      </Button>
+   489→    </div>
+   490→  );
+   491→}
+   492→
+   493→function AvatarBlock() {
+   494→  return (
+   495→    <div className="relative grid place-items-center">
+   496→      <motion.div
+   497→        animate={{ y: [0, -8, 0], scale: [1, 1.03, 1] }}
+   498→        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+   499→        className="relative grid h-44 w-44 place-items-center rounded-full bg-violet-500 shadow-sm ring-1 ring-black/10 dark:ring-white/10"
+   500→      >
+   501→        <Video className="h-14 w-14 text-white" />
+   502→        {/* Typing dots overlay */}
+   503→        <motion.div
+   504→          initial={{ opacity: 0, scale: 0.6 }}
+   505→          animate={{ opacity: 1, scale: 1 }}
+   506→          className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-black/10 bg-card px-3 py-1 text-[11px] dark:border-white/15"
+   507→        >
+   508→          <TypingDots className="text-violet-500 dark:text-violet-400" /> thinking
+   509→        </motion.div>
+   510→      </motion.div>
+   511→    </div>
+   512→  );
+   513→}
+   514→
+   515→function Waveform() {
+   516→  return (
+   517→    <div className="mt-6 flex items-end justify-center gap-0.5">
+   518→      {Array.from({ length: 24 }).map((_, i) => (
+   519→        <motion.span
+   520→          key={i}
+   521→          className="w-1 rounded-full bg-violet-400"
+   522→          animate={{ height: [4, 6 + Math.random() * 14, 4] }}
+   523→          transition={{
+   524→            duration: 0.6 + Math.random() * 0.4,
+   525→            repeat: Infinity,
+   526→            delay: i * 0.04,
+   527→            ease: "easeInOut",
+   528→          }}
+   529→        />
+   530→      ))}
+   531→    </div>
+   532→  );
+   533→}
+   534→
+   535→function AnalysisIndicators() {
+   536→  return (
+   537→    <div className="mt-6 grid grid-cols-3 gap-2">
+   538→      {[
+   539→        { label: "Emotion", value: "Neutral", tone: "text-sky-600 dark:text-sky-300", icon: Brain },
+   540→        { label: "Eye Contact", value: "78%", tone: "text-emerald-600 dark:text-emerald-300", icon: MonitorPlay },
+   541→        { label: "Posture", value: "Good", tone: "text-emerald-600 dark:text-emerald-300", icon: ShieldCheck },
+   542→      ].map((s) => (
+   543→        <div key={s.label} className="rounded-lg border border-black/10 bg-black/[0.02] p-3 text-center dark:border-white/10 dark:bg-white/[0.03]">
+   544→          <s.icon className={cn("mx-auto h-3.5 w-3.5", s.tone)} />
+   545→          <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
+   546→          <p className={cn("mt-0.5 text-sm font-semibold", s.tone)}>{s.value}</p>
+   547→        </div>
+   548→      ))}
+   549→    </div>
+   550→  );
+   551→}
+   552→
+   553→function ChatBubble({ role, time, children }: { role: "ai" | "user"; time: string; children: React.ReactNode }) {
+   554→  const isAI = role === "ai";
+   555→  return (
+   556→    <motion.div
+   557→      initial={{ opacity: 0, y: 6 }}
+   558→      animate={{ opacity: 1, y: 0 }}
+   559→      className={cn(
+   560→        "flex items-end gap-2",
+   561→        isAI ? "justify-start" : "justify-end",
+   562→      )}
+   563→    >
+   564→      {isAI && <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-violet-500 text-[10px] font-semibold text-white">AI</span>}
+   565→      <div className={cn(
+   566→        "max-w-[85%] rounded-lg px-3 py-2 text-xs",
+   567→        isAI
+   568→          ? "border border-violet-400/20 bg-violet-500/10 text-violet-700 dark:text-violet-50"
+   569→          : "bg-black/[0.05] text-foreground/90 dark:bg-white/10",
+   570→      )}>
+   571→        <p className="leading-relaxed">{children}</p>
+   572→        <p className="mt-1 text-[10px] text-muted-foreground">{time}</p>
+   573→      </div>
+   574→    </motion.div>
+   575→  );
+   576→}
+   577→
+   578→function MicToggle() {
+   579→  const [on, setOn] = useState(true);
+   580→  return (
+   581→    <button
+   582→      onClick={() => setOn((s) => !s)}
+   583→      className={cn(
+   584→        "grid h-12 w-12 shrink-0 place-items-center rounded-full transition-colors",
+   585→        on
+   586→          ? "bg-violet-500 text-white hover:bg-violet-600"
+   587→          : "bg-black/[0.05] text-muted-foreground ring-1 ring-inset ring-black/10 dark:bg-white/5 dark:ring-white/10",
+   588→      )}
+   589→    >
+   590→      {on ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+   591→    </button>
+   592→  );
+   593→}
+   594→
+   595→function ConicSpinner() {
+   596→  return (
+   597→    <div className="relative mx-auto h-24 w-24">
+   598→      <div
+   599→        className="absolute inset-0 rounded-full"
+   600→        style={{
+   601→          background: "conic-gradient(from 0deg, #8b5cf6, #a78bfa, #8b5cf6)",
+   602→          animation: "spin 1.4s linear infinite",
+   603→          maskImage: "radial-gradient(farthest-side, transparent calc(100% - 8px), #000 0)",
+   604→          WebkitMaskImage: "radial-gradient(farthest-side, transparent calc(100% - 8px), #000 0)",
+   605→        }}
+   606→      />
+   607→      <div className="absolute inset-0 grid place-items-center">
+   608→        <Loader2 className="h-6 w-6 animate-spin text-violet-500 dark:text-violet-400" />
+   609→      </div>
+   610→      <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+   611→    </div>
+   612→  );
+   613→}
+   614→
+   615→/* keep imports referenced */
+   616→export const __icons = { Pause, Play, RefreshCw, Square };
+   617→

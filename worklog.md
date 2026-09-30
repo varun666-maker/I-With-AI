@@ -929,3 +929,75 @@ Per the task brief, I assumed these files exist and imported them as specified:
 - Lint: 0 errors, 0 warnings.
 - Dev server: 200 OK on `/`.
 - Blockers: none. The 5 strict-proctoring candidate test screens are functional and lint-clean.
+
+---
+
+## Task ID: PREP-UPGRADE · Agent: prep-upgrade
+
+**Task:** Upgrade 3 prep-mode screen files (coding, aptitude, interview) to add
+fullscreen + coding arena LeetCode-style split. The files had been restored
+from git but lost the Stream B upgrades (fullscreen lifecycle, navigation
+lock, ProblemListTable integration, re-enter-fullscreen modal).
+
+### Files modified (3)
+1. **`src/components/screens/prep/coding.tsx`** (MAJOR UPGRADE) — split
+   `CodingArena` into two views via `useNav(s => s.codingView)`:
+   - **"list"** → `<ProblemListTable>` with store props (`solvedProblems`,
+     `attemptedProblems`, `submissions` converted from string IDs to numbers).
+     `onPickProblem` sets current problem, switches to editor, requests
+     fullscreen, locks navigation. `onRandomQuestion` picks a random unsolved
+     problem then does the same.
+   - **"editor"** → fullscreen + navigation-locked. Top bar with Back /
+     title+difficulty / Next. LEFT pane shows problem statement from
+     `getProblemById`. RIGHT pane keeps the Monaco-styled editor, language
+     dropdown (Python/JavaScript), Run/Submit, test cases, AI review panel.
+     On submit success: `markSolved + recordSubmission(true)` + success modal.
+     Esc exit → amber "Re-enter fullscreen" modal (no penalty).
+2. **`src/components/screens/prep/aptitude.tsx`** (ADD FULLSCREEN) —
+   Rules sub-screen gains optional Mic/Camera `Switch` toggles (off by
+   default). Start Test → `requestFullscreen + setNavigationLocked(true) +
+   setPhase("test")`. Test sub-screen watches `onFullscreenChange`; Esc →
+   re-enter modal. Submit Now → `exitFullscreen + setNavigationLocked(false)
+   + setPhase("results")`. Results → Take Again returns to rules (unlimited
+   retakes).
+3. **`src/components/screens/prep/interview.tsx`** (ADD FULLSCREEN) —
+   Begin Interview → `requestFullscreen + setNavigationLocked(true) +
+   setSub("live")`. Live sub-screen watches `onFullscreenChange`; Esc →
+   re-enter modal. End Early → `exitFullscreen + setNavigationLocked(false)
+   + setSub("processing")`. Processing entry useEffect calls
+   `exitFullscreen + setNavigationLocked(false)` (idempotent). Done →
+   normal mode, FlowNav visible.
+
+### Critical rules honored
+- Fullscreen utilities imported from `@/lib/fullscreen`.
+- `setNavigationLocked` read from `@/lib/store` via `useNav`.
+- `useEffect` for fullscreen entry/exit (no direct calls in render body).
+- `queueMicrotask(() => setState(...))` for every setState inside useEffect
+  bodies or listeners registered by useEffect.
+- `useReducedMotion` from framer-motion applied to all phase/sub-screen
+  transitions. Used `exit={reduce ? undefined : ...}` (not `false`) to avoid
+  the TypeScript error seen in the candidate screens.
+- No emojis, no em dashes (verified via grep).
+- All existing functionality preserved (editor, test cases, AI review, 25
+  MCQs + navigator, interview avatar/transcript/processing).
+- Named exports kept: `CodingArena`, `AptitudePortal`, `InterviewStudio`.
+- No files outside `src/components/screens/prep/` were modified.
+
+### Verification
+- `bun run lint` → 0 errors, 0 warnings.
+- `npx tsc --noEmit --skipLibCheck` → no type errors in the 3 prep files.
+- `grep -c` checks: coding.tsx = 21, aptitude.tsx = 8, interview.tsx = 11
+  (all > 0).
+- Named exports verified at coding.tsx:114, aptitude.tsx:102,
+  interview.tsx:83.
+- Dev server recompiled cleanly after each edit.
+
+### Stage Summary
+- Files modified (3):
+  - `src/components/screens/prep/coding.tsx` → `CodingArena` (list + editor split)
+  - `src/components/screens/prep/aptitude.tsx` → `AptitudePortal` (fullscreen + toggles)
+  - `src/components/screens/prep/interview.tsx` → `InterviewStudio` (fullscreen lifecycle)
+- Lint: 0 errors, 0 warnings.
+- TypeScript: 0 errors in prep files.
+- Dev server: 200 OK on `/`.
+- Blockers: none.

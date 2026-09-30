@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   AlertTriangle,
   ArrowRight,
@@ -15,6 +15,7 @@ import {
   Download,
   Info,
   Loader2,
+  Maximize2,
   Mic,
   MicOff,
   MonitorPlay,
@@ -45,6 +46,12 @@ import {
 } from "@/components/ui/dialog";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import {
+  requestFullscreen,
+  exitFullscreen,
+  isCurrentlyFullscreen,
+  onFullscreenChange,
+} from "@/lib/fullscreen";
 
 type SubScreen = "setup" | "live" | "processing" | "done";
 
@@ -75,11 +82,37 @@ const PROCESSING_STEPS = [
 
 export function InterviewStudio() {
   const { set } = useNav();
+  const setNavigationLocked = useNav((s) => s.setNavigationLocked);
+  const reduce = useReducedMotion();
   const [sub, setSub] = useState<SubScreen>("setup");
   const [selectedType, setSelectedType] = useState("hr");
   const [micStatus, setMicStatus] = useState<"idle" | "ok" | "fail">("idle");
   const [camStatus, setCamStatus] = useState<"idle" | "ok" | "fail">("idle");
   const [endOpen, setEndOpen] = useState(false);
+  // "Re-enter fullscreen" warning modal (shown when the candidate presses Esc
+  // during the live interview). No penalty in prep mode.
+  const [reenterOpen, setReenterOpen] = useState(false);
+
+  // Fullscreen watcher: only active during the live sub-screen. If the
+  // candidate exits fullscreen (e.g. via Esc), show a friendly re-enter modal.
+  // No strikes, no penalties. Prep mode is forgiving.
+  useEffect(() => {
+    if (sub !== "live") return;
+    const unsubscribe = onFullscreenChange(() => {
+      if (!isCurrentlyFullscreen()) {
+        queueMicrotask(() => setReenterOpen(true));
+      }
+    });
+    return unsubscribe;
+  }, [sub]);
+
+  // Processing sub-screen entry: make sure fullscreen is exited and the
+  // navigation lock is released so FlowNav re-appears. Idempotent.
+  useEffect(() => {
+    if (sub !== "processing") return;
+    exitFullscreen();
+    queueMicrotask(() => setNavigationLocked(false));
+  }, [sub, setNavigationLocked]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -122,9 +155,9 @@ export function InterviewStudio() {
             {sub === "setup" && (
               <motion.div
                 key="setup"
-                initial={{ opacity: 0, y: 12 }}
+                initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
+                exit={reduce ? undefined : { opacity: 0, y: -12 }}
                 transition={{ duration: 0.25 }}
               >
                 <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
@@ -205,7 +238,11 @@ export function InterviewStudio() {
                       Tip: Use a quiet room with frontal lighting for best body-language analysis.
                     </p>
                     <Button
-                      onClick={() => setSub("live")}
+                      onClick={() => {
+                        requestFullscreen();
+                        setNavigationLocked(true);
+                        setSub("live");
+                      }}
                       disabled={!(micStatus === "ok" && camStatus === "ok")}
                       className="rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
                     >
@@ -220,9 +257,9 @@ export function InterviewStudio() {
             {sub === "live" && (
               <motion.div
                 key="live"
-                initial={{ opacity: 0, y: 12 }}
+                initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
+                exit={reduce ? undefined : { opacity: 0, y: -12 }}
                 transition={{ duration: 0.25 }}
               >
                 {/* Top bar */}
@@ -309,7 +346,12 @@ export function InterviewStudio() {
                         Keep Going
                       </Button>
                       <Button
-                        onClick={() => { setEndOpen(false); setSub("processing"); }}
+                        onClick={() => {
+                          setEndOpen(false);
+                          exitFullscreen();
+                          setNavigationLocked(false);
+                          setSub("processing");
+                        }}
                         className="rounded-full bg-rose-500 text-white hover:bg-rose-600"
                       >
                         End Interview
@@ -323,9 +365,9 @@ export function InterviewStudio() {
             {sub === "processing" && (
               <motion.div
                 key="processing"
-                initial={{ opacity: 0, y: 12 }}
+                initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
+                exit={reduce ? undefined : { opacity: 0, y: -12 }}
                 transition={{ duration: 0.25 }}
               >
                 <div className="rounded-lg border border-black/10 bg-card p-10 text-center shadow-sm sm:p-16 dark:border-white/10">
@@ -384,9 +426,9 @@ export function InterviewStudio() {
             {sub === "done" && (
               <motion.div
                 key="done"
-                initial={{ opacity: 0, y: 12 }}
+                initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
+                exit={reduce ? undefined : { opacity: 0, y: -12 }}
                 transition={{ duration: 0.25 }}
               >
                 <div className="rounded-lg border border-black/10 bg-card p-10 text-center shadow-sm sm:p-16 dark:border-white/10">
@@ -439,6 +481,33 @@ export function InterviewStudio() {
         </div>
 
       </PageWrap>
+
+      {/* Re-enter fullscreen modal (Esc exit during the live interview, no penalty) */}
+      <Dialog open={reenterOpen} onOpenChange={setReenterOpen}>
+        <DialogContent className="border-amber-400/30 bg-card dark:border-amber-400/20">
+          <DialogHeader>
+            <div className="mx-auto mb-2 grid h-14 w-14 place-items-center rounded-full bg-amber-500/15">
+              <Maximize2 className="h-8 w-8 text-amber-500" />
+            </div>
+            <DialogTitle className="text-center">Re-enter fullscreen</DialogTitle>
+            <DialogDescription className="text-center">
+              You pressed Esc and left fullscreen mode. Re-enter to continue the interview. Prep
+              mode is forgiving, so there are no penalties.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex justify-center">
+            <Button
+              onClick={() => {
+                requestFullscreen();
+                setReenterOpen(false);
+              }}
+              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+            >
+              <Maximize2 className="mr-2 h-4 w-4" /> Re-enter Fullscreen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

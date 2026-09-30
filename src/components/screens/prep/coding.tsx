@@ -1,24 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   AlertTriangle,
-  Award,
+  ArrowLeft,
+  ArrowRight,
   Check,
   CheckCircle2,
   ChevronDown,
-  ChevronRight,
   Clock,
   Code2,
   Copy,
   Download,
   Info,
+  Maximize2,
   Play,
-  PlayCircle,
   Terminal,
   X,
-  Zap,
 } from "lucide-react";
 import {
   PageWrap,
@@ -51,48 +50,220 @@ import {
 } from "@/components/ui/collapsible";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import {
+  requestFullscreen,
+  exitFullscreen,
+  isCurrentlyFullscreen,
+  onFullscreenChange,
+} from "@/lib/fullscreen";
+import {
+  CODING_PROBLEMS,
+  getProblemById,
+  type CodingProblem,
+  type Difficulty,
+} from "@/lib/coding-problems";
+import { ProblemListTable } from "@/components/shared/problem-list-table";
 
-const LANGUAGES = ["Python", "Java", "C++", "JavaScript", "SQL", "Go", "TypeScript"];
+/**
+ * CodingArena
+ *
+ * Prep-mode coding practice. Splits into two views driven by the
+ * `codingView` flag in the global nav store:
+ *
+ *   - "list"   -> LeetCode-style problem index (ProblemListTable) with a
+ *                 submission heatmap, topic progress, and a random-picker.
+ *   - "editor" -> VS Code-like split view (problem statement + Monaco-styled
+ *                 textarea editor) with fullscreen + navigation lock.
+ *
+ * Prep mode is forgiving: exiting fullscreen via Esc shows a friendly
+ * "Re-enter fullscreen" modal with no penalty. Submissions are recorded
+ * to the store so the heatmap and solved/attempted counters update live.
+ */
 
-const STARTER_CODE: Record<string, string> = {
-  Python: `def two_sum(nums, target):\n    seen = {}\n    for i, n in enumerate(nums):\n        if target - n in seen:\n            return [seen[target - n], i]\n        seen[n] = i\n    return []\n`,
-  JavaScript: `function twoSum(nums, target) {\n  const seen = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    if (seen.has(target - nums[i])) {\n      return [seen.get(target - nums[i]), i];\n    }\n    seen.set(nums[i], i);\n  }\n  return [];\n}\n`,
-  Java: `public int[] twoSum(int[] nums, int target) {\n    Map<Integer, Integer> seen = new HashMap<>();\n    for (int i = 0; i < nums.length; i++) {\n        if (seen.containsKey(target - nums[i]))\n            return new int[]{seen.get(target - nums[i]), i};\n        seen.put(nums[i], i);\n    }\n    return new int[]{};\n}\n`,
-  TypeScript: `function twoSum(nums: number[], target: number): number[] {\n  const seen = new Map<number, number>();\n  for (let i = 0; i < nums.length; i++) {\n    if (seen.has(target - nums[i]))\n      return [seen.get(target - nums[i])!, i];\n    seen.set(nums[i], i);\n  }\n  return [];\n}\n`,
-  "C++": `vector<int> twoSum(vector<int>& nums, int target) {\n    unordered_map<int,int> seen;\n    for (int i = 0; i < nums.size(); i++) {\n        if (seen.count(target - nums[i]))\n            return {seen[target - nums[i]], i};\n        seen[nums[i]] = i;\n    }\n    return {};\n}\n`,
-  Go: `func twoSum(nums []int, target int) []int {\n    seen := map[int]int{}\n    for i, n := range nums {\n        if j, ok := seen[target-n]; ok {\n            return []int{j, i}\n        }\n        seen[n] = i\n    }\n    return []\n}\n`,
-  SQL: `-- SQL variant: find pairs of ids\nSELECT a.id AS id1, b.id AS id2\nFROM nums a JOIN nums b\n  ON a.id < b.id AND a.value + b.value = :target;\n`,
+const LANGUAGES = ["Python", "JavaScript"];
+
+const DIFFICULTY_BADGE: Record<Difficulty, string> = {
+  Easy: "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200",
+  Medium: "border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-200",
+  Hard: "border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-200",
 };
 
-const TEST_CASES = [
-  { id: 1, input: "nums = [2,7,11,15], target = 9", expected: "[0,1]", hidden: false },
-  { id: 2, input: "nums = [3,2,4], target = 6", expected: "[1,2]", hidden: false },
-  { id: 3, input: "nums = [3,3], target = 6", expected: "[0,1]", hidden: false },
-  { id: 4, input: "nums = [1,5,8,12,7], target = 13", expected: "[2,3]", hidden: true },
-  { id: 5, input: "nums = [10,20,30,40], target = 50", expected: "[1,2]", hidden: true },
-  { id: 6, input: "nums = [0,-1,2,-3,1], target = -2", expected: "[1,3]", hidden: true },
-  { id: 7, input: "nums = [5,5,5,5], target = 10", expected: "[0,1]", hidden: true },
-  { id: 8, input: "nums = [99,1,2,99], target = 100", expected: "[]", hidden: true },
-  { id: 9, input: "nums = [-3,4,3,90], target = 0", expected: "[0,2]", hidden: true },
-  { id: 10, input: "nums = [1,8,2,7,3,6,4,5], target = 9", expected: "[0,1]", hidden: true },
-];
+interface TestCaseResult {
+  id: number;
+  status: "pass" | "fail";
+  runtime: string;
+  mem: string;
+  got?: string;
+}
+
+/**
+ * Pick a random problem the candidate hasn't solved yet. If everything is
+ * solved, fall back to any problem that isn't the one they're currently on.
+ */
+function pickRandomUnsolved(solvedIds: Set<number>, excludeId?: number): CodingProblem {
+  const candidates = CODING_PROBLEMS.filter(
+    (p) => !solvedIds.has(p.id) && p.id !== excludeId,
+  );
+  if (candidates.length > 0) {
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+  const fallback = CODING_PROBLEMS.filter((p) => p.id !== excludeId);
+  return fallback[Math.floor(Math.random() * fallback.length)] ?? CODING_PROBLEMS[0];
+}
 
 export function CodingArena() {
-  const { set } = useNav();
-  const [language, setLanguage] = useState("Python");
-  const [code, setCode] = useState(STARTER_CODE.Python);
-  const [customInput, setCustomInput] = useState("nums = [2,7,11,15], target = 9");
-  const [results, setResults] = useState<{ id: number; status: "pass" | "fail"; runtime: string; mem: string; got?: string }[] | null>(null);
+  const codingView = useNav((s) => s.codingView);
+  if (codingView === "list") return <ProblemListView />;
+  return <CodingEditorView />;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  LIST VIEW                                                                 */
+/* -------------------------------------------------------------------------- */
+
+function ProblemListView() {
+  const solvedProblems = useNav((s) => s.solvedProblems);
+  const attemptedProblems = useNav((s) => s.attemptedProblems);
+  const submissions = useNav((s) => s.submissions);
+  const setCodingView = useNav((s) => s.setCodingView);
+  const setCurrentProblem = useNav((s) => s.setCurrentProblem);
+  const setNavigationLocked = useNav((s) => s.setNavigationLocked);
+
+  // The store persists solved/attempted IDs as strings (localStorage friendly),
+  // but ProblemListTable works with numeric IDs. Convert once per render.
+  const solvedNums = useMemo(() => solvedProblems.map((id) => Number(id)), [solvedProblems]);
+  const attemptedNums = useMemo(
+    () => attemptedProblems.map((id) => Number(id)),
+    [attemptedProblems],
+  );
+  const heatSubs = useMemo(
+    () => submissions.map((s) => ({ ...s, problemId: Number(s.problemId) })),
+    [submissions],
+  );
+
+  const enterProblem = (p: CodingProblem) => {
+    setCurrentProblem(String(p.id));
+    setCodingView("editor");
+    requestFullscreen();
+    setNavigationLocked(true);
+  };
+
+  const handleRandom = () => {
+    const solved = new Set(solvedNums);
+    enterProblem(pickRandomUnsolved(solved));
+  };
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <PageWrap wide>
+        <BackToHome />
+        <SectionHeading
+          eyebrow="Coding Arena"
+          title={
+            <>
+              Practice with the{" "}
+              <span className="text-violet-500 dark:text-violet-400">AI code reviewer</span>
+            </>
+          }
+          description="A VS Code-like editor with syntax highlighting, 10 test cases per problem, real-time execution, and an AI review that scores complexity, readability, and gives refactor suggestions."
+          align="left"
+        />
+
+        <div className="mt-6">
+          <ProblemListTable
+            solvedProblems={solvedNums}
+            attemptedProblems={attemptedNums}
+            submissions={heatSubs}
+            onPickProblem={enterProblem}
+            onRandomQuestion={handleRandom}
+          />
+        </div>
+      </PageWrap>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  EDITOR VIEW (fullscreen + navigation locked)                              */
+/* -------------------------------------------------------------------------- */
+
+function CodingEditorView() {
+  const setCodingView = useNav((s) => s.setCodingView);
+  const currentProblemId = useNav((s) => s.currentProblemId);
+  const solvedProblems = useNav((s) => s.solvedProblems);
+  const setCurrentProblem = useNav((s) => s.setCurrentProblem);
+  const markSolved = useNav((s) => s.markSolved);
+  const markAttempted = useNav((s) => s.markAttempted);
+  const recordSubmission = useNav((s) => s.recordSubmission);
+  const setNavigationLocked = useNav((s) => s.setNavigationLocked);
+  const reduce = useReducedMotion();
+
+  // Resolve the active problem. Default to the first problem if the store
+  // doesn't have one yet (e.g. user deep-linked into the editor view).
+  const problem = useMemo<CodingProblem>(() => {
+    const id = currentProblemId ? Number(currentProblemId) : null;
+    if (id !== null) {
+      const found = getProblemById(id);
+      if (found) return found;
+    }
+    return CODING_PROBLEMS[0];
+  }, [currentProblemId]);
+
+  const [language, setLanguage] = useState<string>("Python");
+  const [code, setCode] = useState<string>(problem.starterCode.Python ?? "");
+  const [customInput, setCustomInput] = useState<string>(
+    problem.testCases[0]?.input ?? "",
+  );
+  const [results, setResults] = useState<TestCaseResult[] | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [running, setRunning] = useState(false);
   const [confirmLang, setConfirmLang] = useState<string | null>(null);
   const [autoSaved, setAutoSaved] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [reenterOpen, setReenterOpen] = useState(false);
+  const [fullscreenExits, setFullscreenExits] = useState(0);
+  const [tabSwitches] = useState(1);
 
-  // autosave simulation
+  // Reset the editor state whenever the active problem changes (e.g. when the
+  // candidate picks "Next Question"). Deferred to a microtask to keep the
+  // effect body free of synchronous setState calls.
+  useEffect(() => {
+    queueMicrotask(() => {
+      setLanguage("Python");
+      setCode(problem.starterCode.Python ?? "");
+      setCustomInput(problem.testCases[0]?.input ?? "");
+      setResults(null);
+      setSubmitted(false);
+    });
+  }, [problem]);
+
+  // Fullscreen lifecycle: request on mount, exit on unmount, and listen for
+  // the user pressing Esc so we can show a friendly "re-enter" modal. Prep
+  // mode is forgiving, so there are no penalties.
+  useEffect(() => {
+    requestFullscreen();
+    queueMicrotask(() => setNavigationLocked(true));
+    const unsubscribe = onFullscreenChange(() => {
+      if (!isCurrentlyFullscreen()) {
+        queueMicrotask(() => {
+          setReenterOpen(true);
+          setFullscreenExits((n) => n + 1);
+        });
+      }
+    });
+    return () => {
+      unsubscribe();
+      exitFullscreen();
+      queueMicrotask(() => setNavigationLocked(false));
+    };
+  }, [setNavigationLocked]);
+
+  // Autosave simulation. The indicator pulses every 30s to reassure the
+  // candidate their work is safe.
   useEffect(() => {
     const t = setInterval(() => {
-      setAutoSaved(true);
-      setTimeout(() => setAutoSaved(false), 1500);
+      queueMicrotask(() => setAutoSaved(true));
+      setTimeout(() => queueMicrotask(() => setAutoSaved(false)), 1500);
     }, 30000);
     return () => clearInterval(t);
   }, []);
@@ -101,10 +272,11 @@ export function CodingArena() {
     if (lang === language) return;
     setConfirmLang(lang);
   };
+
   const confirmSwitch = () => {
     if (!confirmLang) return;
     setLanguage(confirmLang);
-    setCode(STARTER_CODE[confirmLang] ?? "");
+    setCode(problem.starterCode[confirmLang] ?? "");
     setResults(null);
     setSubmitted(false);
     setConfirmLang(null);
@@ -114,11 +286,17 @@ export function CodingArena() {
     setRunning(true);
     setTimeout(() => {
       setRunning(false);
-      setResults([
-        { id: 1, status: "pass", runtime: "12ms", mem: "14.0MB" },
-        { id: 2, status: "pass", runtime: "8ms", mem: "14.2MB" },
-        { id: 3, status: "fail", runtime: "15ms", mem: "14.1MB", got: "[1,0]" },
-      ]);
+      // Mock: 8/10 pass. Cases at index 2 and 7 fail so the candidate sees
+      // realistic feedback before submitting.
+      setResults(
+        problem.testCases.map((tc, i) => ({
+          id: tc.id,
+          status: i === 2 || i === 7 ? ("fail" as const) : ("pass" as const),
+          runtime: `${8 + Math.floor(Math.random() * 12)}ms`,
+          mem: "14.0MB",
+          got: i === 2 ? "wrong answer" : i === 7 ? "timeout" : undefined,
+        })),
+      );
     }, 900);
   };
 
@@ -126,67 +304,117 @@ export function CodingArena() {
     setRunning(true);
     setTimeout(() => {
       setRunning(false);
-      // 7/10 pass, case 3 and case 8 fail
-      setResults(
-        TEST_CASES.map((tc) => ({
-          id: tc.id,
-          status: tc.id === 3 || tc.id === 8 ? "fail" as const : "pass" as const,
-          runtime: `${8 + Math.floor(Math.random() * 12)}ms`,
-          mem: "14.0MB",
-          got: tc.id === 3 ? "[1,0]" : tc.id === 8 ? "[0,3]" : undefined,
-        })),
-      );
+      // Mock: all tests pass on submit (prep mode is forgiving). The failure
+      // path below stays in place so the success/attempted branching is real.
+      const newResults: TestCaseResult[] = problem.testCases.map((tc) => ({
+        id: tc.id,
+        status: "pass" as const,
+        runtime: `${8 + Math.floor(Math.random() * 12)}ms`,
+        mem: "14.0MB",
+      }));
+      setResults(newResults);
       setSubmitted(true);
+      const allPassed = newResults.every((r) => r.status === "pass");
+      const idStr = String(problem.id);
+      if (allPassed) {
+        markSolved(idStr);
+        recordSubmission(idStr, true);
+        queueMicrotask(() => setSuccessOpen(true));
+      } else {
+        markAttempted(idStr);
+        recordSubmission(idStr, false);
+      }
     }, 1400);
   };
 
   const passCount = results ? results.filter((r) => r.status === "pass").length : 0;
 
+  const handleBack = () => {
+    setCodingView("list");
+    exitFullscreen();
+    setNavigationLocked(false);
+  };
+
+  const handleNext = () => {
+    const solved = new Set(solvedProblems.map((id) => Number(id)));
+    const next = pickRandomUnsolved(solved, problem.id);
+    setCurrentProblem(String(next.id));
+    setSuccessOpen(false);
+  };
+
+  const reenterFullscreen = () => {
+    requestFullscreen();
+    setReenterOpen(false);
+  };
+
+  const difficultyBadge = DIFFICULTY_BADGE[problem.difficulty];
+  const fileExt = language === "Python" ? "py" : "js";
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <PageWrap wide>
-        <BackToHome />
-        <SectionHeading
-          eyebrow="Coding Arena"
-          title={<>Practice with the <span className="text-violet-500 dark:text-violet-400">AI code reviewer</span></>}
-          description="A VS Code-like editor with syntax highlighting, 10 test cases per problem, real-time execution, and an AI review that scores complexity, readability, and gives refactor suggestions."
-          align="left"
-        />
+        {/* Top bar: Back / Title / Next */}
+        <div className="flex flex-col gap-3 rounded-lg border border-black/10 bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4 dark:border-white/10">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleBack}
+            className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Problems
+          </Button>
+          <div className="flex min-w-0 flex-1 items-center justify-center gap-3 px-2 text-center">
+            <span className="truncate text-sm font-semibold tracking-tight sm:text-base">
+              <span className="font-mono text-muted-foreground">#{problem.id}</span>{" "}
+              {problem.title}
+            </span>
+            <Badge className={cn("shrink-0", difficultyBadge)}>{problem.difficulty}</Badge>
+          </div>
+          <Button
+            size="sm"
+            onClick={handleNext}
+            className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+          >
+            Next Question <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {/* LEFT PANE: problem statement */}
           <div className="flex h-full flex-col rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold tracking-tight">
-                  <span className="font-mono text-muted-foreground">#</span> Two Sum
+                  <span className="font-mono text-muted-foreground">#{problem.id}</span>{" "}
+                  {problem.title}
                 </h3>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">Problem #1 · Asked 3,241 times this week</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  Problem #{problem.id} · {problem.topic} · Acceptance{" "}
+                  <span className="text-emerald-600 dark:text-emerald-300">{problem.acceptance}%</span>
+                </p>
               </div>
-              <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">Easy</Badge>
+              <Badge className={difficultyBadge}>{problem.difficulty}</Badge>
             </div>
 
             <div className="mt-4 space-y-3 text-sm text-foreground/85">
-              <p>
-                Given an array of integers <code className="rounded bg-black/10 px-1 font-mono text-xs text-violet-700 dark:bg-white/10 dark:text-violet-200">nums</code> and an integer <code className="rounded bg-black/10 px-1 font-mono text-xs text-violet-700 dark:bg-white/10 dark:text-violet-200">target</code>, return <em>indices of the two numbers</em> such that they add up to <code className="rounded bg-black/10 px-1 font-mono text-xs text-violet-700 dark:bg-white/10 dark:text-violet-200">target</code>.
-              </p>
-              <p>
-                You may assume that each input would have <strong>exactly one solution</strong>, and you may not use the same element twice. You can return the answer in any order.
-              </p>
+              <p>{problem.description}</p>
             </div>
 
             <div className="mt-5">
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Examples</p>
               <div className="mt-2 space-y-2">
-                {[
-                  { i: "nums = [2,7,11,15], target = 9", o: "[0,1]", note: "Because nums[0] + nums[1] == 9." },
-                  { i: "nums = [3,2,4], target = 6", o: "[1,2]", note: "Because nums[1] + nums[2] == 6." },
-                  { i: "nums = [3,3], target = 6", o: "[0,1]", note: "Same value, different indices." },
-                ].map((e, i) => (
-                  <div key={i} className="rounded-md border border-black/10 bg-zinc-900 p-3 font-mono text-xs dark:border-white/10">
-                    <p className="text-emerald-300">Input: <span className="text-white/80">{e.i}</span></p>
-                    <p className="mt-1 text-violet-300">Output: <span className="text-white/80">{e.o}</span></p>
-                    <p className="mt-1 text-zinc-400"># {e.note}</p>
+                {problem.examples.map((e, i) => (
+                  <div
+                    key={i}
+                    className="rounded-md border border-black/10 bg-zinc-900 p-3 font-mono text-xs dark:border-white/10"
+                  >
+                    <p className="text-emerald-300">
+                      Input: <span className="text-white/80">{e.input}</span>
+                    </p>
+                    <p className="mt-1 text-violet-300">
+                      Output: <span className="text-white/80">{e.output}</span>
+                    </p>
+                    {e.explanation && <p className="mt-1 text-zinc-400"># {e.explanation}</p>}
                   </div>
                 ))}
               </div>
@@ -195,18 +423,18 @@ export function CodingArena() {
             <div className="mt-5">
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Constraints</p>
               <ul className="mt-2 space-y-1 font-mono text-xs text-foreground/70">
-                <li>2 ≤ nums.length ≤ 10⁴</li>
-                <li>-10⁹ ≤ nums[i] ≤ 10⁹</li>
-                <li>-10⁹ ≤ target ≤ 10⁹</li>
-                <li>Only one valid answer exists.</li>
-                <li>Follow-up: O(n) time, O(n) space.</li>
+                {problem.constraints.map((c, i) => (
+                  <li key={i}>{c}</li>
+                ))}
               </ul>
             </div>
 
             <div className="mt-auto pt-5">
               <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" />
-                Avg solve time: <span className="text-foreground">4m 12s</span> · Acceptance rate: <span className="text-emerald-600 dark:text-emerald-300">52%</span>
+                Avg solve time: <span className="text-foreground">4m 12s</span> · Acceptance
+                rate:{" "}
+                <span className="text-emerald-600 dark:text-emerald-300">{problem.acceptance}%</span>
               </div>
             </div>
           </div>
@@ -215,7 +443,7 @@ export function CodingArena() {
           <div className="flex h-full flex-col overflow-hidden rounded-lg border border-black/10 bg-card shadow-sm dark:border-white/10">
             {/* Editor chrome */}
             <div className="flex items-center justify-between border-b border-black/10 px-4 py-2 dark:border-white/5">
-              <span className="font-mono text-xs text-muted-foreground">solution.{language === "C++" ? "cpp" : language.toLowerCase().replace("+", "pp")}</span>
+              <span className="font-mono text-xs text-muted-foreground">solution.{fileExt}</span>
               <div className="flex items-center gap-2">
                 <Select value={language} onValueChange={onLangChange}>
                   <SelectTrigger size="sm" className="w-32 rounded-md border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/5">
@@ -223,7 +451,9 @@ export function CodingArena() {
                   </SelectTrigger>
                   <SelectContent>
                     {LANGUAGES.map((l) => (
-                      <SelectItem key={l} value={l}>{l}</SelectItem>
+                      <SelectItem key={l} value={l}>
+                        {l}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -241,7 +471,9 @@ export function CodingArena() {
                 {/* Line numbers */}
                 <div className="select-none border-r border-white/5 px-2 py-3 text-right font-mono text-xs text-white/30">
                   {code.split("\n").map((_, i) => (
-                    <div key={i} className="leading-6">{i + 1}</div>
+                    <div key={i} className="leading-6">
+                      {i + 1}
+                    </div>
                   ))}
                 </div>
                 <textarea
@@ -270,7 +502,11 @@ export function CodingArena() {
                   disabled={running}
                   className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
                 >
-                  {running ? <Clock className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
+                  {running ? (
+                    <Clock className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Play className="mr-2 h-4 w-4" />
+                  )}
                   Run
                 </Button>
                 <Button
@@ -279,7 +515,11 @@ export function CodingArena() {
                   disabled={running}
                   className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
                 >
-                  {running ? <Clock className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                  {running ? (
+                    <Clock className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                  )}
                   Submit
                 </Button>
                 <Button
@@ -308,9 +548,12 @@ export function CodingArena() {
                 </div>
                 <ul className="mt-3 space-y-1.5">
                   {results.map((r) => {
-                    const tc = TEST_CASES.find((x) => x.id === r.id)!;
+                    const tc = problem.testCases.find((x) => x.id === r.id);
                     return (
-                      <li key={r.id} className="flex items-center justify-between rounded-md border border-black/5 bg-black/[0.02] px-3 py-1.5 text-xs dark:border-white/5 dark:bg-white/[0.02]">
+                      <li
+                        key={r.id}
+                        className="flex items-center justify-between rounded-md border border-black/5 bg-black/[0.02] px-3 py-1.5 text-xs dark:border-white/5 dark:bg-white/[0.02]"
+                      >
                         <div className="flex min-w-0 items-center gap-2">
                           {r.status === "pass" ? (
                             <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
@@ -318,15 +561,18 @@ export function CodingArena() {
                             <X className="h-3.5 w-3.5 shrink-0 text-rose-500" />
                           )}
                           <span className="truncate font-mono text-muted-foreground">
-                            Case {r.id} {tc.hidden && <span className="text-[10px]">(hidden)</span>}
+                            Case {r.id} {tc?.hidden && <span className="text-[10px]">(hidden)</span>}
                           </span>
                           {r.status === "fail" && (
                             <span className="ml-2 truncate text-rose-600 dark:text-rose-300">
-                              Expected {tc.expected} · Got <span className="font-mono">{r.got}</span>
+                              Expected {tc?.expected} · Got{" "}
+                              <span className="font-mono">{r.got}</span>
                             </span>
                           )}
                         </div>
-                        <span className="font-mono text-[10px] text-muted-foreground">{r.runtime} · {r.mem}</span>
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {r.runtime} · {r.mem}
+                        </span>
                       </li>
                     );
                   })}
@@ -338,12 +584,17 @@ export function CodingArena() {
             <AnimatePresence>
               {submitted && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0 }}
+                  initial={reduce ? false : { opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   className="border-t border-black/10 dark:border-white/5"
                 >
-                  <AIReview language={language} code={code} passCount={passCount} total={TEST_CASES.length} />
+                  <AIReview
+                    language={language}
+                    code={code}
+                    passCount={passCount}
+                    total={problem.testCases.length}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -351,35 +602,22 @@ export function CodingArena() {
             {/* Proctoring footer */}
             <div className="mt-auto border-t border-black/10 px-4 py-2 text-[11px] text-muted-foreground dark:border-white/5">
               <Info className="mr-1 inline h-3 w-3" />
-              Tab switches: <span className="text-foreground">1</span> · Fullscreen exits: <span className="text-foreground">0</span>. Logged for awareness only. No penalties.
+              Tab switches: <span className="text-foreground">{tabSwitches}</span> · Fullscreen
+              exits: <span className="text-foreground">{fullscreenExits}</span>. Logged for
+              awareness only. No penalties.
             </div>
           </div>
         </div>
-
-        {/* Bottom strip: quick navigation */}
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { label: "Problems", icon: Code2, value: "1,247", tone: "text-violet-500 dark:text-violet-400" },
-            { label: "Solved", icon: CheckCircle2, value: "312", tone: "text-emerald-600 dark:text-emerald-300" },
-            { label: "Streak", icon: Zap, value: "9 days", tone: "text-amber-600 dark:text-amber-300" },
-            { label: "Avg score", icon: Award, value: "85/100", tone: "text-violet-500 dark:text-violet-400" },
-          ].map((s) => (
-            <div key={s.label} className="rounded-lg border border-black/10 bg-card p-4 shadow-sm dark:border-white/10">
-              <s.icon className={cn("h-4 w-4", s.tone)} />
-              <p className="mt-2 text-xl font-semibold tracking-tight">{s.value}</p>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
-            </div>
-          ))}
-        </div>
-
       </PageWrap>
 
+      {/* Switch language dialog */}
       <Dialog open={confirmLang !== null} onOpenChange={(o) => !o && setConfirmLang(null)}>
         <DialogContent className="border-black/10 bg-card dark:border-white/10">
           <DialogHeader>
             <DialogTitle>Switch language?</DialogTitle>
             <DialogDescription>
-              Switching to <strong className="text-foreground">{confirmLang}</strong> will clear your current code. Continue?
+              Switching to <strong className="text-foreground">{confirmLang}</strong> will clear
+              your current code. Continue?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4 flex gap-2">
@@ -399,6 +637,62 @@ export function CodingArena() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Success modal: all tests passed */}
+      <Dialog open={successOpen} onOpenChange={setSuccessOpen}>
+        <DialogContent className="border-emerald-400/30 bg-card dark:border-emerald-400/20">
+          <DialogHeader>
+            <div className="mx-auto mb-2 grid h-14 w-14 place-items-center rounded-full bg-emerald-500/15">
+              <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+            </div>
+            <DialogTitle className="text-center">Accepted</DialogTitle>
+            <DialogDescription className="text-center">
+              All {problem.testCases.length} test cases passed. Problem{" "}
+              <span className="font-medium text-foreground">#{problem.id} {problem.title}</span>{" "}
+              is now marked as solved.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Problems
+            </Button>
+            <Button
+              onClick={handleNext}
+              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+            >
+              Next Question <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Re-enter fullscreen modal (Esc exit, no penalty) */}
+      <Dialog open={reenterOpen} onOpenChange={setReenterOpen}>
+        <DialogContent className="border-amber-400/30 bg-card dark:border-amber-400/20">
+          <DialogHeader>
+            <div className="mx-auto mb-2 grid h-14 w-14 place-items-center rounded-full bg-amber-500/15">
+              <Maximize2 className="h-8 w-8 text-amber-500" />
+            </div>
+            <DialogTitle className="text-center">Re-enter fullscreen</DialogTitle>
+            <DialogDescription className="text-center">
+              You pressed Esc and left fullscreen mode. Re-enter to keep practicing. Prep mode
+              is forgiving, so there are no penalties.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex justify-center">
+            <Button
+              onClick={reenterFullscreen}
+              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+            >
+              <Maximize2 className="mr-2 h-4 w-4" /> Re-enter Fullscreen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -406,12 +700,20 @@ export function CodingArena() {
 /* -------------------------------------------------------------------------- */
 
 function Label2({ text }: { text: string }) {
-  return (
-    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{text}</p>
-  );
+  return <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{text}</p>;
 }
 
-function AIReview({ language, code, passCount, total }: { language: string; code: string; passCount: number; total: number }) {
+function AIReview({
+  language,
+  code,
+  passCount,
+  total,
+}: {
+  language: string;
+  code: string;
+  passCount: number;
+  total: number;
+}) {
   const [showRefactor, setShowRefactor] = useState(false);
   const overall = passCount === total ? 92 : passCount >= total - 2 ? 85 : 72;
 
@@ -428,7 +730,9 @@ function AIReview({ language, code, passCount, total }: { language: string; code
       <div className="mt-3 rounded-lg border border-black/10 bg-black/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.02]">
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">Overall Score</p>
-          <p className="text-xl font-semibold text-violet-500 dark:text-violet-300">{overall}/100</p>
+          <p className="text-xl font-semibold text-violet-500 dark:text-violet-300">
+            {overall}/100
+          </p>
         </div>
         <Progress value={overall} className="mt-2 bg-black/10 dark:bg-white/10" />
         <div className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
@@ -451,17 +755,35 @@ function AIReview({ language, code, passCount, total }: { language: string; code
         <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/[0.04] p-4">
           <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Strengths</p>
           <ul className="mt-2 space-y-1.5 text-xs text-foreground/80">
-            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Clean, descriptive variable naming (<code className="font-mono text-emerald-700 dark:text-emerald-200">seen</code>, <code className="font-mono text-emerald-700 dark:text-emerald-200">target</code>).</li>
-            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Single pass O(n). No nested loop. Optimal.</li>
-            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Handles edge case where no solution exists.</li>
+            <li className="flex items-start gap-2">
+              <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Clean,
+              descriptive variable naming.
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Single pass
+              O(n). No nested loop. Optimal.
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" /> Handles edge
+              case where no solution exists.
+            </li>
           </ul>
         </div>
         <div className="rounded-lg border border-amber-400/20 bg-amber-500/[0.04] p-4">
           <p className="text-xs font-medium text-amber-700 dark:text-amber-300">Suggestions</p>
           <ul className="mt-2 space-y-1.5 text-xs text-foreground/80">
-            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Add a docstring explaining parameters and return type.</li>
-            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Type hints missing. Add <code className="font-mono text-amber-700 dark:text-amber-200">nums: list[int], target: int</code>.</li>
-            <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Raise <code className="font-mono text-amber-700 dark:text-amber-200">ValueError</code> instead of returning empty list when no pair found.</li>
+            <li className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Add a docstring
+              explaining parameters and return type.
+            </li>
+            <li className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Type hints
+              missing. Add explicit parameter and return types.
+            </li>
+            <li className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> Raise an
+              exception instead of returning empty when no pair found.
+            </li>
           </ul>
         </div>
       </div>
@@ -472,27 +794,24 @@ function AIReview({ language, code, passCount, total }: { language: string; code
             <div className="flex items-center gap-2">
               <Code2 className="h-4 w-4 text-violet-500 dark:text-violet-400" />
               <span className="text-sm font-medium">Refactored Snippet</span>
-              <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5">AI-generated</Badge>
+              <Badge
+                variant="outline"
+                className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5"
+              >
+                AI-generated
+              </Badge>
             </div>
-            <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", showRefactor && "rotate-180")} />
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 text-muted-foreground transition-transform",
+                showRefactor && "rotate-180",
+              )}
+            />
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="border-t border-black/10 bg-zinc-900 p-4 dark:border-white/5">
               <pre className="overflow-x-auto whitespace-pre font-mono text-xs text-emerald-100">
-{`def two_sum(nums: list[int], target: int) -> list[int]:
-    """Return indices of two numbers summing to target.
-
-    Raises:
-        ValueError: if no valid pair exists.
-    """
-    seen: dict[int, int] = {}
-    for i, n in enumerate(nums):
-        complement = target - n
-        if complement in seen:
-            return [seen[complement], i]
-        seen[n] = i
-    raise ValueError("No two sum solution")
-`}
+{code}
               </pre>
               <div className="mt-3 flex items-center gap-2">
                 <Button
@@ -530,6 +849,3 @@ function SubScore({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
-
-/* keep imports referenced */
-export const __icons = { ChevronRight, PlayCircle };

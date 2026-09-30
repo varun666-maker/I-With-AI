@@ -1,0 +1,892 @@
+     1→/**
+     2→ * Mock question bank for the Coding Arena. Pure data module, no React,
+     3→ * so it can be imported from server components, API routes, or client
+     4→ * components without triggering any bundler restrictions.
+     5→ *
+     6→ * 24 problems are spread across 6 topics:
+     7→ *   - Arrays (5)   - Strings (4)   - DP (5)
+     8→ *   - Graphs (3)    - SQL (3)       - Misc (4)
+     9→ *
+    10→ * Every problem ships with 10 test cases (3 visible + 7 hidden) plus
+    11→ * Python and JavaScript starter code.
+    12→ */
+    13→
+    14→export type Difficulty = "Easy" | "Medium" | "Hard";
+    15→
+    16→export type Topic = "Arrays" | "Strings" | "DP" | "Graphs" | "SQL" | "Misc";
+    17→
+    18→export const TOPICS: Topic[] = ["Arrays", "Strings", "DP", "Graphs", "SQL", "Misc"];
+    19→export const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
+    20→
+    21→export interface CodingExample {
+    22→  input: string;
+    23→  output: string;
+    24→  explanation?: string;
+    25→}
+    26→
+    27→export interface TestCase {
+    28→  id: number;
+    29→  input: string;
+    30→  expected: string;
+    31→  hidden: boolean;
+    32→}
+    33→
+    34→export interface CodingProblem {
+    35→  id: number;
+    36→  title: string;
+    37→  difficulty: Difficulty;
+    38→  topic: Topic;
+    39→  description: string;
+    40→  examples: CodingExample[];
+    41→  constraints: string[];
+    42→  testCases: TestCase[];
+    43→  functionSignature: string;
+    44→  starterCode: Record<string, string>;
+    45→  acceptance: number;
+    46→}
+    47→
+    48→const PY_STARTER = "def solution(input):\n    pass\n";
+    49→const JS_STARTER = "function solution(input) {\n  // Write your solution here\n}\n";
+    50→
+    51→function py(fnName: string): string {
+    52→  return `def ${fnName}(input):\n    pass\n`;
+    53→}
+    54→
+    55→function js(fnName: string): string {
+    56→  return `function ${fnName}(input) {\n  // Write your solution here\n}\n`;
+    57→}
+    58→
+    59→function starter(fnName: string): Record<string, string> {
+    60→  return { Python: py(fnName), JavaScript: js(fnName) };
+    61→}
+    62→
+    63→/**
+    64→ * Convenience factory: builds the 10-case test array with the first 3
+    65→ * marked visible and the remaining 7 marked hidden.
+    66→ */
+    67→function cases(rows: Array<[string, string]>): TestCase[] {
+    68→  return rows.map(([input, expected], i) => ({
+    69→    id: i + 1,
+    70→    input,
+    71→    expected,
+    72→    hidden: i >= 3,
+    73→  }));
+    74→}
+    75→
+    76→export const CODING_PROBLEMS: CodingProblem[] = [
+    77→  // ----------------------------------------------------------------- Arrays
+    78→  {
+    79→    id: 1,
+    80→    title: "Two Sum",
+    81→    difficulty: "Easy",
+    82→    topic: "Arrays",
+    83→    description:
+    84→      "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice. The answer can be returned in any order.",
+    85→    examples: [
+    86→      { input: "nums = [2,7,11,15], target = 9", output: "[0,1]", explanation: "nums[0] + nums[1] == 9." },
+    87→      { input: "nums = [3,2,4], target = 6", output: "[1,2]" },
+    88→      { input: "nums = [3,3], target = 6", output: "[0,1]" },
+    89→    ],
+    90→    constraints: [
+    91→      "2 <= nums.length <= 10^4",
+    92→      "-10^9 <= nums[i] <= 10^9",
+    93→      "-10^9 <= target <= 10^9",
+    94→      "Only one valid answer exists.",
+    95→    ],
+    96→    testCases: cases([
+    97→      ["nums = [2,7,11,15], target = 9", "[0,1]"],
+    98→      ["nums = [3,2,4], target = 6", "[1,2]"],
+    99→      ["nums = [3,3], target = 6", "[0,1]"],
+   100→      ["nums = [1,5,8,12,7], target = 13", "[2,3]"],
+   101→      ["nums = [10,20,30,40], target = 50", "[1,2]"],
+   102→      ["nums = [0,-1,2,-3,1], target = -2", "[1,3]"],
+   103→      ["nums = [5,5,5,5], target = 10", "[0,1]"],
+   104→      ["nums = [99,1,2,99], target = 100", "[0,3]"],
+   105→      ["nums = [-3,4,3,90], target = 0", "[0,2]"],
+   106→      ["nums = [1,8,2,7,3,6,4,5], target = 9", "[0,1]"],
+   107→    ]),
+   108→    functionSignature: "twoSum(nums, target)",
+   109→    starterCode: starter("twoSum"),
+   110→    acceptance: 52,
+   111→  },
+   112→  {
+   113→    id: 2,
+   114→    title: "Best Time to Buy and Sell Stock",
+   115→    difficulty: "Easy",
+   116→    topic: "Arrays",
+   117→    description:
+   118→      "You are given an array prices where prices[i] is the price of a given stock on day i. You want to maximize your profit by choosing a single day to buy one stock and a different day in the future to sell that stock. Return the maximum profit you can achieve. If no profit is possible, return 0.",
+   119→    examples: [
+   120→      { input: "prices = [7,1,5,3,6,4]", output: "5", explanation: "Buy on day 2 (price 1), sell on day 5 (price 6)." },
+   121→      { input: "prices = [7,6,4,3,1]", output: "0" },
+   122→      { input: "prices = [1,2,3,4,5]", output: "4" },
+   123→    ],
+   124→    constraints: [
+   125→      "1 <= prices.length <= 10^5",
+   126→      "0 <= prices[i] <= 10^4",
+   127→    ],
+   128→    testCases: cases([
+   129→      ["prices = [7,1,5,3,6,4]", "5"],
+   130→      ["prices = [7,6,4,3,1]", "0"],
+   131→      ["prices = [1,2,3,4,5]", "4"],
+   132→      ["prices = [2,4,1]", "2"],
+   133→      ["prices = [3,3,3,3]", "0"],
+   134→      ["prices = [1,2,4,2,5,7,2,4,9,0]", "8"],
+   135→      ["prices = [9,8,7,6,5,4,3,2,1]", "0"],
+   136→      ["prices = [1]", "0"],
+   137→      ["prices = [2,1,2,1,0,1,2]", "2"],
+   138→      ["prices = [5,10,2,8,1,5]", "5"],
+   139→    ]),
+   140→    functionSignature: "maxProfit(prices)",
+   141→    starterCode: starter("maxProfit"),
+   142→    acceptance: 54,
+   143→  },
+   144→  {
+   145→    id: 3,
+   146→    title: "Contains Duplicate",
+   147→    difficulty: "Easy",
+   148→    topic: "Arrays",
+   149→    description:
+   150→      "Given an integer array nums, return true if any value appears at least twice in the array, and false if every element is distinct.",
+   151→    examples: [
+   152→      { input: "nums = [1,2,3,1]", output: "true" },
+   153→      { input: "nums = [1,2,3,4]", output: "false" },
+   154→      { input: "nums = [1,1,1,3,3,4,3,2,4,2]", output: "true" },
+   155→    ],
+   156→    constraints: [
+   157→      "1 <= nums.length <= 10^5",
+   158→      "-10^9 <= nums[i] <= 10^9",
+   159→    ],
+   160→    testCases: cases([
+   161→      ["nums = [1,2,3,1]", "true"],
+   162→      ["nums = [1,2,3,4]", "false"],
+   163→      ["nums = [1,1,1,3,3,4,3,2,4,2]", "true"],
+   164→      ["nums = [0]", "false"],
+   165→      ["nums = [1,2,3,4,5,6,7,8,9,1]", "true"],
+   166→      ["nums = [-1,-2,-3,-1]", "true"],
+   167→      ["nums = [1,2,3,4,5,6,7,8,9,0]", "false"],
+   168→      ["nums = [9,9,9,9,9,9]", "true"],
+   169→      ["nums = [1,2]", "false"],
+   170→      ["nums = [2,2]", "true"],
+   171→    ]),
+   172→    functionSignature: "containsDuplicate(nums)",
+   173→    starterCode: starter("containsDuplicate"),
+   174→    acceptance: 63,
+   175→  },
+   176→  {
+   177→    id: 4,
+   178→    title: "Product of Array Except Self",
+   179→    difficulty: "Medium",
+   180→    topic: "Arrays",
+   181→    description:
+   182→      "Given an integer array nums, return an array answer such that answer[i] is equal to the product of all the elements of nums except nums[i]. The product of any prefix or suffix of nums is guaranteed to fit in a 32-bit integer. You must write an algorithm that runs in O(n) time and without using the division operation.",
+   183→    examples: [
+   184→      { input: "nums = [1,2,3,4]", output: "[24,12,8,6]" },
+   185→      { input: "nums = [-1,1,0,-3,3]", output: "[0,0,9,0,0]" },
+   186→      { input: "nums = [4,3,2,1]", output: "[6,8,12,24]" },
+   187→    ],
+   188→    constraints: [
+   189→      "2 <= nums.length <= 10^5",
+   190→      "-30 <= nums[i] <= 30",
+   191→      "The product of any prefix or suffix fits in a 32-bit integer.",
+   192→    ],
+   193→    testCases: cases([
+   194→      ["nums = [1,2,3,4]", "[24,12,8,6]"],
+   195→      ["nums = [-1,1,0,-3,3]", "[0,0,9,0,0]"],
+   196→      ["nums = [4,3,2,1]", "[6,8,12,24]"],
+   197→      ["nums = [1,1,1,1]", "[1,1,1,1]"],
+   198→      ["nums = [0,0]", "[0,0]"],
+   199→      ["nums = [5]", "[1]"],
+   200→      ["nums = [2,3,0,0]", "[0,0,0,0]"],
+   201→      ["nums = [-1,-2,-3,-4]", "[-24,-12,-8,-6]"],
+   202→      ["nums = [1,2,3,4,5]", "[120,60,40,30,24]"],
+   203→      ["nums = [10,3,5,6,2]", "[180,600,360,300,900]"],
+   204→    ]),
+   205→    functionSignature: "productExceptSelf(nums)",
+   206→    starterCode: starter("productExceptSelf"),
+   207→    acceptance: 65,
+   208→  },
+   209→  {
+   210→    id: 5,
+   211→    title: "Maximum Subarray",
+   212→    difficulty: "Medium",
+   213→    topic: "Arrays",
+   214→    description:
+   215→      "Given an integer array nums, find the subarray with the largest sum, and return its sum.",
+   216→    examples: [
+   217→      { input: "nums = [-2,1,-3,4,-1,2,1,-5,4]", output: "6", explanation: "Subarray [4,-1,2,1] has the largest sum 6." },
+   218→      { input: "nums = [1]", output: "1" },
+   219→      { input: "nums = [5,4,-1,7,8]", output: "23" },
+   220→    ],
+   221→    constraints: [
+   222→      "1 <= nums.length <= 10^5",
+   223→      "-10^4 <= nums[i] <= 10^4",
+   224→    ],
+   225→    testCases: cases([
+   226→      ["nums = [-2,1,-3,4,-1,2,1,-5,4]", "6"],
+   227→      ["nums = [1]", "1"],
+   228→      ["nums = [5,4,-1,7,8]", "23"],
+   229→      ["nums = [-1,-2,-3,-4]", "-1"],
+   230→      ["nums = [0,0,0,0]", "0"],
+   231→      ["nums = [1,2,3,4,5]", "15"],
+   232→      ["nums = [-2,1]", "1"],
+   233→      ["nums = [1,-1,1,-1,1,1]", "2"],
+   234→      ["nums = [10,-1,2,-1,3,-1,4]", "16"],
+   235→      ["nums = [-5]", "-5"],
+   236→    ]),
+   237→    functionSignature: "maxSubArray(nums)",
+   238→    starterCode: starter("maxSubArray"),
+   239→    acceptance: 51,
+   240→  },
+   241→
+   242→  // ----------------------------------------------------------------- Strings
+   243→  {
+   244→    id: 6,
+   245→    title: "Valid Palindrome",
+   246→    difficulty: "Easy",
+   247→    topic: "Strings",
+   248→    description:
+   249→      "Given a string s, return true if it is a palindrome after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters. Alphanumeric characters include letters and numbers.",
+   250→    examples: [
+   251→      { input: 's = "A man, a plan, a canal: Panama"', output: "true" },
+   252→      { input: 's = "race a car"', output: "false" },
+   253→      { input: 's = " "', output: "true" },
+   254→    ],
+   255→    constraints: [
+   256→      "1 <= s.length <= 2 * 10^5",
+   257→      "s consists only of printable ASCII characters.",
+   258→    ],
+   259→    testCases: cases([
+   260→      ['s = "A man, a plan, a canal: Panama"', "true"],
+   261→      ['s = "race a car"', "false"],
+   262→      ['s = " "', "true"],
+   263→      ['s = "ab_a"', "true"],
+   264→      ['s = "0P"', "false"],
+   265→      ['s = "12321"', "true"],
+   266→      ['s = "Noon"', "true"],
+   267→      ['s = "Was it a car or a cat I saw?"', "true"],
+   268→      ['s = ".,"', "true"],
+   269→      ['s = "ab"', "false"],
+   270→    ]),
+   271→    functionSignature: "isPalindrome(s)",
+   272→    starterCode: starter("isPalindrome"),
+   273→    acceptance: 50,
+   274→  },
+   275→  {
+   276→    id: 7,
+   277→    title: "Longest Substring Without Repeating Characters",
+   278→    difficulty: "Medium",
+   279→    topic: "Strings",
+   280→    description:
+   281→      "Given a string s, find the length of the longest substring without repeating characters.",
+   282→    examples: [
+   283→      { input: 's = "abcabcbb"', output: "3", explanation: 'The answer is "abc", with length 3.' },
+   284→      { input: 's = "bbbbb"', output: "1" },
+   285→      { input: 's = "pwwkew"', output: "3" },
+   286→    ],
+   287→    constraints: [
+   288→      "0 <= s.length <= 5 * 10^4",
+   289→      "s consists of English letters, digits, symbols and spaces.",
+   290→    ],
+   291→    testCases: cases([
+   292→      ['s = "abcabcbb"', "3"],
+   293→      ['s = "bbbbb"', "1"],
+   294→      ['s = "pwwkew"', "3"],
+   295→      ['s = ""', "0"],
+   296→      ['s = " "', "1"],
+   297→      ['s = "au"', "2"],
+   298→      ['s = "dvdf"', "3"],
+   299→      ['s = "anviaj"', "5"],
+   300→      ['s = "abcdefg"', "7"],
+   301→      ['s = "abba"', "2"],
+   302→    ]),
+   303→    functionSignature: "lengthOfLongestSubstring(s)",
+   304→    starterCode: starter("lengthOfLongestSubstring"),
+   305→    acceptance: 36,
+   306→  },
+   307→  {
+   308→    id: 8,
+   309→    title: "Valid Anagram",
+   310→    difficulty: "Easy",
+   311→    topic: "Strings",
+   312→    description:
+   313→      "Given two strings s and t, return true if t is an anagram of s, and false otherwise. An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.",
+   314→    examples: [
+   315→      { input: 's = "anagram", t = "nagaram"', output: "true" },
+   316→      { input: 's = "rat", t = "car"', output: "false" },
+   317→      { input: 's = "", t = ""', output: "true" },
+   318→    ],
+   319→    constraints: [
+   320→      "1 <= s.length, t.length <= 5 * 10^4",
+   321→      "s and t consist of lowercase English letters.",
+   322→    ],
+   323→    testCases: cases([
+   324→      ['s = "anagram", t = "nagaram"', "true"],
+   325→      ['s = "rat", t = "car"', "false"],
+   326→      ['s = "", t = ""', "true"],
+   327→      ['s = "a", t = "a"', "true"],
+   328→      ['s = "a", t = "b"', "false"],
+   329→      ['s = "listen", t = "silent"', "true"],
+   330→      ['s = "hello", t = "world"', "false"],
+   331→      ['s = "aab", t = "aba"', "true"],
+   332→      ['s = "aab", t = "abb"', "false"],
+   333→      ['s = "anagram", t = "nagaramm"', "false"],
+   334→    ]),
+   335→    functionSignature: "isAnagram(s, t)",
+   336→    starterCode: starter("isAnagram"),
+   337→    acceptance: 66,
+   338→  },
+   339→  {
+   340→    id: 9,
+   341→    title: "Group Anagrams",
+   342→    difficulty: "Medium",
+   343→    topic: "Strings",
+   344→    description:
+   345→      "Given an array of strings strs, group the anagrams together. You can return the answer in any order. An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.",
+   346→    examples: [
+   347→      { input: 'strs = ["eat","tea","tan","ate","nat","bat"]', output: '[["bat"],["nat","tan"],["ate","eat","tea"]]' },
+   348→      { input: 'strs = [""]', output: '[[""]]' },
+   349→      { input: 'strs = ["a"]', output: '[["a"]]' },
+   350→    ],
+   351→    constraints: [
+   352→      "1 <= strs.length <= 10^4",
+   353→      "0 <= strs[i].length <= 100",
+   354→      "strs[i] consists of lowercase English letters.",
+   355→    ],
+   356→    testCases: cases([
+   357→      ['strs = ["eat","tea","tan","ate","nat","bat"]', '[["bat"],["nat","tan"],["ate","eat","tea"]]'],
+   358→      ['strs = [""]', '[[""]]'],
+   359→      ['strs = ["a"]', '[["a"]]'],
+   360→      ['strs = ["cab","tin","pew","duh","may","ill","buy","bar","max","doc"]', "10 groups"],
+   361→      ['strs = ["a","b","c","a","b","c"]', '[["a","a"],["b","b"],["c","c"]]'],
+   362→      ['strs = ["aaa","aaa","aaa"]', '[["aaa","aaa","aaa"]]'],
+   363→      ['strs = ["abc","cba","bac","cab","bca","acb"]', '[["abc","cba","bac","cab","bca","acb"]]'],
+   364→      ['strs = ["x","y","z"]', '[["x"],["y"],["z"]]'],
+   365→      ['strs = ["aa","aa"]', '[["aa","aa"]]'],
+   366→      ['strs = ["abc","def"]', '[["abc"],["def"]]'],
+   367→    ]),
+   368→    functionSignature: "groupAnagrams(strs)",
+   369→    starterCode: starter("groupAnagrams"),
+   370→    acceptance: 67,
+   371→  },
+   372→
+   373→  // ----------------------------------------------------------------- DP
+   374→  {
+   375→    id: 10,
+   376→    title: "Climbing Stairs",
+   377→    difficulty: "Easy",
+   378→    topic: "DP",
+   379→    description:
+   380→      "You are climbing a staircase. It takes n steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?",
+   381→    examples: [
+   382→      { input: "n = 2", output: "2", explanation: "1+1 or 2." },
+   383→      { input: "n = 3", output: "3", explanation: "1+1+1, 1+2, 2+1." },
+   384→      { input: "n = 4", output: "5" },
+   385→    ],
+   386→    constraints: ["1 <= n <= 45"],
+   387→    testCases: cases([
+   388→      ["n = 1", "1"],
+   389→      ["n = 2", "2"],
+   390→      ["n = 3", "3"],
+   391→      ["n = 4", "5"],
+   392→      ["n = 5", "8"],
+   393→      ["n = 6", "13"],
+   394→      ["n = 7", "21"],
+   395→      ["n = 8", "34"],
+   396→      ["n = 10", "89"],
+   397→      ["n = 45", "1836311903"],
+   398→    ]),
+   399→    functionSignature: "climbStairs(n)",
+   400→    starterCode: starter("climbStairs"),
+   401→    acceptance: 53,
+   402→  },
+   403→  {
+   404→    id: 11,
+   405→    title: "House Robber",
+   406→    difficulty: "Medium",
+   407→    topic: "DP",
+   408→    description:
+   409→      "You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed, the only constraint stopping you from robbing each of them is that adjacent houses have security systems connected and it will automatically contact the police if two adjacent houses were broken into on the same night. Given an integer array nums representing the amount of money of each house, return the maximum amount of money you can rob tonight without alerting the police.",
+   410→    examples: [
+   411→      { input: "nums = [1,2,3,1]", output: "4", explanation: "Rob house 1 (1) then house 3 (3)." },
+   412→      { input: "nums = [2,7,9,3,1]", output: "12" },
+   413→      { input: "nums = [2,1,1,2]", output: "4" },
+   414→    ],
+   415→    constraints: [
+   416→      "1 <= nums.length <= 100",
+   417→      "0 <= nums[i] <= 400",
+   418→    ],
+   419→    testCases: cases([
+   420→      ["nums = [1,2,3,1]", "4"],
+   421→      ["nums = [2,7,9,3,1]", "12"],
+   422→      ["nums = [2,1,1,2]", "4"],
+   423→      ["nums = [0]", "0"],
+   424→      ["nums = [5]", "5"],
+   425→      ["nums = [1,2,3,4,5,6,7]", "16"],
+   426→      ["nums = [10,1,1,10]", "20"],
+   427→      ["nums = [100,1,1,100,1,1,100]", "300"],
+   428→      ["nums = [2,4,8,9,9,3]", "19"],
+   429→      ["nums = [6,6,4,8,4,3,3,10]", "27"],
+   430→    ]),
+   431→    functionSignature: "rob(nums)",
+   432→    starterCode: starter("rob"),
+   433→    acceptance: 52,
+   434→  },
+   435→  {
+   436→    id: 12,
+   437→    title: "Coin Change",
+   438→    difficulty: "Medium",
+   439→    topic: "DP",
+   440→    description:
+   441→      "You are given an integer array coins representing coins of different denominations and an integer amount representing a total amount of money. Return the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return -1. You may assume that you have an infinite number of each kind of coin.",
+   442→    examples: [
+   443→      { input: "coins = [1,2,5], amount = 11", output: "3", explanation: "11 = 5 + 5 + 1." },
+   444→      { input: "coins = [2], amount = 3", output: "-1" },
+   445→      { input: "coins = [1], amount = 0", output: "0" },
+   446→    ],
+   447→    constraints: [
+   448→      "1 <= coins.length <= 12",
+   449→      "1 <= coins[i] <= 2^31 - 1",
+   450→      "0 <= amount <= 10^4",
+   451→    ],
+   452→    testCases: cases([
+   453→      ["coins = [1,2,5], amount = 11", "3"],
+   454→      ["coins = [2], amount = 3", "-1"],
+   455→      ["coins = [1], amount = 0", "0"],
+   456→      ["coins = [1], amount = 1", "1"],
+   457→      ["coins = [1], amount = 2", "2"],
+   458→      ["coins = [1,5,10,25], amount = 63", "6"],
+   459→      ["coins = [186,419,83,408], amount = 6249", "20"],
+   460→      ["coins = [2,5,10,1], amount = 27", "5"],
+   461→      ["coins = [1,3,4], amount = 6", "2"],
+   462→      ["coins = [5,10], amount = 7", "-1"],
+   463→    ]),
+   464→    functionSignature: "coinChange(coins, amount)",
+   465→    starterCode: starter("coinChange"),
+   466→    acceptance: 43,
+   467→  },
+   468→  {
+   469→    id: 13,
+   470→    title: "Longest Increasing Subsequence",
+   471→    difficulty: "Medium",
+   472→    topic: "DP",
+   473→    description:
+   474→      "Given an integer array nums, return the length of the longest strictly increasing subsequence.",
+   475→    examples: [
+   476→      { input: "nums = [10,9,2,5,3,7,101,18]", output: "4", explanation: "Longest increasing subsequence is [2,3,7,101]." },
+   477→      { input: "nums = [0,1,0,3,2,3]", output: "4" },
+   478→      { input: "nums = [7,7,7,7,7,7,7]", output: "1" },
+   479→    ],
+   480→    constraints: [
+   481→      "1 <= nums.length <= 2500",
+   482→      "-10^4 <= nums[i] <= 10^4",
+   483→    ],
+   484→    testCases: cases([
+   485→      ["nums = [10,9,2,5,3,7,101,18]", "4"],
+   486→      ["nums = [0,1,0,3,2,3]", "4"],
+   487→      ["nums = [7,7,7,7,7,7,7]", "1"],
+   488→      ["nums = [1]", "1"],
+   489→      ["nums = [1,2,3,4,5]", "5"],
+   490→      ["nums = [5,4,3,2,1]", "1"],
+   491→      ["nums = [1,3,6,7,9,4,10,5,6]", "6"],
+   492→      ["nums = [3,5,6,2,5,4,19,5,6,7,12]", "6"],
+   493→      ["nums = [-1,0,1,2,-1,-2]", "4"],
+   494→      ["nums = [10,9,2,5,3,4]", "3"],
+   495→    ]),
+   496→    functionSignature: "lengthOfLIS(nums)",
+   497→    starterCode: starter("lengthOfLIS"),
+   498→    acceptance: 53,
+   499→  },
+   500→  {
+   501→    id: 14,
+   502→    title: "Word Break",
+   503→    difficulty: "Medium",
+   504→    topic: "DP",
+   505→    description:
+   506→      "Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a space-separated sequence of one or more dictionary words. The same word in the dictionary may be reused multiple times in the segmentation.",
+   507→    examples: [
+   508→      { input: 's = "leetcode", wordDict = ["leet","code"]', output: "true" },
+   509→      { input: 's = "applepenapple", wordDict = ["apple","pen"]', output: "true" },
+   510→      { input: 's = "catsandog", wordDict = ["cats","dog","sand","and","cat"]', output: "false" },
+   511→    ],
+   512→    constraints: [
+   513→      "1 <= s.length <= 300",
+   514→      "1 <= wordDict.length <= 1000",
+   515→      "1 <= wordDict[i].length <= 20",
+   516→      "s and wordDict[i] consist of only lowercase English letters.",
+   517→    ],
+   518→    testCases: cases([
+   519→      ['s = "leetcode", wordDict = ["leet","code"]', "true"],
+   520→      ['s = "applepenapple", wordDict = ["apple","pen"]', "true"],
+   521→      ['s = "catsandog", wordDict = ["cats","dog","sand","and","cat"]', "false"],
+   522→      ['s = "a", wordDict = ["a"]', "true"],
+   523→      ['s = "aaaaaaa", wordDict = ["aaaa","aaa"]', "true"],
+   524→      ['s = "abcd", wordDict = ["a","abc","b","cd"]', "true"],
+   525→      ['s = "ab", wordDict = ["a","b"]', "true"],
+   526→      ['s = "ab", wordDict = ["a"]', "false"],
+   527→      ['s = "cars", wordDict = ["car","ca","rs"]', "true"],
+   528→      ['s = "aaaaaaaaaaaaaaaaaaaaaaaab", wordDict = ["a","aa","aaa"]', "false"],
+   529→    ]),
+   530→    functionSignature: "wordBreak(s, wordDict)",
+   531→    starterCode: starter("wordBreak"),
+   532→    acceptance: 47,
+   533→  },
+   534→
+   535→  // ----------------------------------------------------------------- Graphs
+   536→  {
+   537→    id: 15,
+   538→    title: "Number of Islands",
+   539→    difficulty: "Medium",
+   540→    topic: "Graphs",
+   541→    description:
+   542→      "Given an m x n 2D binary grid which represents a map of '1's (land) and '0's (water), return the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.",
+   543→    examples: [
+   544→      {
+   545→        input: 'grid = [["1","1","1","1","0"],["1","1","0","1","0"],["1","1","0","0","0"],["0","0","0","0","0"]]',
+   546→        output: "1",
+   547→      },
+   548→      {
+   549→        input: 'grid = [["1","1","0","0","0"],["1","1","0","0","0"],["0","0","1","0","0"],["0","0","0","1","1"]]',
+   550→        output: "3",
+   551→      },
+   552→      { input: 'grid = [["1"]]', output: "1" },
+   553→    ],
+   554→    constraints: [
+   555→      "m == grid.length",
+   556→      "n == grid[i].length",
+   557→      "1 <= m, n <= 300",
+   558→      "grid[i][j] is '0' or '1'.",
+   559→    ],
+   560→    testCases: cases([
+   561→      ['grid = [["1","1","1","1","0"],["1","1","0","1","0"],["1","1","0","0","0"],["0","0","0","0","0"]]', "1"],
+   562→      ['grid = [["1","1","0","0","0"],["1","1","0","0","0"],["0","0","1","0","0"],["0","0","0","1","1"]]', "3"],
+   563→      ['grid = [["1"]]', "1"],
+   564→      ['grid = [["0"]]', "0"],
+   565→      ['grid = [["1","0"],["0","1"]]', "2"],
+   566→      ['grid = [["1","1"],["1","1"]]', "1"],
+   567→      ['grid = [["1","0","1"],["0","0","0"],["1","0","1"]]', "4"],
+   568→      ['grid = [["1","1","1"],["1","0","1"],["1","1","1"]]', "1"],
+   569→      ['grid = [["0","0","0"],["0","0","0"],["0","0","0"]]', "0"],
+   570→      ['grid = [["1","1","0","1","1"]]', "2"],
+   571→    ]),
+   572→    functionSignature: "numIslands(grid)",
+   573→    starterCode: starter("numIslands"),
+   574→    acceptance: 58,
+   575→  },
+   576→  {
+   577→    id: 16,
+   578→    title: "Course Schedule",
+   579→    difficulty: "Medium",
+   580→    topic: "Graphs",
+   581→    description:
+   582→      "There are a total of numCourses courses you have to take, labeled from 0 to numCourses - 1. You are given an array prerequisites where prerequisites[i] = [ai, bi] indicates that you must take course bi first if you want to take course ai. Return true if you can finish all courses. Otherwise, return false.",
+   583→    examples: [
+   584→      { input: "numCourses = 2, prerequisites = [[1,0]]", output: "true" },
+   585→      { input: "numCourses = 2, prerequisites = [[1,0],[0,1]]", output: "false" },
+   586→      { input: "numCourses = 1, prerequisites = []", output: "true" },
+   587→    ],
+   588→    constraints: [
+   589→      "1 <= numCourses <= 2000",
+   590→      "0 <= prerequisites.length <= 5000",
+   591→      "All pairs are unique.",
+   592→    ],
+   593→    testCases: cases([
+   594→      ["numCourses = 2, prerequisites = [[1,0]]", "true"],
+   595→      ["numCourses = 2, prerequisites = [[1,0],[0,1]]", "false"],
+   596→      ["numCourses = 1, prerequisites = []", "true"],
+   597→      ["numCourses = 3, prerequisites = [[1,0],[2,1]]", "true"],
+   598→      ["numCourses = 3, prerequisites = [[1,0],[0,2],[2,1]]", "false"],
+   599→      ["numCourses = 5, prerequisites = [[1,0],[2,0],[3,1],[4,3]]", "true"],
+   600→      ["numCourses = 4, prerequisites = [[0,1],[1,2],[2,3],[3,0]]", "false"],
+   601→      ["numCourses = 6, prerequisites = [[1,0],[2,1],[3,2],[4,3],[5,4]]", "true"],
+   602→      ["numCourses = 2, prerequisites = []", "true"],
+   603→      ["numCourses = 4, prerequisites = [[1,0],[2,1],[3,2],[1,3]]", "false"],
+   604→    ]),
+   605→    functionSignature: "canFinish(numCourses, prerequisites)",
+   606→    starterCode: starter("canFinish"),
+   607→    acceptance: 49,
+   608→  },
+   609→  {
+   610→    id: 17,
+   611→    title: "Clone Graph",
+   612→    difficulty: "Medium",
+   613→    topic: "Graphs",
+   614→    description:
+   615→      "Given a reference of a node in a connected undirected graph, return a deep copy (clone) of the graph. Each node in the graph contains a value (int) and a list (List[Node]) of its neighbors.",
+   616→    examples: [
+   617→      { input: "adjList = [[2,4],[1,3],[2,4],[1,3]]", output: "[[2,4],[1,3],[2,4],[1,3]]" },
+   618→      { input: "adjList = [[]]", output: "[[]]" },
+   619→      { input: "adjList = []", output: "[]" },
+   620→    ],
+   621→    constraints: [
+   622→      "The number of nodes in the graph is in the range [0, 100].",
+   623→      "1 <= Node.val <= 100",
+   624→      "Node.val is unique for each node.",
+   625→    ],
+   626→    testCases: cases([
+   627→      ["adjList = [[2,4],[1,3],[2,4],[1,3]]", "[[2,4],[1,3],[2,4],[1,3]]"],
+   628→      ["adjList = [[]]", "[[]]"],
+   629→      ["adjList = []", "[]"],
+   630→      ["adjList = [[2],[1]]", "[[2],[1]]"],
+   631→      ["adjList = [[2,3,4],[1,3],[1,2,4],[1,3]]", "[[2,3,4],[1,3],[1,2,4],[1,3]]"],
+   632→      ["adjList = [[2,3],[1],[1]]", "[[2,3],[1],[1]]"],
+   633→      ["adjList = [[2],[1,3],[2]]", "[[2],[1,3],[2]]"],
+   634→      ["adjList = [[2,3,4,5],[1,3,4,5],[1,2,4,5],[1,2,3,5],[1,2,3,4]]", "[[2,3,4,5],[1,3,4,5],[1,2,4,5],[1,2,3,5],[1,2,3,4]]"],
+   635→      ["adjList = [[2],[1,3],[2,4],[3]]", "[[2],[1,3],[2,4],[3]]"],
+   636→      ["adjList = [[2],[3],[4],[5],[1]]", "[[2],[3],[4],[5],[1]]"],
+   637→    ]),
+   638→    functionSignature: "cloneGraph(node)",
+   639→    starterCode: starter("cloneGraph"),
+   640→    acceptance: 55,
+   641→  },
+   642→
+   643→  // ----------------------------------------------------------------- SQL
+   644→  {
+   645→    id: 18,
+   646→    title: "Second Highest Salary",
+   647→    difficulty: "Medium",
+   648→    topic: "SQL",
+   649→    description:
+   650→      "Write a SQL query to get the second highest salary from the Employee table. If there is no second highest salary, the query should return null.",
+   651→    examples: [
+   652→      { input: "Employee: id=1, salary=100; id=2, salary=200; id=3, salary=300", output: "200" },
+   653→      { input: "Employee: id=1, salary=100", output: "null" },
+   654→    ],
+   655→    constraints: [
+   656→      "The Employee table has columns id (PK) and salary.",
+   657→      "Salary values can be duplicated.",
+   658→    ],
+   659→    testCases: cases([
+   660→      ["Employee: [(1,100),(2,200),(3,300)]", "200"],
+   661→      ["Employee: [(1,100)]", "null"],
+   662→      ["Employee: [(1,100),(2,200),(3,300),(4,400),(5,500)]", "400"],
+   663→      ["Employee: [(1,100),(2,100),(3,100)]", "null"],
+   664→      ["Employee: [(1,500),(2,100),(3,300),(4,200),(5,400)]", "400"],
+   665→      ["Employee: [(1,10),(2,20),(3,30),(4,40),(5,50)]", "40"],
+   666→      ["Employee: [(1,1),(2,2),(3,3)]", "2"],
+   667→      ["Employee: [(1,7),(2,7),(3,7),(4,8)]", "7"],
+   668→      ["Employee: [(1,999)]", "null"],
+   669→      ["Employee: [(1,5),(2,5),(3,9)]", "5"],
+   670→    ]),
+   671→    functionSignature: "-- SELECT ... FROM Employee",
+   672→    starterCode: {
+   673→      Python: PY_STARTER,
+   674→      JavaScript: JS_STARTER,
+   675→      SQL: "-- Write your query here\nSELECT NULL AS SecondHighestSalary;",
+   676→    },
+   677→    acceptance: 47,
+   678→  },
+   679→  {
+   680→    id: 19,
+   681→    title: "Combine Two Tables",
+   682→    difficulty: "Easy",
+   683→    topic: "SQL",
+   684→    description:
+   685→      "Write a SQL query to produce a report that contains firstName, lastName, cityName, and stateName for every person in the Person table, regardless of whether they have an address in the Address table.",
+   686→    examples: [
+   687→      { input: "Person: [(1,'Allen','Wang')]; Address: [(1,'NY','NYC')]", output: "Allen, Wang, NYC, NY" },
+   688→      { input: "Person: [(2,'Bob','Lee')]; Address: []", output: "Bob, Lee, null, null" },
+   689→    ],
+   690→    constraints: [
+   691→      "Person(personId PK, lastName, firstName).",
+   692→      "Address(addressId PK, personId FK, city, state).",
+   693→    ],
+   694→    testCases: cases([
+   695→      ["Person=[(1,'Allen','Wang')], Address=[(1,'NY','NYC')]", "Allen, Wang, NYC, NY"],
+   696→      ["Person=[(2,'Bob','Lee')], Address=[]", "Bob, Lee, null, null"],
+   697→      ["Person=[(1,'A','B'),(2,'C','D')], Address=[(1,'NY','NYC')]", "2 rows"],
+   698→      ["Person=[], Address=[]", "0 rows"],
+   699→      ["Person=[(1,'A','B')], Address=[(1,'X','Y'),(2,'X','Z')]", "1 row"],
+   700→      ["Person=[(1,'X','Y'),(2,'P','Q')], Address=[(2,'CA','LA')]", "2 rows"],
+   701→      ["Person=[(1,'John','Doe')], Address=[(1,'TX','Houston')]", "John, Doe, Houston, TX"],
+   702→      ["Person=[(1,'A','B'),(2,'C','D'),(3,'E','F')], Address=[]", "3 rows"],
+   703→      ["Person=[(5,'Foo','Bar')], Address=[(5,'WA','Seattle')]", "Foo, Bar, Seattle, WA"],
+   704→      ["Person=[(1,'A','B'),(2,'C','D'),(3,'E','F')], Address=[(2,'CA','SF'),(3,'NY','NYC')]", "3 rows"],
+   705→    ]),
+   706→    functionSignature: "-- SELECT ... FROM Person LEFT JOIN Address",
+   707→    starterCode: {
+   708→      Python: PY_STARTER,
+   709→      JavaScript: JS_STARTER,
+   710→      SQL: "-- Write your query here\nSELECT firstName, lastName, city, state\nFROM Person\nLEFT JOIN Address ON Person.personId = Address.personId;",
+   711→    },
+   712→    acceptance: 78,
+   713→  },
+   714→  {
+   715→    id: 20,
+   716→    title: "Customers Who Never Order",
+   717→    difficulty: "Easy",
+   718→    topic: "SQL",
+   719→    description:
+   720→      "Write a SQL query to report all customers who never order anything. Return the result table ordered by customer name.",
+   721→    examples: [
+   722→      { input: "Customers=[(1,'Joe'),(2,'Henry'),(3,'Sam'),(4,'Max')]; Orders=[(1,3),(2,1)]", output: "Henry, Max" },
+   723→      { input: "Customers=[(1,'Joe')]; Orders=[]", output: "Joe" },
+   724→    ],
+   725→    constraints: [
+   726→      "Customers(id PK, name).",
+   727→      "Orders(id PK, customerId FK).",
+   728→    ],
+   729→    testCases: cases([
+   730→      ["Customers=[(1,'Joe'),(2,'Henry'),(3,'Sam'),(4,'Max')], Orders=[(1,3),(2,1)]", "Henry, Max"],
+   731→      ["Customers=[(1,'Joe')], Orders=[]", "Joe"],
+   732→      ["Customers=[(1,'A'),(2,'B')], Orders=[(1,1),(2,2)]", "(none)"],
+   733→      ["Customers=[], Orders=[]", "(none)"],
+   734→      ["Customers=[(1,'X'),(2,'Y'),(3,'Z')], Orders=[(1,2)]", "X, Z"],
+   735→      ["Customers=[(5,'Foo')], Orders=[(1,5)]", "(none)"],
+   736→      ["Customers=[(1,'A'),(2,'B')], Orders=[]", "A, B"],
+   737→      ["Customers=[(1,'A'),(2,'B'),(3,'C'),(4,'D')], Orders=[(1,1)]", "B, C, D"],
+   738→      ["Customers=[(1,'Joe'),(2,'Sam')], Orders=[(1,1),(2,2)]", "(none)"],
+   739→      ["Customers=[(1,'A'),(2,'B'),(3,'C')], Orders=[(1,3)]", "A, B"],
+   740→    ]),
+   741→    functionSignature: "-- SELECT ... FROM Customers WHERE NOT EXISTS (...)",
+   742→    starterCode: {
+   743→      Python: PY_STARTER,
+   744→      JavaScript: JS_STARTER,
+   745→      SQL: "-- Write your query here\nSELECT name AS Customers\nFROM Customers c\nWHERE NOT EXISTS (SELECT 1 FROM Orders o WHERE o.customerId = c.id);",
+   746→    },
+   747→    acceptance: 71,
+   748→  },
+   749→
+   750→  // ----------------------------------------------------------------- Misc
+   751→  {
+   752→    id: 21,
+   753→    title: "Valid Parentheses",
+   754→    difficulty: "Easy",
+   755→    topic: "Misc",
+   756→    description:
+   757→      "Given a string s containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid. An input string is valid if: 1. Open brackets must be closed by the same type of brackets. 2. Open brackets must be closed in the correct order. 3. Every close bracket has a corresponding open bracket of the same type.",
+   758→    examples: [
+   759→      { input: 's = "()"', output: "true" },
+   760→      { input: 's = "()[]{}"', output: "true" },
+   761→      { input: 's = "(]"', output: "false" },
+   762→    ],
+   763→    constraints: [
+   764→      "1 <= s.length <= 10^4",
+   765→      "s consists of parentheses only.",
+   766→    ],
+   767→    testCases: cases([
+   768→      ['s = "()"', "true"],
+   769→      ['s = "()[]{}"', "true"],
+   770→      ['s = "(]"', "false"],
+   771→      ['s = "([)]"', "false"],
+   772→      ['s = "{[]}"', "true"],
+   773→      ['s = "]', "false"],
+   774→      ['s = "["', "false"],
+   775→      ['s = "((()))"', "true"],
+   776→      ['s = ""', "true"],
+   777→      ['s = "([{}])"', "true"],
+   778→    ]),
+   779→    functionSignature: "isValid(s)",
+   780→    starterCode: starter("isValid"),
+   781→    acceptance: 41,
+   782→  },
+   783→  {
+   784→    id: 22,
+   785→    title: "Merge Intervals",
+   786→    difficulty: "Medium",
+   787→    topic: "Misc",
+   788→    description:
+   789→      "Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.",
+   790→    examples: [
+   791→      { input: "intervals = [[1,3],[2,6],[8,10],[15,18]]", output: "[[1,6],[8,10],[15,18]]" },
+   792→      { input: "intervals = [[1,4],[4,5]]", output: "[[1,5]]" },
+   793→      { input: "intervals = [[1,4],[2,3]]", output: "[[1,4]]" },
+   794→    ],
+   795→    constraints: [
+   796→      "1 <= intervals.length <= 10^4",
+   797→      "intervals[i].length == 2",
+   798→      "0 <= starti <= endi <= 10^4",
+   799→    ],
+   800→    testCases: cases([
+   801→      ["intervals = [[1,3],[2,6],[8,10],[15,18]]", "[[1,6],[8,10],[15,18]]"],
+   802→      ["intervals = [[1,4],[4,5]]", "[[1,5]]"],
+   803→      ["intervals = [[1,4],[2,3]]", "[[1,4]]"],
+   804→      ["intervals = [[1,4],[0,4]]", "[[0,4]]"],
+   805→      ["intervals = [[1,4]]", "[[1,4]]"],
+   806→      ["intervals = [[1,4],[5,6]]", "[[1,4],[5,6]]"],
+   807→      ["intervals = [[2,3],[4,5],[6,7],[8,9],[1,10]]", "[[1,10]]"],
+   808→      ["intervals = [[1,10],[2,3],[4,5],[6,7]]", "[[1,10]]"],
+   809→      ["intervals = [[1,3],[2,6],[8,10],[15,18]]", "[[1,6],[8,10],[15,18]]"],
+   810→      ["intervals = [[5,7],[1,3],[4,6]]", "[[1,7]]"],
+   811→    ]),
+   812→    functionSignature: "merge(intervals)",
+   813→    starterCode: starter("merge"),
+   814→    acceptance: 48,
+   815→  },
+   816→  {
+   817→    id: 23,
+   818→    title: "LRU Cache",
+   819→    difficulty: "Medium",
+   820→    topic: "Misc",
+   821→    description:
+   822→      "Design a data structure that follows the constraints of a Least Recently Used (LRU) cache. Implement the LRUCache class: LRUCache(int capacity) initializes the cache. int get(int key) returns the value of the key if it exists, otherwise -1. void put(int key, int value) updates the value of the key if present, or inserts a new key-value pair. When the cache reaches its capacity, it should evict the least recently used key before inserting a new item.",
+   823→    examples: [
+   824→      {
+   825→        input: "capacity=2; put(1,1); put(2,2); get(1); put(3,3); get(2); put(4,4); get(1); get(3); get(4)",
+   826→        output: "1, -1, -1, 3, 4",
+   827→      },
+   828→    ],
+   829→    constraints: [
+   830→      "1 <= capacity <= 3000",
+   831→      "0 <= key <= 10^4",
+   832→      "0 <= value <= 10^5",
+   833→      "At most 2 * 10^5 calls will be made to get and put.",
+   834→    ],
+   835→    testCases: cases([
+   836→      ["capacity=2; ops=[put(1,1),put(2,2),get(1),put(3,3),get(2),put(4,4),get(1),get(3),get(4)]", "1,-1,-1,3,4"],
+   837→      ["capacity=1; ops=[get(1),put(1,1),get(1)]", "-1,1"],
+   838→      ["capacity=2; ops=[put(1,1),put(2,2),get(1),put(3,3),get(2)]", "1,-1"],
+   839→      ["capacity=2; ops=[put(2,1),put(1,1),put(2,3),put(4,1),get(1),get(2)]", "-1,3"],
+   840→      ["capacity=3; ops=[put(1,1),put(2,2),put(3,3),put(4,4),get(1),get(2),get(3),get(4)]", "-1,2,3,4"],
+   841→      ["capacity=2; ops=[get(2),put(2,6),get(1),put(1,5),put(1,2),get(1),get(2)]", "-1,-1,2,6"],
+   842→      ["capacity=10; ops=[put(1,1),put(2,2),get(1),get(2)]", "1,2"],
+   843→      ["capacity=2; ops=[put(1,1),put(2,2),put(3,3),get(1),get(2),get(3)]", "-1,2,3"],
+   844→      ["capacity=1; ops=[put(1,1),get(1),put(2,2),get(1),get(2)]", "1,-1,2"],
+   845→      ["capacity=2; ops=[put(1,1),put(2,2),put(3,3),put(4,4),get(1),get(2),get(3),get(4)]", "-1,-1,3,4"],
+   846→    ]),
+   847→    functionSignature: "class LRUCache",
+   848→    starterCode: starter("LRUCache"),
+   849→    acceptance: 45,
+   850→  },
+   851→  {
+   852→    id: 24,
+   853→    title: "Rotate Image",
+   854→    difficulty: "Medium",
+   855→    topic: "Misc",
+   856→    description:
+   857→      "You are given an n x n 2D matrix representing an image. Rotate the image by 90 degrees (clockwise). You have to rotate the image in-place, which means you have to modify the input 2D matrix directly. Do not allocate another 2D matrix and do the rotation.",
+   858→    examples: [
+   859→      { input: "matrix = [[1,2,3],[4,5,6],[7,8,9]]", output: "[[7,4,1],[8,5,2],[9,6,3]]" },
+   860→      { input: "matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]", output: "[[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]" },
+   861→      { input: "matrix = [[1]]", output: "[[1]]" },
+   862→    ],
+   863→    constraints: [
+   864→      "n == matrix.length == matrix[i].length",
+   865→      "1 <= n <= 20",
+   866→      "-1000 <= matrix[i][j] <= 1000",
+   867→    ],
+   868→    testCases: cases([
+   869→      ["matrix = [[1,2,3],[4,5,6],[7,8,9]]", "[[7,4,1],[8,5,2],[9,6,3]]"],
+   870→      ["matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]", "[[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]"],
+   871→      ["matrix = [[1]]", "[[1]]"],
+   872→      ["matrix = [[1,2],[3,4]]", "[[3,1],[4,2]]"],
+   873→      ["matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]", "[[13,9,5,1],[14,10,6,2],[15,11,7,3],[16,12,8,4]]"],
+   874→      ["matrix = [[1,2,3],[4,5,6],[7,8,9]]", "[[7,4,1],[8,5,2],[9,6,3]]"],
+   875→      ["matrix = [[0,1],[2,3]]", "[[2,0],[3,1]]"],
+   876→      ["matrix = [[100]]", "[[100]]"],
+   877→      ["matrix = [[1,2,3],[4,5,6],[7,8,9]]", "[[7,4,1],[8,5,2],[9,6,3]]"],
+   878→      ["matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]", "[[13,9,5,1],[14,10,6,2],[15,11,7,3],[16,12,8,4]]"],
+   879→    ]),
+   880→    functionSignature: "rotate(matrix)",
+   881→    starterCode: starter("rotate"),
+   882→    acceptance: 70,
+   883→  },
+   884→];
+   885→
+   886→/**
+   887→ * Lookup helper for the coding screen and admin question manager.
+   888→ */
+   889→export function getProblemById(id: number): CodingProblem | undefined {
+   890→  return CODING_PROBLEMS.find((p) => p.id === id);
+   891→}
+   892→

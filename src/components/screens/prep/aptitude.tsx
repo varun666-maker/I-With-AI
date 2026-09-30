@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
   Award,
   Bookmark,
+  Camera,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -15,6 +16,8 @@ import {
   Grid3x3,
   Info,
   ListChecks,
+  Maximize2,
+  Mic,
   RefreshCw,
   ShieldCheck,
   Timer,
@@ -39,8 +42,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import {
+  requestFullscreen,
+  exitFullscreen,
+  isCurrentlyFullscreen,
+  onFullscreenChange,
+} from "@/lib/fullscreen";
 
 type Phase = "rules" | "test" | "results";
 
@@ -91,6 +101,8 @@ const CAT_TONES: Record<string, string> = {
 
 export function AptitudePortal() {
   const { set } = useNav();
+  const setNavigationLocked = useNav((s) => s.setNavigationLocked);
+  const reduce = useReducedMotion();
   const [phase, setPhase] = useState<Phase>("rules");
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -99,6 +111,13 @@ export function AptitudePortal() {
   const [fullscreenExits, setFullscreenExits] = useState(0);
   const [seconds, setSeconds] = useState(30 * 60);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  // Optional device toggles for the rules sub-screen. Both default off so the
+  // candidate can opt in to mic/cam monitoring. Prep mode is forgiving.
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [camEnabled, setCamEnabled] = useState(false);
+  // "Re-enter fullscreen" warning modal (shown when the candidate presses Esc
+  // during the test). No penalty in prep mode.
+  const [reenterOpen, setReenterOpen] = useState(false);
 
   // countdown
   useEffect(() => {
@@ -112,6 +131,22 @@ export function AptitudePortal() {
     if (phase !== "test") return;
     const t = setInterval(() => setTabSwitches((s) => s + 1), 45000);
     return () => clearInterval(t);
+  }, [phase]);
+
+  // Fullscreen watcher: only active during the test sub-screen. If the
+  // candidate exits fullscreen (e.g. via Esc), show a friendly re-enter modal.
+  // No strikes, no penalties. Prep mode is forgiving.
+  useEffect(() => {
+    if (phase !== "test") return;
+    const unsubscribe = onFullscreenChange(() => {
+      if (!isCurrentlyFullscreen()) {
+        queueMicrotask(() => {
+          setReenterOpen(true);
+          setFullscreenExits((n) => n + 1);
+        });
+      }
+    });
+    return unsubscribe;
   }, [phase]);
 
   const q = QUESTIONS[current];
@@ -180,9 +215,9 @@ export function AptitudePortal() {
             {phase === "rules" && (
               <motion.div
                 key="rules"
-                initial={{ opacity: 0, y: 12 }}
+                initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
+                exit={reduce ? undefined : { opacity: 0, y: -12 }}
                 transition={{ duration: 0.25 }}
               >
                 <div className="mx-auto max-w-2xl">
@@ -230,10 +265,63 @@ export function AptitudePortal() {
                       <RuleLine icon={Info} text="Tab switches are logged for awareness only. No penalty." tone="amber" />
                     </div>
 
+                    {/* Optional device opt-in */}
+                    <div className="mt-5 rounded-lg border border-black/10 bg-black/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                        Optional devices
+                      </p>
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        Both are optional. You can practice without any hardware monitoring. Prep
+                        mode never penalises device failures.
+                      </p>
+                      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="flex items-center justify-between rounded-md border border-black/5 bg-card px-3 py-2.5 dark:border-white/5">
+                          <div className="flex items-center gap-2.5">
+                            <span className="grid h-8 w-8 place-items-center rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-300">
+                              <Mic className="h-4 w-4" />
+                            </span>
+                            <div>
+                              <p className="text-sm font-medium">Microphone</p>
+                              <p className="text-[11px] text-muted-foreground">
+                                {micEnabled ? "Enabled" : "Off"}
+                              </p>
+                            </div>
+                          </div>
+                          <Switch
+                            checked={micEnabled}
+                            onCheckedChange={setMicEnabled}
+                            aria-label="Toggle microphone"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between rounded-md border border-black/5 bg-card px-3 py-2.5 dark:border-white/5">
+                          <div className="flex items-center gap-2.5">
+                            <span className="grid h-8 w-8 place-items-center rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-300">
+                              <Camera className="h-4 w-4" />
+                            </span>
+                            <div>
+                              <p className="text-sm font-medium">Camera</p>
+                              <p className="text-[11px] text-muted-foreground">
+                                {camEnabled ? "Enabled" : "Off"}
+                              </p>
+                            </div>
+                          </div>
+                          <Switch
+                            checked={camEnabled}
+                            onCheckedChange={setCamEnabled}
+                            aria-label="Toggle camera"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="mt-8 flex justify-center">
                       <Button
                         size="lg"
-                        onClick={() => setPhase("test")}
+                        onClick={() => {
+                          requestFullscreen();
+                          setNavigationLocked(true);
+                          setPhase("test");
+                        }}
                         className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
                       >
                         <Timer className="mr-2 h-4 w-4" /> Start Test
@@ -247,9 +335,9 @@ export function AptitudePortal() {
             {phase === "test" && (
               <motion.div
                 key="test"
-                initial={{ opacity: 0, y: 12 }}
+                initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
+                exit={reduce ? undefined : { opacity: 0, y: -12 }}
                 transition={{ duration: 0.25 }}
               >
                 {/* Top bar */}
@@ -436,6 +524,8 @@ export function AptitudePortal() {
                       <Button
                         onClick={() => {
                           setConfirmOpen(false);
+                          exitFullscreen();
+                          setNavigationLocked(false);
                           setPhase("results");
                         }}
                         className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
@@ -451,9 +541,9 @@ export function AptitudePortal() {
             {phase === "results" && (
               <motion.div
                 key="results"
-                initial={{ opacity: 0, y: 12 }}
+                initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
+                exit={reduce ? undefined : { opacity: 0, y: -12 }}
                 transition={{ duration: 0.25 }}
                 className="space-y-4"
               >
@@ -567,6 +657,33 @@ export function AptitudePortal() {
         </div>
 
       </PageWrap>
+
+      {/* Re-enter fullscreen modal (Esc exit during the test, no penalty) */}
+      <Dialog open={reenterOpen} onOpenChange={setReenterOpen}>
+        <DialogContent className="border-amber-400/30 bg-card dark:border-amber-400/20">
+          <DialogHeader>
+            <div className="mx-auto mb-2 grid h-14 w-14 place-items-center rounded-full bg-amber-500/15">
+              <Maximize2 className="h-8 w-8 text-amber-500" />
+            </div>
+            <DialogTitle className="text-center">Re-enter fullscreen</DialogTitle>
+            <DialogDescription className="text-center">
+              You pressed Esc and left fullscreen mode. Re-enter to keep practicing. Prep mode is
+              forgiving, so there are no penalties.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex justify-center">
+            <Button
+              onClick={() => {
+                requestFullscreen();
+                setReenterOpen(false);
+              }}
+              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+            >
+              <Maximize2 className="mr-2 h-4 w-4" /> Re-enter Fullscreen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
