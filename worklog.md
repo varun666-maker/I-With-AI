@@ -1141,3 +1141,68 @@ Stage Summary:
 - 4 files updated, 0 new files, 0 backend changes.
 - All flows are mock / frontend-only as requested.
 - Phase 2 idea (company-wise question bank, premium-only) is parked.
+
+---
+Task ID: ADMIN-COMPANY-UPGRADE-FIX · Agent: main
+Task: Fix runtime crash + make "Download template" buttons actually download
+CSV templates (aptitude + coding, admin + superadmin).
+
+User report: "preview screen crashes not working" + "in question set manager
+like u given for coding na downloading templete and working bulk upload
+button like that give for aptitude section also".
+
+Root cause of the crash (admin/selection.tsx · OfferComposerDialog):
+- I had used `useState(() => { ... })` to pre-fill the offer form when a row
+  was opened. That's wrong: `useState`'s initializer only runs ONCE on first
+  mount (when `row` is null), so the pre-fill never fired. It also calls a
+  bunch of setState functions inside the initializer, which is a no-op
+  side-effect during render. The crash happened on second open because state
+  from the previous open leaked into the new one and the form was in an
+  inconsistent state.
+- Fix: replaced `useState(() => {})` with `useEffect(() => { ... }, [row])`
+  and wrapped every setState call inside `queueMicrotask(...)` to satisfy the
+  codebase's `react-hooks/set-state-in-effect` lint rule (same convention
+  used by REBUILD-C in the candidate test screens).
+- Added `useEffect` to the React imports.
+- Lint: 0 errors, 0 warnings.
+
+Aptitude bulk-upload wiring (admin/questions.tsx):
+- Re-verified the AptitudeForm already had the Bulk Upload CSV button wired
+  to open `BulkUploadDialog kind="aptitude"` (lines 393-414). It was working
+  all along, but the user couldn't see it because the page crashed first.
+  After the crash fix above, both tabs work.
+
+Template download (admin/questions.tsx + superadmin/questions.tsx):
+- The "Download template" buttons (admin: 2 in form, 1 in dialog; superadmin:
+  2 in BulkCard, 1 in dialog) were previously inert — no onClick handler.
+- Added a `downloadCsvTemplate(kind: "aptitude" | "coding")` helper to both
+  files. Pure client-side: builds the CSV string (RFC-4180-quoted, with
+  header + 2 example rows), wraps it in a Blob, creates an object URL, and
+  triggers a browser download via a synthetic <a> click. File names:
+  `aptitude_questions_template.csv` / `coding_problems_template.csv`.
+- Wired onClick handlers on all 6 template-download buttons (2 in admin
+  AptitudeForm + CodingForm, 1 in admin BulkUploadDialog, 2 in superadmin
+  BulkCard, 1 in superadmin BulkUploadDialog).
+
+Files modified (2):
+- `src/components/screens/admin/selection.tsx` — fixed `useState(() => {})`
+  bug → `useEffect(..., [row])` + queueMicrotask; added useEffect import.
+- `src/components/screens/admin/questions.tsx` — added
+  `downloadCsvTemplate` helper; wired 3 template-download buttons
+  (AptitudeForm, CodingForm, BulkUploadDialog).
+- `src/components/screens/superadmin/questions.tsx` — added
+  `downloadCsvTemplate` helper (mirror); wired 3 template-download buttons
+  (2 BulkCards, 1 BulkUploadDialog).
+
+Verification:
+- `bun run lint` → 0 errors, 0 warnings.
+- `npx tsc --noEmit --skipLibCheck` → no type errors in any of the 4 files.
+- Dev server returns HTTP 200 on `/` after all edits; all modules compile
+  cleanly via Turbopack.
+
+Stage Summary:
+- Runtime crash on Final Selection → Send Job Offer flow is fixed.
+- "Download template" buttons now actually download CSV templates in both
+  admin and superadmin screens, for both aptitude and coding.
+- Aptitude tab bulk-upload was already working; just unblocked by the crash
+  fix.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   Brain,
@@ -682,22 +682,27 @@ function OfferComposerDialog({
   const [message, setMessage] = useState("");
   const [expiryDays, setExpiryDays] = useState("7");
 
-  // Reset / pre-fill whenever a new row is opened
-  useState(() => {
-    if (row) {
+  // Reset / pre-fill whenever a new row is opened. Runs when `row` transitions
+  // from null to a candidate (i.e. when the dialog opens). Wrapped in
+  // useEffect + queueMicrotask so we don't call setState during render or
+  // trigger cascading renders.
+  useEffect(() => {
+    if (!row) return;
+    const firstName = row.name.split(" ")[0];
+    queueMicrotask(() => {
       setRole("Backend Developer");
       setTeam("Platform Engineering");
       setLevel("SDE-1");
       setLocation("Hybrid");
       setOffice("Bangalore HQ");
       setStartDate("2025-03-03");
-      setSalary("₹18,00,000");
-      setBonus("₹1,80,000 (joining bonus)");
-      setStock("₹4,00,000 (vested over 4 years)");
+      setSalary("\u20B918,00,000");
+      setBonus("\u20B91,80,000 (joining bonus)");
+      setStock("\u20B94,00,000 (vested over 4 years)");
       setReportTo("Engineering Manager - Platform");
-      setSubject(`Job Offer from InterviewAI — ${row.name.split(" ")[0]}`);
+      setSubject(`Job Offer from InterviewAI \u2014 ${firstName}`);
       setMessage(
-        `Hi ${row.name.split(" ")[0]},\n\n` +
+        `Hi ${firstName},\n\n` +
           `Congratulations! Based on your strong performance across all rounds ` +
           `of our hiring process, we are delighted to extend you an offer for the ` +
           `role of Backend Developer (SDE-1) at InterviewAI.\n\n` +
@@ -708,8 +713,8 @@ function OfferComposerDialog({
       );
       setExpiryDays("7");
       setStage("compose");
-    }
-  });
+    });
+  }, [row]);
 
   if (!row) return null;
 

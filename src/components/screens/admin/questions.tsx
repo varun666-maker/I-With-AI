@@ -400,6 +400,7 @@ function AptitudeForm() {
         </Button>
         <Button
           variant="ghost"
+          onClick={() => downloadCsvTemplate("aptitude")}
           className="h-10 rounded-full text-muted-foreground"
         >
           <FileText className="mr-1.5 h-4 w-4" />
@@ -684,6 +685,7 @@ function CodingForm() {
         </Button>
         <Button
           variant="ghost"
+          onClick={() => downloadCsvTemplate("coding")}
           className="h-10 rounded-full text-muted-foreground"
         >
           <FileText className="mr-1.5 h-4 w-4" />
@@ -903,6 +905,7 @@ function BulkUploadDialog({
                 Don&apos;t have a CSV yet?{" "}
                 <button
                   type="button"
+                  onClick={() => downloadCsvTemplate(kind)}
                   className="font-medium text-violet-700 hover:underline dark:text-violet-300"
                 >
                   <Download className="mr-1 inline h-3 w-3" />
@@ -1029,6 +1032,114 @@ function BulkUploadDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+/* ---------- CSV template downloader ---------- */
+
+/**
+ * Build a CSV template (with header row + 2 example rows) for either
+ * aptitude or coding, then trigger a browser download. Pure client-side —
+ * no backend call. The user fills this in and re-uploads via the Bulk
+ * Upload dialog.
+ */
+function downloadCsvTemplate(kind: "aptitude" | "coding") {
+  if (typeof window === "undefined") return;
+  const isApt = kind === "aptitude";
+  const header = isApt
+    ? [
+        "category",
+        "sub_topic",
+        "difficulty",
+        "question_text",
+        "option_a",
+        "option_b",
+        "option_c",
+        "option_d",
+        "correct",
+        "explanation",
+      ].join(",")
+    : [
+        "title",
+        "difficulty",
+        "type",
+        "statement",
+        "signatures",
+        "visible_tests",
+        "hidden_tests",
+        "time_limit_ms",
+        "memory_limit_kb",
+        "schema",
+      ].join(",");
+
+  // Example rows. Comma-bearing fields are quoted and inner quotes escaped,
+  // per RFC 4180.
+  const esc = (s: string) => `"${s.replace(/"/g, '""')}"`;
+  const rows = isApt
+    ? [
+        [
+          "Quant",
+          "Time & Work",
+          "Medium",
+          esc("If 6 men can complete a task in 12 days, how long will 9 men take?"),
+          esc("8 days"),
+          esc("9 days"),
+          esc("6 days"),
+          esc("18 days"),
+          "A",
+          esc("Total man-days = 6 × 12 = 72. With 9 men, time = 72 / 9 = 8 days."),
+        ].join(","),
+        [
+          "Logical",
+          "Series",
+          "Easy",
+          esc("Find the next term: 2, 6, 12, 20, 30, ?"),
+          esc("40"),
+          esc("42"),
+          esc("44"),
+          esc("46"),
+          "B",
+          esc("Differences: 4, 6, 8, 10, 12. Next term = 30 + 12 = 42."),
+        ].join(","),
+      ]
+    : [
+        [
+          esc("Two Sum (Sorted)"),
+          "Easy",
+          "DSA",
+          esc("Given a sorted array of integers and a target, return the 1-based indices of the two numbers that add to target."),
+          esc("function twoSum(arr: number[], target: number): number[]"),
+          "3",
+          "7",
+          "1000",
+          "256",
+          "",
+        ].join(","),
+        [
+          esc("Top 3 Products by Revenue"),
+          "Medium",
+          "SQL",
+          esc("Given orders(order_id, product_id, qty, price, created_at), return the top 3 products by total revenue in the last 30 days."),
+          esc("SELECT product_id, SUM(qty*price) AS revenue ..."),
+          "3",
+          "7",
+          "2000",
+          "512",
+          esc("CREATE TABLE orders (order_id INT PRIMARY KEY, product_id INT, qty INT, price DECIMAL(10,2), created_at TIMESTAMP);"),
+        ].join(","),
+      ];
+
+  const csv = [header, ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = isApt
+    ? "aptitude_questions_template.csv"
+    : "coding_problems_template.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 /* ---------- helpers ---------- */
