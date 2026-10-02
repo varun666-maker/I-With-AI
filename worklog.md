@@ -1582,3 +1582,68 @@ Stage Summary:
 - ChunkLoadError fixed by clearing stale Turbopack cache.
 - Dev server running persistently via scripts/start-dev.sh.
 - Preview live at https://preview-chat-df56a0d6-1979-48ae-9a9b-27a04a055dae.space-z.ai/
+
+---
+Task ID: CAMPAIGN-WIZARD · Agent: main
+Task: Convert Campaign Creation from a single long form into a step-by-step
+wizard with a detailed Review step. Also remove "Min Coding Questions to
+Attempt" and make qualification cutoffs conditional on selected rounds.
+
+User asks:
+1. Remove "min question to attempted" from qualification cutoffs
+2. If user not selected aptitude or coding, remove that related part in
+   qualification cutoff section
+3. Make it a step-by-step process to create campaign
+4. After creating, show a detailed confirmation (like Live Summary but
+   in detail view) where clicking a section jumps back to that step
+
+File modified (1):
+- `src/components/screens/admin/campaign-new.tsx`
+
+Changes:
+1. Added `step` state (1-based index into activeSteps) + `useEffect` import.
+2. Added `activeSteps` memo — dynamically computes which steps are active
+   based on selected rounds:
+   - Step 1: Campaign Details (always)
+   - Step 2: Rounds & Config (always)
+   - Step 3: Score Weights (only if 2+ rounds selected)
+   - Step 4: Qualification Cutoffs (only if aptitude OR coding selected)
+   - Step 5: Interview Type (only if interview selected)
+   - Step 6: Proctoring & Integrity (always)
+   - Step 7: Review & Create (always)
+3. Added step indicator at top — clickable pills with checkmarks for
+   completed steps. User can jump to any step by clicking its pill.
+4. Each step renders its section full-width (no more 2-column layout with
+   sticky summary).
+5. Back/Next navigation buttons at the bottom (hidden on Review step).
+6. Review step shows detailed `ReviewCard` components for each section:
+   - Each card has the section label, key-value pairs, and an "Edit" button
+   - Clicking Edit jumps back to that step
+   - Only shows cards for steps that are active (conditional sections hidden)
+   - "Ready to create" card at the bottom with the Create Campaign button
+7. Qualification Cutoffs step:
+   - REMOVED "Min Coding Questions to Attempt" field entirely
+   - "Min Aptitude Score" only shows if rounds.aptitude is true
+   - "Min Coding Solved" only shows if rounds.coding is true
+   - If neither round is selected, the step is skipped entirely (not in
+     activeSteps)
+8. Added `ReviewCard` sub-component at the bottom of the file.
+9. Added `Pencil` and `ArrowRight` to lucide-react imports.
+10. Fixed `useEffect` setState lint error with `queueMicrotask`.
+11. Fixed leftover old form code by removing duplicate `) : (` and all
+    old form sections that were left after the wizard insertion.
+
+Verification:
+- `bun run lint` → 0 errors, 0 warnings.
+- Dev server returns HTTP 200; module compiles cleanly.
+- Browser test: navigated through all 7 steps via Next button, reached
+  Review step with "Review & Create" + "Ready to create" visible, zero
+  console errors throughout.
+
+Stage Summary:
+- Campaign Creation is now a 7-step wizard (steps 3-5 are conditional).
+- Qualification Cutoffs no longer has "Min Coding Questions to Attempt".
+- Cutoff fields are conditional on the corresponding round being selected.
+- Review step shows all details in editable cards — click Edit to jump
+  back to any step.
+- Old 2-column layout (form + live summary) replaced by full-width wizard.
