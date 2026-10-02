@@ -1259,3 +1259,73 @@ Stage Summary:
 - The root cause was operational (dev server not running), not a code bug.
 - The `start-dev.sh` script can be re-run any time the dev server needs to
   be restarted: `bash /home/z/my-project/scripts/start-dev.sh`.
+
+---
+Task ID: PREP-APT-CONTINUE-CODING · Agent: main
+Task: In Prep Mode, after submitting the aptitude test, the result screen
+should show a "Continue to Coding" button that opens DIRECTLY into the
+fullscreen coding editor with a random problem — NOT the Coding Arena
+list view.
+
+User ask:
+"one change in prep mode after submit aptitude appears result screen there
+u can show continue to coding not coding arena like user clicks on that it
+should open direct random questions main screen that full screen mode
+problem+code editor one not Coding Arena."
+
+File modified (1):
+- `src/components/screens/prep/aptitude.tsx`
+
+Changes:
+1. Added imports:
+   - `Code2` icon (merged into existing lucide-react import block).
+   - `CODING_PROBLEMS` from `@/lib/coding-problems` (the 24-problem bank
+     used by the Coding Arena).
+2. Added 3 store hooks to `AptitudePortal`:
+   - `setCodingView` (to switch CodingArena to "editor" view)
+   - `setCurrentProblem` (to set the random problem ID)
+   - `solvedProblems` (to filter out already-solved problems when picking)
+3. Added `continueToCoding()` handler:
+   - Builds a Set of solved problem IDs (numbers) from `solvedProblems`.
+   - Filters `CODING_PROBLEMS` to unsolved candidates.
+   - Falls back to the full bank if everything is solved.
+   - Picks a random problem from the pool.
+   - Calls `setCurrentProblem(String(random.id))` +
+     `setCodingView("editor")` + `requestFullscreen()` +
+     `setNavigationLocked(true)` + `set("coding")`.
+   - This mirrors the `enterProblem` + `pickRandomUnsolved` flow in
+     coding.tsx but inlined so we don't need to import a non-exported
+     helper.
+4. Replaced the bottom action row on the results sub-screen:
+   - BEFORE: [Take Again] ... [Back to Dashboard] (violet, single CTA)
+   - AFTER:  [Take Again] ... [Continue to Coding (violet, primary)] +
+                          [Back to Dashboard (outline, secondary)]
+   - "Continue to Coding" is the new primary CTA (violet, with Code2 icon
+     + arrow). "Back to Dashboard" is now an outline secondary button.
+
+Behavior:
+- Clicking "Continue to Coding" on the prep aptitude result screen now:
+  1. Picks a random unsolved problem from the 24-problem bank.
+  2. Sets it as the current problem in the store.
+  3. Switches CodingArena to "editor" view (bypassing the list view).
+  4. Requests fullscreen.
+  5. Locks navigation.
+  6. Navigates to the `coding` screen.
+- The CodingArena component sees `codingView === "editor"` and renders
+  `CodingEditorView` directly — the fullscreen problem+editor split view
+  — with the random problem already loaded.
+- This is the SAME screen the candidate would reach by going to Coding
+  Arena → clicking a problem, but skips the list view entirely.
+
+Verification:
+- `bun run lint` → 0 errors, 0 warnings.
+- Dev server returns HTTP 200 on `/` after the edit; module compiles
+  cleanly via Turbopack.
+- No TypeScript errors in the edited file.
+
+Stage Summary:
+- Prep mode aptitude result now has a "Continue to Coding" CTA that jumps
+  straight into the fullscreen editor with a random unsolved problem.
+- The Coding Arena list view is bypassed (but still reachable via the
+  dashboard "Coding Arena" quick-launch card if the user wants to browse).
+- "Back to Dashboard" is preserved as a secondary outline button.

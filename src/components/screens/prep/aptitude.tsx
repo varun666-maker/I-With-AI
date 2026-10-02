@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Code2,
   Grid3x3,
   Info,
   ListChecks,
@@ -51,6 +52,7 @@ import {
   isCurrentlyFullscreen,
   onFullscreenChange,
 } from "@/lib/fullscreen";
+import { CODING_PROBLEMS } from "@/lib/coding-problems";
 
 type Phase = "rules" | "test" | "results";
 
@@ -102,6 +104,12 @@ const CAT_TONES: Record<string, string> = {
 export function AptitudePortal() {
   const { set } = useNav();
   const setNavigationLocked = useNav((s) => s.setNavigationLocked);
+  // Coding Arena hooks — used by the "Continue to Coding" CTA on the results
+  // sub-screen to jump straight into the fullscreen editor with a random
+  // unsolved problem (bypassing the Coding Arena list view).
+  const setCodingView = useNav((s) => s.setCodingView);
+  const setCurrentProblem = useNav((s) => s.setCurrentProblem);
+  const solvedProblems = useNav((s) => s.solvedProblems);
   const reduce = useReducedMotion();
   const [phase, setPhase] = useState<Phase>("rules");
   const [current, setCurrent] = useState(0);
@@ -118,6 +126,23 @@ export function AptitudePortal() {
   // "Re-enter fullscreen" warning modal (shown when the candidate presses Esc
   // during the test). No penalty in prep mode.
   const [reenterOpen, setReenterOpen] = useState(false);
+
+  // "Continue to Coding" — jumps straight from the aptitude results sub-screen
+  // into the fullscreen Coding Arena editor with a RANDOM unsolved problem.
+  // Bypasses the Coding Arena list view entirely. Mirrors the
+  // `pickRandomUnsolved` + `enterProblem` flow used in coding.tsx, but
+  // inlined here so we don't need to import a non-exported helper.
+  const continueToCoding = () => {
+    const solvedNums = new Set(solvedProblems.map((id) => Number(id)));
+    const candidates = CODING_PROBLEMS.filter((p) => !solvedNums.has(p.id));
+    const pool = candidates.length > 0 ? candidates : CODING_PROBLEMS;
+    const random = pool[Math.floor(Math.random() * pool.length)] ?? CODING_PROBLEMS[0];
+    setCurrentProblem(String(random.id));
+    setCodingView("editor");
+    requestFullscreen();
+    setNavigationLocked(true);
+    set("coding");
+  };
 
   // countdown
   useEffect(() => {
@@ -644,12 +669,22 @@ export function AptitudePortal() {
                   >
                     <RefreshCw className="mr-2 h-4 w-4" /> Take Again
                   </Button>
-                  <Button
-                    onClick={() => set("dashboard")}
-                    className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
-                  >
-                    Back to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      onClick={continueToCoding}
+                      className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+                    >
+                      <Code2 className="mr-2 h-4 w-4" /> Continue to Coding
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => set("dashboard")}
+                      className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+                    >
+                      Back to Dashboard
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             )}
