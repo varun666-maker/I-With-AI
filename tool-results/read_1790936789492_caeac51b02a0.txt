@@ -1,0 +1,924 @@
+     1→"use client";
+     2→
+     3→import { useEffect, useMemo, useState } from "react";
+     4→import { AnimatePresence, motion } from "framer-motion";
+     5→import {
+     6→  ArrowRight,
+     7→  ArrowLeft,
+     8→  AtSign,
+     9→  CheckCircle2,
+    10→  Clock,
+    11→  Code2,
+    12→  Eye,
+    13→  EyeOff,
+    14→  Github,
+    15→  GraduationCap,
+    16→  Loader2,
+    17→  Lock,
+    18→  Mail,
+    19→  ShieldCheck,
+    20→  User,
+    21→  Video,
+    22→  X,
+    23→} from "lucide-react";
+    24→import { Shimmer } from "@/components/shared/primitives";
+    25→import { Button } from "@/components/ui/button";
+    26→import { Input } from "@/components/ui/input";
+    27→import { Label } from "@/components/ui/label";
+    28→import { Badge } from "@/components/ui/badge";
+    29→import {
+    30→  InputOTP,
+    31→  InputOTPGroup,
+    32→  InputOTPSlot,
+    33→} from "@/components/ui/input-otp";
+    34→import {
+    35→  Select,
+    36→  SelectContent,
+    37→  SelectItem,
+    38→  SelectTrigger,
+    39→  SelectValue,
+    40→} from "@/components/ui/select";
+    41→import { useNav } from "@/lib/store";
+    42→import { cn } from "@/lib/utils";
+    43→
+    44→const ROLE_OPTIONS = [
+    45→  "Frontend Developer",
+    46→  "Backend Developer",
+    47→  "Full-stack Developer",
+    48→  "Data Scientist",
+    49→  "Data Analyst",
+    50→  "DevOps Engineer",
+    51→  "Mobile Developer",
+    52→  "QA Engineer",
+    53→  "ML Engineer",
+    54→  "Product Manager",
+    55→];
+    56→
+    57→const SKILL_SUGGESTIONS = [
+    58→  "Python", "Java", "JavaScript", "TypeScript", "React", "Node.js", "FastAPI",
+    59→  "Django", "Flask", "SQL", "PostgreSQL", "MongoDB", "Redis", "Docker",
+    60→  "Kubernetes", "AWS", "GCP", "Azure", "GraphQL", "REST", "Kafka",
+    61→  "TensorFlow", "PyTorch", "Pandas", "NumPy", "Spark", "Git", "CI/CD",
+    62→  "System Design", "Microservices",
+    63→];
+    64→
+    65→const DEGREE_OPTIONS = [
+    66→  "B.Tech",
+    67→  "B.E.",
+    68→  "B.Sc",
+    69→  "B.A.",
+    70→  "B.Com",
+    71→  "M.Tech",
+    72→  "M.E.",
+    73→  "M.Sc",
+    74→  "MCA",
+    75→  "MBA",
+    76→  "Ph.D.",
+    77→];
+    78→
+    79→type TabKey = "signup" | "login";
+    80→
+    81→export function AuthScreen() {
+    82→  const { set } = useNav();
+    83→  const [tab, setTab] = useState<TabKey>("signup");
+    84→  const [step, setStep] = useState<1 | 2 | 3>(1);
+    85→
+    86→  return (
+    87→    <div className="min-h-screen bg-background text-foreground">
+    88→      <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl grid-cols-1 gap-0 px-0 lg:grid-cols-2 lg:gap-0">
+    89→        {/* Left: marketing panel */}
+    90→        <aside className="relative hidden overflow-hidden border-r border-black/10 lg:block dark:border-white/10">
+    91→          <div className="relative flex h-full flex-col justify-between p-10 xl:p-14">
+    92→            <div>
+    93→              <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-[11px] uppercase tracking-widest text-muted-foreground dark:border-white/10 dark:bg-white/[0.02]">
+    94→                InterviewAI · Prep Mode
+    95→              </Badge>
+    96→              <h2 className="mt-6 text-4xl font-semibold leading-tight tracking-tight text-balance xl:text-5xl">
+    97→                Land your <span className="text-violet-500 dark:text-violet-400">dream role</span><br /> with AI on your side.
+    98→              </h2>
+    99→              <p className="mt-4 max-w-md text-base text-pretty text-muted-foreground">
+   100→                Resume analysis, 1,500+ aptitude questions, a coding arena with AI
+   101→                review, and live AI interviews with body-language feedback. Free
+   102→                forever for students.
+   103→              </p>
+   104→            </div>
+   105→
+   106→            <AvatarMock />
+   107→
+   108→            <div className="grid grid-cols-3 gap-3">
+   109→              <Stat label="Students" value="5,000+" />
+   110→              <Stat label="Mock Qs" value="1.5k+" />
+   111→              <Stat label="Reports" value="17-sec" />
+   112→            </div>
+   113→          </div>
+   114→        </aside>
+   115→
+   116→        {/* Right: form panel */}
+   117→        <section className="relative flex items-start justify-center px-4 py-8 sm:px-10 sm:py-12">
+   118→          <div className="w-full max-w-md">
+   119→            <button
+   120→              onClick={() => set("landing")}
+   121→              className="mb-6 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+   122→            >
+   123→              <ArrowLeft className="h-3.5 w-3.5" /> Back to home
+   124→            </button>
+   125→
+   126→            <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm sm:p-8 dark:border-white/10">
+   127→              {/* Tabs */}
+   128→              <div className="inline-flex w-full rounded-full border border-black/10 bg-black/[0.02] p-1 dark:border-white/10 dark:bg-white/[0.02]">
+   129→                {(["signup", "login"] as const).map((t) => (
+   130→                  <button
+   131→                    key={t}
+   132→                    onClick={() => {
+   133→                      setTab(t);
+   134→                      setStep(1);
+   135→                    }}
+   136→                    className={cn(
+   137→                      "relative flex-1 rounded-full py-1.5 text-xs font-medium capitalize transition-colors",
+   138→                      tab === t ? "text-white" : "text-muted-foreground hover:text-foreground",
+   139→                    )}
+   140→                  >
+   141→                    {t === "signup" ? "Sign Up" : "Login"}
+   142→                    {tab === t && (
+   143→                      <motion.span
+   144→                        layoutId="auth-tab-pill"
+   145→                        className="absolute inset-0 -z-10 rounded-full bg-violet-500"
+   146→                      />
+   147→                    )}
+   148→                  </button>
+   149→                ))}
+   150→              </div>
+   151→
+   152→              <AnimatePresence mode="wait">
+   153→                {tab === "signup" ? (
+   154→                  <motion.div
+   155→                    key={`signup-${step}`}
+   156→                    initial={{ opacity: 0, y: 12 }}
+   157→                    animate={{ opacity: 1, y: 0 }}
+   158→                    exit={{ opacity: 0, y: -12 }}
+   159→                    transition={{ duration: 0.25 }}
+   160→                    className="mt-6"
+   161→                  >
+   162→                    <StepIndicator step={step} />
+   163→                    {step === 1 && <SignUpStep1 onNext={() => setStep(2)} />}
+   164→                    {step === 2 && <SignUpStep2 onBack={() => setStep(1)} onNext={() => setStep(3)} />}
+   165→                    {step === 3 && <SignUpStep3 onBack={() => setStep(2)} onDone={() => set("dashboard")} />}
+   166→                  </motion.div>
+   167→                ) : (
+   168→                  <motion.div
+   169→                    key="login"
+   170→                    initial={{ opacity: 0, y: 12 }}
+   171→                    animate={{ opacity: 1, y: 0 }}
+   172→                    exit={{ opacity: 0, y: -12 }}
+   173→                    transition={{ duration: 0.25 }}
+   174→                    className="mt-6"
+   175→                  >
+   176→                    <LoginPanel onLogin={() => set("dashboard")} />
+   177→                  </motion.div>
+   178→                )}
+   179→              </AnimatePresence>
+   180→            </div>
+   181→
+   182→            <p className="mt-5 text-center text-xs text-muted-foreground">
+   183→              By continuing you agree to our{" "}
+   184→              <a href="#" className="text-foreground/80 underline-offset-2 hover:underline">Terms</a>
+   185→              {" "}and{" "}
+   186→              <a href="#" className="text-foreground/80 underline-offset-2 hover:underline">Privacy</a>.
+   187→            </p>
+   188→          </div>
+   189→        </section>
+   190→      </div>
+   191→    </div>
+   192→  );
+   193→}
+   194→
+   195→/* -------------------------------------------------------------------------- */
+   196→/* Sub-components                                                             */
+   197→/* -------------------------------------------------------------------------- */
+   198→
+   199→function Stat({ label, value }: { label: string; value: string }) {
+   200→  return (
+   201→    <div className="rounded-lg border border-black/10 bg-black/[0.02] p-3 dark:border-white/10 dark:bg-white/[0.02]">
+   202→      <p className="text-lg font-semibold tracking-tight text-violet-500 dark:text-violet-400">{value}</p>
+   203→      <p className="mt-0.5 text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+   204→    </div>
+   205→  );
+   206→}
+   207→
+   208→function AvatarMock() {
+   209→  return (
+   210→    <div className="relative my-12 grid place-items-center">
+   211→      <motion.div
+   212→        animate={{ y: [0, -8, 0] }}
+   213→        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+   214→        className="relative grid h-44 w-44 place-items-center rounded-full bg-violet-500 shadow-sm ring-1 ring-black/10 dark:ring-white/10"
+   215→      >
+   216→        <Video className="h-14 w-14 text-white" />
+   217→      </motion.div>
+   218→      <p className="mt-10 text-center text-xs text-muted-foreground">
+   219→        Your AI interviewer · asks · listens · adapts.
+   220→      </p>
+   221→    </div>
+   222→  );
+   223→}
+   224→
+   225→function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
+   226→  const labels = ["Account", "Verify OTP", "Profile"];
+   227→  return (
+   228→    <div className="mb-6 flex items-center gap-2">
+   229→      {labels.map((l, i) => {
+   230→        const n = (i + 1) as 1 | 2 | 3;
+   231→        const active = step === n;
+   232→        const done = step > n;
+   233→        return (
+   234→          <div key={l} className="flex flex-1 items-center gap-2">
+   235→            <div className={cn(
+   236→              "grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-semibold ring-1 ring-inset transition-colors",
+   237→              active
+   238→                ? "bg-violet-500/15 text-violet-700 ring-violet-400/40 dark:text-violet-300"
+   239→                : done
+   240→                  ? "bg-emerald-500/15 text-emerald-700 ring-emerald-400/40 dark:text-emerald-300"
+   241→                  : "bg-black/[0.02] text-muted-foreground ring-black/10 dark:bg-white/5 dark:ring-white/10",
+   242→            )}>
+   243→              {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : n}
+   244→            </div>
+   245→            <span className={cn("text-[11px]", active ? "text-foreground" : "text-muted-foreground")}>{l}</span>
+   246→            {i < labels.length - 1 && (
+   247→              <div className="ml-1 h-px flex-1 bg-black/10 dark:bg-white/10" />
+   248→            )}
+   249→          </div>
+   250→        );
+   251→      })}
+   252→    </div>
+   253→  );
+   254→}
+   255→
+   256→function Divider() {
+   257→  return (
+   258→    <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+   259→      <div className="h-px flex-1 bg-black/10 dark:bg-white/10" />
+   260→      OR
+   261→      <div className="h-px flex-1 bg-black/10 dark:bg-white/10" />
+   262→    </div>
+   263→  );
+   264→}
+   265→
+   266→function GoogleButton({ label }: { label: string }) {
+   267→  return (
+   268→    <Button
+   269→      type="button"
+   270→      variant="outline"
+   271→      className="w-full rounded-full bg-black/[0.02] border-black/10 hover:bg-black/[0.05] dark:bg-white/5 dark:border-white/15 dark:hover:bg-white/10"
+   272→    >
+   273→      <GoogleGlyph />
+   274→      {label}
+   275→    </Button>
+   276→  );
+   277→}
+   278→
+   279→function GoogleGlyph() {
+   280→  return (
+   281→    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden>
+   282→      <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.4 14.6 2.5 12 2.5 6.9 2.5 2.8 6.6 2.8 11.7S6.9 21 12 21c5.4 0 9-3.8 9-9.2 0-.6-.1-1.1-.2-1.6H12z" />
+   283→    </svg>
+   284→  );
+   285→}
+   286→
+   287→/* --------------------------- Sign-up step 1 ------------------------------ */
+   288→
+   289→function SignUpStep1({ onNext }: { onNext: () => void }) {
+   290→  const [name, setName] = useState("");
+   291→  const [email, setEmail] = useState("");
+   292→  const [pwd, setPwd] = useState("");
+   293→  const [show, setShow] = useState(false);
+   294→  const [loading, setLoading] = useState(false);
+   295→
+   296→  const valid = name.trim().length > 1 && /@/.test(email) && pwd.length >= 8;
+   297→
+   298→  const submit = () => {
+   299→    if (!valid) return;
+   300→    setLoading(true);
+   301→    setTimeout(() => {
+   302→      setLoading(false);
+   303→      onNext();
+   304→    }, 1100);
+   305→  };
+   306→
+   307→  return (
+   308→    <div>
+   309→      <h3 className="text-lg font-semibold">Create your free account</h3>
+   310→      <p className="mt-1 text-sm text-muted-foreground">
+   311→        Takes 2 minutes. No credit card. Free forever for students.
+   312→      </p>
+   313→
+   314→      <div className="mt-5 space-y-3">
+   315→        <div>
+   316→          <Label className="text-xs text-muted-foreground">Full Name</Label>
+   317→          <div className="relative mt-1">
+   318→            <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   319→            <Input
+   320→              value={name}
+   321→              onChange={(e) => setName(e.target.value)}
+   322→              placeholder="Priya Sharma"
+   323→              className="rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10"
+   324→            />
+   325→          </div>
+   326→        </div>
+   327→        <div>
+   328→          <Label className="text-xs text-muted-foreground">Email Address</Label>
+   329→          <div className="relative mt-1">
+   330→            <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   331→            <Input
+   332→              type="email"
+   333→              value={email}
+   334→              onChange={(e) => setEmail(e.target.value)}
+   335→              placeholder="you@email.com"
+   336→              className="rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10"
+   337→            />
+   338→          </div>
+   339→        </div>
+   340→        <div>
+   341→          <Label className="text-xs text-muted-foreground">Password</Label>
+   342→          <div className="relative mt-1">
+   343→            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   344→            <Input
+   345→              type={show ? "text" : "password"}
+   346→              value={pwd}
+   347→              onChange={(e) => setPwd(e.target.value)}
+   348→              placeholder="••••••••"
+   349→              className="rounded-lg bg-black/[0.02] pl-9 pr-9 border-black/10 dark:bg-white/5 dark:border-white/10"
+   350→            />
+   351→            <button
+   352→              type="button"
+   353→              onClick={() => setShow((s) => !s)}
+   354→              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+   355→              aria-label="Toggle password visibility"
+   356→            >
+   357→              {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+   358→            </button>
+   359→          </div>
+   360→          <p className="mt-1 text-[11px] text-muted-foreground">Min 8 characters · include a number & symbol for strength.</p>
+   361→        </div>
+   362→      </div>
+   363→
+   364→      <Divider />
+   365→      <GoogleButton label="Continue with Google" />
+   366→
+   367→      <Button
+   368→        onClick={submit}
+   369→        disabled={!valid || loading}
+   370→        className="mt-5 w-full rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
+   371→      >
+   372→        {loading ? (
+   373→          <>
+   374→            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending OTP…
+   375→          </>
+   376→        ) : (
+   377→          <>
+   378→            Create Account
+   379→            <ArrowRight className="ml-2 h-4 w-4" />
+   380→          </>
+   381→        )}
+   382→      </Button>
+   383→    </div>
+   384→  );
+   385→}
+   386→
+   387→/* --------------------------- Sign-up step 2 ------------------------------ */
+   388→
+   389→function SignUpStep2({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
+   390→  const [otp, setOtp] = useState("");
+   391→  const [resendIn, setResendIn] = useState(272);
+   392→  const [error, setError] = useState<string | null>(null);
+   393→  const [attempts, setAttempts] = useState(3);
+   394→
+   395→  useEffect(() => {
+   396→    const t = setInterval(() => setResendIn((r) => (r > 0 ? r - 1 : 0)), 1000);
+   397→    return () => clearInterval(t);
+   398→  }, []);
+   399→
+   400→  const verify = () => {
+   401→    if (otp.length < 6) return;
+   402→    if (otp === "000000") {
+   403→      onNext();
+   404→    } else {
+   405→      const left = attempts - 1;
+   406→      setAttempts(left);
+   407→      setError(left > 0 ? `Invalid code. ${left} attempt${left > 1 ? "s" : ""} remaining.` : "Too many attempts. Please request a new OTP.");
+   408→      setOtp("");
+   409→    }
+   410→  };
+   411→
+   412→  return (
+   413→    <div>
+   414→      <h3 className="text-lg font-semibold">Verify your email</h3>
+   415→      <p className="mt-1 text-sm text-muted-foreground">
+   416→        We sent a 6-digit code to <span className="font-mono text-foreground">you@email.com</span>. Enter it below.
+   417→      </p>
+   418→
+   419→      <div className="mt-6 flex justify-center">
+   420→        <InputOTP
+   421→          maxLength={6}
+   422→          value={otp}
+   423→          onChange={(v) => { setOtp(v); setError(null); }}
+   424→        >
+   425→          <InputOTPGroup>
+   426→            {Array.from({ length: 6 }).map((_, i) => (
+   427→              <InputOTPSlot
+   428→                key={i}
+   429→                index={i}
+   430→                className="h-11 w-11 border-black/10 bg-black/[0.02] first:rounded-l-lg last:rounded-r-lg text-base dark:border-white/15 dark:bg-white/5"
+   431→              />
+   432→            ))}
+   433→          </InputOTPGroup>
+   434→        </InputOTP>
+   435→      </div>
+   436→
+   437→      <div className="mt-3 flex justify-center">
+   438→        {resendIn > 0 ? (
+   439→          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+   440→            <Clock className="h-3.5 w-3.5" />
+   441→            Resend in {Math.floor(resendIn / 60)}:{String(resendIn % 60).padStart(2, "0")}
+   442→          </span>
+   443→        ) : (
+   444→          <button
+   445→            onClick={() => setResendIn(272)}
+   446→            className="text-xs font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+   447→          >
+   448→            Resend OTP
+   449→          </button>
+   450→        )}
+   451→      </div>
+   452→
+   453→      <AnimatePresence>
+   454→        {error && (
+   455→          <motion.p
+   456→            initial={{ opacity: 0, y: -4 }}
+   457→            animate={{ opacity: 1, y: 0 }}
+   458→            exit={{ opacity: 0 }}
+   459→            className="mt-3 rounded-md border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-center text-xs text-rose-600 dark:text-rose-300"
+   460→          >
+   461→            {error}
+   462→          </motion.p>
+   463→        )}
+   464→      </AnimatePresence>
+   465→
+   466→      <Button
+   467→        onClick={verify}
+   468→        disabled={otp.length < 6 || attempts <= 0}
+   469→        className="mt-5 w-full rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
+   470→      >
+   471→        <ShieldCheck className="mr-2 h-4 w-4" /> Verify & Continue
+   472→      </Button>
+   473→      <button
+   474→        onClick={onBack}
+   475→        className="mt-3 flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+   476→      >
+   477→        <ArrowLeft className="h-3.5 w-3.5" /> Back to account details
+   478→      </button>
+   479→      <p className="mt-3 text-center text-[11px] text-muted-foreground">
+   480→        Tip: use <span className="font-mono text-foreground">000000</span> as the demo OTP.
+   481→      </p>
+   482→    </div>
+   483→  );
+   484→}
+   485→
+   486→/* --------------------------- Sign-up step 3 ------------------------------ */
+   487→
+   488→function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => void }) {
+   489→  const [role, setRole] = useState<string>("");
+   490→  const [skills, setSkills] = useState<string[]>(["Python", "FastAPI"]);
+   491→  const [skillInput, setSkillInput] = useState("");
+   492→  const [education, setEducation] = useState([
+   493→    { degree: "B.Tech", institution: "IIT Bombay", year: "2022" },
+   494→  ]);
+   495→  const [linkedin, setLinkedin] = useState("");
+   496→  const [github, setGithub] = useState("");
+   497→  const [loading, setLoading] = useState(false);
+   498→
+   499→  const suggestions = useMemo(
+   500→    () =>
+   501→      SKILL_SUGGESTIONS.filter(
+   502→        (s) =>
+   503→          s.toLowerCase().includes(skillInput.toLowerCase()) &&
+   504→          !skills.some((x) => x.toLowerCase() === s.toLowerCase()),
+   505→      ).slice(0, 6),
+   506→    [skillInput, skills],
+   507→  );
+   508→
+   509→  const addSkill = (s: string) => {
+   510→    if (!s.trim()) return;
+   511→    if (!skills.includes(s)) setSkills([...skills, s]);
+   512→    setSkillInput("");
+   513→  };
+   514→  const removeSkill = (s: string) => setSkills(skills.filter((x) => x !== s));
+   515→
+   516→  const addEdu = () =>
+   517→    setEducation([...education, { degree: "B.Tech", institution: "", year: "" }]);
+   518→  const removeEdu = (i: number) => setEducation(education.filter((_, idx) => idx !== i));
+   519→  const updateEdu = (i: number, key: "degree" | "institution" | "year", val: string) =>
+   520→    setEducation(education.map((e, idx) => (idx === i ? { ...e, [key]: val } : e)));
+   521→
+   522→  const valid = !!role && skills.length > 0 && education.every((e) => e.institution && e.year);
+   523→
+   524→  const submit = () => {
+   525→    if (!valid) return;
+   526→    setLoading(true);
+   527→    setTimeout(() => {
+   528→      setLoading(false);
+   529→      onDone();
+   530→    }, 900);
+   531→  };
+   532→
+   533→  return (
+   534→    <div>
+   535→      <h3 className="text-lg font-semibold">Set up your profile</h3>
+   536→      <p className="mt-1 text-sm text-muted-foreground">
+   537→        This data personalises your AI interview questions and roadmap.
+   538→      </p>
+   539→
+   540→      <div className="mt-5 space-y-4">
+   541→        <div>
+   542→          <Label className="text-xs text-muted-foreground">Target Job Role</Label>
+   543→          <Select value={role} onValueChange={setRole}>
+   544→            <SelectTrigger className="mt-1 w-full rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10">
+   545→              <SelectValue placeholder="Choose role…" />
+   546→            </SelectTrigger>
+   547→            <SelectContent>
+   548→              {ROLE_OPTIONS.map((r) => (
+   549→                <SelectItem key={r} value={r}>{r}</SelectItem>
+   550→              ))}
+   551→            </SelectContent>
+   552→          </Select>
+   553→        </div>
+   554→
+   555→        <div>
+   556→          <Label className="text-xs text-muted-foreground">Skills</Label>
+   557→          <div className="mt-1 flex flex-wrap items-center gap-1.5 rounded-lg border border-black/10 bg-black/[0.02] p-2 dark:border-white/10 dark:bg-white/5">
+   558→            {skills.map((s) => (
+   559→              <Badge key={s} className="border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-200">
+   560→                {s}
+   561→                <button onClick={() => removeSkill(s)} className="ml-1" aria-label={`Remove ${s}`}>
+   562→                  <X className="h-3 w-3" />
+   563→                </button>
+   564→              </Badge>
+   565→            ))}
+   566→            <input
+   567→              value={skillInput}
+   568→              onChange={(e) => setSkillInput(e.target.value)}
+   569→              onKeyDown={(e) => {
+   570→                if (e.key === "Enter") {
+   571→                  e.preventDefault();
+   572→                  addSkill(skillInput);
+   573→                }
+   574→              }}
+   575→              placeholder="Type a skill…"
+   576→              className="min-w-[120px] flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-muted-foreground"
+   577→            />
+   578→          </div>
+   579→          <AnimatePresence>
+   580→            {suggestions.length > 0 && (
+   581→              <motion.div
+   582→                initial={{ opacity: 0, y: -4 }}
+   583→                animate={{ opacity: 1, y: 0 }}
+   584→                exit={{ opacity: 0 }}
+   585→                className="mt-2 flex flex-wrap gap-1.5"
+   586→              >
+   587→                {suggestions.map((s) => (
+   588→                  <button
+   589→                    key={s}
+   590→                    onClick={() => addSkill(s)}
+   591→                    className="rounded-full border border-black/10 bg-black/[0.02] px-2.5 py-1 text-[11px] text-muted-foreground hover:border-violet-400/30 hover:text-violet-700 dark:border-white/10 dark:bg-white/5 dark:hover:text-violet-300"
+   592→                  >
+   593→                    + {s}
+   594→                  </button>
+   595→                ))}
+   596→              </motion.div>
+   597→            )}
+   598→          </AnimatePresence>
+   599→        </div>
+   600→
+   601→        <div>
+   602→          <div className="flex items-center justify-between">
+   603→            <Label className="text-xs text-muted-foreground">Education</Label>
+   604→            <button
+   605→              onClick={addEdu}
+   606→              className="inline-flex items-center gap-1 text-[11px] text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+   607→            >
+   608→              + Add row
+   609→            </button>
+   610→          </div>
+   611→          <div className="mt-1 space-y-2">
+   612→            {education.map((e, i) => (
+   613→              <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-[7rem_1fr_5rem]">
+   614→                <Select
+   615→                  value={e.degree}
+   616→                  onValueChange={(v) => updateEdu(i, "degree", v)}
+   617→                >
+   618→                  <SelectTrigger className="rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10">
+   619→                    <SelectValue />
+   620→                  </SelectTrigger>
+   621→                  <SelectContent>
+   622→                    {DEGREE_OPTIONS.map((d) => (
+   623→                      <SelectItem key={d} value={d}>{d}</SelectItem>
+   624→                    ))}
+   625→                  </SelectContent>
+   626→                </Select>
+   627→                <Input
+   628→                  value={e.institution}
+   629→                  onChange={(ev) => updateEdu(i, "institution", ev.target.value)}
+   630→                  placeholder="Institution"
+   631→                  className="rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10"
+   632→                />
+   633→                <div className="flex items-center gap-1">
+   634→                  <Input
+   635→                    value={e.year}
+   636→                    onChange={(ev) => updateEdu(i, "year", ev.target.value)}
+   637→                    placeholder="Year"
+   638→                    className="rounded-lg bg-black/[0.02] border-black/10 dark:bg-white/5 dark:border-white/10"
+   639→                  />
+   640→                  {education.length > 1 && (
+   641→                    <button
+   642→                      onClick={() => removeEdu(i)}
+   643→                      className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-muted-foreground hover:text-rose-500"
+   644→                      aria-label="Remove education row"
+   645→                    >
+   646→                      <X className="h-4 w-4" />
+   647→                    </button>
+   648→                  )}
+   649→                </div>
+   650→              </div>
+   651→            ))}
+   652→          </div>
+   653→        </div>
+   654→
+   655→        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+   656→          <div>
+   657→            <Label className="text-xs text-muted-foreground">LinkedIn URL (optional)</Label>
+   658→            <div className="relative mt-1">
+   659→              <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   660→              <Input
+   661→                value={linkedin}
+   662→                onChange={(e) => setLinkedin(e.target.value)}
+   663→                placeholder="linkedin.com/in/you"
+   664→                className="rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10"
+   665→              />
+   666→            </div>
+   667→          </div>
+   668→          <div>
+   669→            <Label className="text-xs text-muted-foreground">GitHub URL (optional)</Label>
+   670→            <div className="relative mt-1">
+   671→              <Github className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   672→              <Input
+   673→                value={github}
+   674→                onChange={(e) => setGithub(e.target.value)}
+   675→                placeholder="github.com/you"
+   676→                className="rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10"
+   677→              />
+   678→            </div>
+   679→          </div>
+   680→        </div>
+   681→      </div>
+   682→
+   683→      <Button
+   684→        onClick={submit}
+   685→        disabled={!valid || loading}
+   686→        className="mt-6 w-full rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
+   687→      >
+   688→        {loading ? (
+   689→          <>
+   690→            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Setting up…
+   691→          </>
+   692→        ) : (
+   693→          <>
+   694→            <GraduationCap className="mr-2 h-4 w-4" /> Complete Setup
+   695→            <ArrowRight className="ml-2 h-4 w-4" />
+   696→          </>
+   697→        )}
+   698→      </Button>
+   699→      <button
+   700→        onClick={onBack}
+   701→        className="mt-3 flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+   702→      >
+   703→        <ArrowLeft className="h-3.5 w-3.5" /> Back to OTP verification
+   704→      </button>
+   705→    </div>
+   706→  );
+   707→}
+   708→
+   709→/* --------------------------- Login + forgot ------------------------------ */
+   710→
+   711→function LoginPanel({ onLogin }: { onLogin: () => void }) {
+   712→  const [email, setEmail] = useState("");
+   713→  const [pwd, setPwd] = useState("");
+   714→  const [loading, setLoading] = useState(false);
+   715→  const [forgot, setForgot] = useState(false);
+   716→  const [resetSent, setResetSent] = useState(false);
+   717→  const [showPwd, setShowPwd] = useState(false);
+   718→  const [errors, setErrors] = useState<{ email?: string; pwd?: string }>({});
+   719→  const [touched, setTouched] = useState<{ email?: boolean; pwd?: boolean }>({});
+   720→
+   721→  const validateEmail = (v: string) => {
+   722→    if (!v) return "Email is required";
+   723→    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "Enter a valid email address";
+   724→    return undefined;
+   725→  };
+   726→  const validatePwd = (v: string) => {
+   727→    if (!v) return "Password is required";
+   728→    if (v.length < 8) return "Password must be at least 8 characters";
+   729→    return undefined;
+   730→  };
+   731→
+   732→  const valid = !validateEmail(email) && !validatePwd(pwd);
+   733→
+   734→  const login = () => {
+   735→    const newErrors = { email: validateEmail(email), pwd: validatePwd(pwd) };
+   736→    setErrors(newErrors);
+   737→    setTouched({ email: true, pwd: true });
+   738→    if (newErrors.email || newErrors.pwd) return;
+   739→    setLoading(true);
+   740→    setTimeout(() => {
+   741→      setLoading(false);
+   742→      onLogin();
+   743→    }, 900);
+   744→  };
+   745→
+   746→  return (
+   747→    <div>
+   748→      <h3 className="text-lg font-semibold">Welcome back</h3>
+   749→      <p className="mt-1 text-sm text-muted-foreground">Log in to continue your prep journey.</p>
+   750→
+   751→      {!forgot ? (
+   752→        <>
+   753→          <div className="mt-5 space-y-3">
+   754→            <div>
+   755→              <Label className="text-xs text-muted-foreground">Email Address</Label>
+   756→              <div className="relative mt-1">
+   757→                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   758→                <Input
+   759→                  type="email"
+   760→                  value={email}
+   761→                  onChange={(e) => {
+   762→                    setEmail(e.target.value);
+   763→                    if (touched.email) setErrors((p) => ({ ...p, email: validateEmail(e.target.value) }));
+   764→                  }}
+   765→                  onBlur={() => {
+   766→                    setTouched((p) => ({ ...p, email: true }));
+   767→                    setErrors((p) => ({ ...p, email: validateEmail(email) }));
+   768→                  }}
+   769→                  placeholder="you@email.com"
+   770→                  aria-invalid={!!errors.email && touched.email}
+   771→                  aria-describedby={errors.email && touched.email ? "login-email-error" : undefined}
+   772→                  className={cn(
+   773→                    "rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10",
+   774→                    errors.email && touched.email && "border-rose-400/60 focus-visible:ring-rose-400/30"
+   775→                  )}
+   776→                />
+   777→              </div>
+   778→              {errors.email && touched.email && (
+   779→                <p id="login-email-error" className="mt-1 text-xs text-rose-500 dark:text-rose-400" role="alert">
+   780→                  {errors.email}
+   781→                </p>
+   782→              )}
+   783→            </div>
+   784→            <div>
+   785→              <Label className="text-xs text-muted-foreground">Password</Label>
+   786→              <div className="relative mt-1">
+   787→                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   788→                <Input
+   789→                  type={showPwd ? "text" : "password"}
+   790→                  value={pwd}
+   791→                  onChange={(e) => {
+   792→                    setPwd(e.target.value);
+   793→                    if (touched.pwd) setErrors((p) => ({ ...p, pwd: validatePwd(e.target.value) }));
+   794→                  }}
+   795→                  onBlur={() => {
+   796→                    setTouched((p) => ({ ...p, pwd: true }));
+   797→                    setErrors((p) => ({ ...p, pwd: validatePwd(pwd) }));
+   798→                  }}
+   799→                  placeholder="••••••••"
+   800→                  aria-invalid={!!errors.pwd && touched.pwd}
+   801→                  aria-describedby={errors.pwd && touched.pwd ? "login-pwd-error" : undefined}
+   802→                  className={cn(
+   803→                    "rounded-lg bg-black/[0.02] pl-9 pr-9 border-black/10 dark:bg-white/5 dark:border-white/10",
+   804→                    errors.pwd && touched.pwd && "border-rose-400/60 focus-visible:ring-rose-400/30"
+   805→                  )}
+   806→                />
+   807→                <button
+   808→                  type="button"
+   809→                  onClick={() => setShowPwd((s) => !s)}
+   810→                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+   811→                  aria-label={showPwd ? "Hide password" : "Show password"}
+   812→                >
+   813→                  {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+   814→                </button>
+   815→              </div>
+   816→              {errors.pwd && touched.pwd && (
+   817→                <p id="login-pwd-error" className="mt-1 text-xs text-rose-500 dark:text-rose-400" role="alert">
+   818→                  {errors.pwd}
+   819→                </p>
+   820→              )}
+   821→            </div>
+   822→            <div className="flex items-center justify-between">
+   823→              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+   824→                <input type="checkbox" className="accent-violet-500" /> Remember me
+   825→              </label>
+   826→              <button
+   827→                onClick={() => setForgot(true)}
+   828→                className="text-xs text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+   829→              >
+   830→                Forgot Password?
+   831→              </button>
+   832→            </div>
+   833→          </div>
+   834→
+   835→          <Divider />
+   836→          <GoogleButton label="Continue with Google" />
+   837→
+   838→          <Button
+   839→            onClick={login}
+   840→            disabled={!valid || loading}
+   841→            className="mt-5 w-full rounded-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50"
+   842→          >
+   843→            {loading ? (
+   844→              <>
+   845→                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in…
+   846→              </>
+   847→            ) : (
+   848→              <>
+   849→                Login <ArrowRight className="ml-2 h-4 w-4" />
+   850→              </>
+   851→            )}
+   852→          </Button>
+   853→        </>
+   854→      ) : (
+   855→        <AnimatePresence mode="wait">
+   856→          {!resetSent ? (
+   857→            <motion.div
+   858→              key="forgot-form"
+   859→              initial={{ opacity: 0, y: 8 }}
+   860→              animate={{ opacity: 1, y: 0 }}
+   861→              exit={{ opacity: 0, y: -8 }}
+   862→              className="mt-5 space-y-3"
+   863→            >
+   864→              <p className="text-sm text-muted-foreground">
+   865→                Enter your email and we&apos;ll send a reset link.
+   866→              </p>
+   867→              <div>
+   868→                <Label className="text-xs text-muted-foreground">Email Address</Label>
+   869→                <div className="relative mt-1">
+   870→                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   871→                  <Input
+   872→                    type="email"
+   873→                    defaultValue={email}
+   874→                    onChange={(e) => setEmail(e.target.value)}
+   875→                    placeholder="you@email.com"
+   876→                    className="rounded-lg bg-black/[0.02] pl-9 border-black/10 dark:bg-white/5 dark:border-white/10"
+   877→                  />
+   878→                </div>
+   879→              </div>
+   880→              <Button
+   881→                onClick={() => setResetSent(true)}
+   882→                disabled={!/@/.test(email)}
+   883→                className="w-full rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   884→              >
+   885→                Send Reset Link
+   886→              </Button>
+   887→              <button
+   888→                onClick={() => setForgot(false)}
+   889→                className="flex w-full items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+   890→              >
+   891→                <ArrowLeft className="h-3.5 w-3.5" /> Back to login
+   892→              </button>
+   893→            </motion.div>
+   894→          ) : (
+   895→            <motion.div
+   896→              key="forgot-sent"
+   897→              initial={{ opacity: 0, y: 8 }}
+   898→              animate={{ opacity: 1, y: 0 }}
+   899→              className="mt-8 flex flex-col items-center text-center"
+   900→            >
+   901→              <div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-500/15 text-emerald-600 ring-1 ring-inset ring-emerald-400/30 dark:text-emerald-300">
+   902→                <CheckCircle2 className="h-6 w-6" />
+   903→              </div>
+   904→              <p className="mt-4 text-sm font-medium">Reset link sent to your email</p>
+   905→              <p className="mt-1 text-xs text-muted-foreground">
+   906→                Click the link in your inbox to set a new password, then come back here to log in.
+   907→              </p>
+   908→              <Button
+   909→                onClick={() => { setResetSent(false); setForgot(false); }}
+   910→                className="mt-5 w-full rounded-full bg-black/[0.05] border border-black/10 hover:bg-black/[0.08] dark:bg-white/10 dark:border-white/10 dark:hover:bg-white/15"
+   911→              >
+   912→                Back to Login
+   913→              </Button>
+   914→            </motion.div>
+   915→          )}
+   916→        </AnimatePresence>
+   917→      )}
+   918→    </div>
+   919→  );
+   920→}
+   921→
+   922→/* Unused import markers to keep tree-shaking honest */
+   923→export const __icons = { Code2, Video, Shimmer };
+   924→

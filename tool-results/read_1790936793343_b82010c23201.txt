@@ -1,0 +1,1160 @@
+     1→"use client";
+     2→
+     3→import { useMemo, useState } from "react";
+     4→import { AnimatePresence, motion } from "framer-motion";
+     5→import {
+     6→  AlertTriangle,
+     7→  Brain,
+     8→  Bot,
+     9→  Camera,
+    10→  Check,
+    11→  CheckCircle2,
+    12→  ChevronLeft,
+    13→  Clipboard,
+    14→  Code2,
+    15→  Copy,
+    16→  Eye,
+    17→  EyeOff,
+    18→  Link2,
+    19→  Lock,
+    20→  Mic,
+    21→  MonitorSmartphone,
+    22→  Plus,
+    23→  QrCode,
+    24→  ShieldAlert,
+    25→  ShieldCheck,
+    26→  Sliders,
+    27→  Smartphone,
+    28→  Sparkles,
+    29→  Users,
+    30→  Volume2,
+    31→} from "lucide-react";
+    32→import { PageWrap } from "@/components/shared/primitives";
+    33→import { Button } from "@/components/ui/button";
+    34→import { Input } from "@/components/ui/input";
+    35→import { Label } from "@/components/ui/label";
+    36→import { Textarea } from "@/components/ui/textarea";
+    37→import { Checkbox } from "@/components/ui/checkbox";
+    38→import { Slider } from "@/components/ui/slider";
+    39→import {
+    40→  Select,
+    41→  SelectContent,
+    42→  SelectItem,
+    43→  SelectTrigger,
+    44→  SelectValue,
+    45→} from "@/components/ui/select";
+    46→import { useNav } from "@/lib/store";
+    47→import { cn } from "@/lib/utils";
+    48→
+    49→type Rounds = { aptitude: boolean; coding: boolean; interview: boolean };
+    50→
+    51→type InterviewType =
+    52→  | "full"
+    53→  | "role-specific"
+    54→  | "technical"
+    55→  | "behavioral"
+    56→  | "system-design"
+    57→  | "quick-screen";
+    58→
+    59→const INTERVIEW_TYPES: {
+    60→  id: InterviewType;
+    61→  label: string;
+    62→  desc: string;
+    63→  duration: string;
+    64→  questions: string;
+    65→}[] = [
+    66→  {
+    67→    id: "full",
+    68→    label: "Full Interview",
+    69→    desc: "Technical + behavioral + role-specific. Most thorough.",
+    70→    duration: "30 min",
+    71→    questions: "12 questions",
+    72→  },
+    73→  {
+    74→    id: "role-specific",
+    75→    label: "Role Specific",
+    76→    desc: "Questions tailored to the job role's must-have skills.",
+    77→    duration: "25 min",
+    78→    questions: "10 questions",
+    79→  },
+    80→  {
+    81→    id: "technical",
+    82→    label: "Technical",
+    83→    desc: "Deep-dive on DSA, system design, and coding concepts.",
+    84→    duration: "20 min",
+    85→    questions: "8 questions",
+    86→  },
+    87→  {
+    88→    id: "behavioral",
+    89→    label: "Behavioral",
+    90→    desc: "Soft skills, culture fit, and past-experience probes.",
+    91→    duration: "15 min",
+    92→    questions: "6 questions",
+    93→  },
+    94→  {
+    95→    id: "system-design",
+    96→    label: "System Design",
+    97→    desc: "Architecture + scalability for senior engineering roles.",
+    98→    duration: "30 min",
+    99→    questions: "4 questions",
+   100→  },
+   101→  {
+   102→    id: "quick-screen",
+   103→    label: "Quick Screen",
+   104→    desc: "Short filter round for early-stage high-volume pipelines.",
+   105→    duration: "10 min",
+   106→    questions: "5 questions",
+   107→  },
+   108→];
+   109→
+   110→export function CampaignCreate() {
+   111→  const { set } = useNav();
+   112→  const [phase, setPhase] = useState<"form" | "success">("form");
+   113→  const [loading, setLoading] = useState(false);
+   114→
+   115→  // ── Form state ────────────────────────────────────────────────────────────
+   116→  const [name, setName] = useState("Backend SDE-1 · Campus Drive 2025");
+   117→  const [role, setRole] = useState("Backend Developer");
+   118→  const [experience, setExperience] = useState<"0-1" | "1-3" | "3-5" | "5+">("0-1");
+   119→  const [deadline, setDeadline] = useState("2025-01-30T23:59");
+   120→  const [rounds, setRounds] = useState<Rounds>({
+   121→    aptitude: true,
+   122→    coding: true,
+   123→    interview: true,
+   124→  });
+   125→  const [weights, setWeights] = useState({
+   126→    aptitude: 30,
+   127→    coding: 30,
+   128→    interview: 40,
+   129→  });
+   130→  const [minAptitude, setMinAptitude] = useState("50");
+   131→  const [minCodingSolved, setMinCodingSolved] = useState("2");
+   132→  const [interviewType, setInterviewType] = useState<InterviewType>("full");
+   133→
+   134→  // ── Proctoring state ──────────────────────────────────────────────────────
+   135→  const [strictness, setStrictness] = useState<"relaxed" | "standard" | "strict">(
+   136→    "standard",
+   137→  );
+   138→  const [autoDq, setAutoDq] = useState({
+   139→    tab: true,
+   140→    phone: true,
+   141→    person: false,
+   142→    copyPaste: true,
+   143→    rightClick: true,
+   144→    devtools: true,
+   145→  });
+   146→  const [antiAi, setAntiAi] = useState({
+   147→    voiceDetect: true,
+   148→    eyeTracking: true,
+   149→    screenShareDetect: true,
+   150→    secondDeviceDetect: true,
+   151→    browserExtensionScan: true,
+   152→    keystrokeDynamics: true,
+   153→    clipboardLock: true,
+   154→    aiResponseLatency: true,
+   155→  });
+   156→
+   157→  const totalWeight = weights.aptitude + weights.coding + weights.interview;
+   158→  const weightInvalid = rounds.aptitude && rounds.coding && rounds.interview
+   159→    ? totalWeight !== 100
+   160→    : false;
+   161→
+   162→  const activeDqCount = Object.values(autoDq).filter(Boolean).length;
+   163→  const activeAntiAiCount = Object.values(antiAi).filter(Boolean).length;
+   164→
+   165→  const submit = (e: React.FormEvent) => {
+   166→    e.preventDefault();
+   167→    if (weightInvalid) return;
+   168→    setLoading(true);
+   169→    setTimeout(() => {
+   170→      setLoading(false);
+   171→      setPhase("success");
+   172→    }, 900);
+   173→  };
+   174→
+   175→  return (
+   176→    <div className="min-h-screen bg-background text-foreground">
+   177→      <PageWrap className="pt-8">
+   178→        <button
+   179→          onClick={() => set("admin-dashboard")}
+   180→          className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+   181→        >
+   182→          <ChevronLeft className="h-3.5 w-3.5" />
+   183→          Back to dashboard
+   184→        </button>
+   185→
+   186→        <AnimatePresence mode="wait">
+   187→          {phase === "form" ? (
+   188→            <motion.div
+   189→              key="form"
+   190→              initial={{ opacity: 0, y: 16 }}
+   191→              animate={{ opacity: 1, y: 0 }}
+   192→              exit={{ opacity: 0, y: -10 }}
+   193→              transition={{ duration: 0.4 }}
+   194→            >
+   195→              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+   196→                <div>
+   197→                  <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-700 dark:text-violet-300">
+   198→                    Step 1 · Configure
+   199→                  </span>
+   200→                  <h1 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
+   201→                    Create a new hiring campaign
+   202→                  </h1>
+   203→                  <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+   204→                    Configure rounds, weights, interview type, and proctoring.
+   205→                    We&apos;ll generate a public apply link as soon as you save.
+   206→                  </p>
+   207→                </div>
+   208→              </div>
+   209→
+   210→              <form
+   211→                onSubmit={submit}
+   212→                className="mt-6 grid gap-5 lg:grid-cols-[1.4fr_1fr]"
+   213→              >
+   214→                {/* ── LEFT: main form ──────────────────────────────────────── */}
+   215→                <div className="space-y-5">
+   216→                  {/* Campaign details */}
+   217→                  <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   218→                    <div className="flex items-center gap-2">
+   219→                      <Sliders className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+   220→                      <h3 className="text-sm font-medium">Campaign details</h3>
+   221→                    </div>
+   222→
+   223→                    <div className="mt-4 grid gap-5 sm:grid-cols-2">
+   224→                      <div className="space-y-1.5">
+   225→                        <Label className="text-xs text-muted-foreground">
+   226→                          Campaign Name *
+   227→                        </Label>
+   228→                        <Input
+   229→                          value={name}
+   230→                          onChange={(e) => setName(e.target.value)}
+   231→                          className="h-10"
+   232→                          placeholder="Campus Drive 2025 - Backend"
+   233→                        />
+   234→                      </div>
+   235→                      <div className="space-y-1.5">
+   236→                        <Label className="text-xs text-muted-foreground">
+   237→                          Job Role *
+   238→                        </Label>
+   239→                        <Input
+   240→                          value={role}
+   241→                          onChange={(e) => setRole(e.target.value)}
+   242→                          className="h-10"
+   243→                          placeholder="Backend Developer"
+   244→                        />
+   245→                      </div>
+   246→                      <div className="space-y-1.5">
+   247→                        <Label className="text-xs text-muted-foreground">
+   248→                          Experience Band
+   249→                        </Label>
+   250→                        <Select
+   251→                          value={experience}
+   252→                          onValueChange={(v) => setExperience(v as typeof experience)}
+   253→                        >
+   254→                          <SelectTrigger className="w-full">
+   255→                            <SelectValue />
+   256→                          </SelectTrigger>
+   257→                          <SelectContent>
+   258→                            <SelectItem value="0-1">0-1 years (Fresher)</SelectItem>
+   259→                            <SelectItem value="1-3">1-3 years (Junior)</SelectItem>
+   260→                            <SelectItem value="3-5">3-5 years (Mid)</SelectItem>
+   261→                            <SelectItem value="5+">5+ years (Senior)</SelectItem>
+   262→                          </SelectContent>
+   263→                        </Select>
+   264→                      </div>
+   265→                      <div className="space-y-1.5">
+   266→                        <Label className="text-xs text-muted-foreground">
+   267→                          Deadline *
+   268→                        </Label>
+   269→                        <Input
+   270→                          type="datetime-local"
+   271→                          value={deadline}
+   272→                          onChange={(e) => setDeadline(e.target.value)}
+   273→                          className="h-10"
+   274→                        />
+   275→                      </div>
+   276→                    </div>
+   277→                    <p className="mt-3 text-xs text-muted-foreground">
+   278→                      Candidates can&apos;t submit past this deadline.
+   279→                    </p>
+   280→                  </div>
+   281→
+   282→                  {/* Active rounds */}
+   283→                  <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   284→                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   285→                      Active Rounds
+   286→                    </p>
+   287→                    <p className="mt-1 text-xs text-muted-foreground">
+   288→                      Toggle the rounds you want included in this campaign.
+   289→                    </p>
+   290→                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+   291→                      <RoundToggle
+   292→                        icon={<Brain className="h-4 w-4" />}
+   293→                        label="Aptitude"
+   294→                        desc="25 MCQs · 30 min"
+   295→                        checked={rounds.aptitude}
+   296→                        onToggle={() =>
+   297→                          setRounds({ ...rounds, aptitude: !rounds.aptitude })
+   298→                        }
+   299→                      />
+   300→                      <RoundToggle
+   301→                        icon={<Code2 className="h-4 w-4" />}
+   302→                        label="Coding"
+   303→                        desc="3 problems · 60 min"
+   304→                        checked={rounds.coding}
+   305→                        onToggle={() =>
+   306→                          setRounds({ ...rounds, coding: !rounds.coding })
+   307→                        }
+   308→                      />
+   309→                      <RoundToggle
+   310→                        icon={<Mic className="h-4 w-4" />}
+   311→                        label="Interview"
+   312→                        desc="Live AI · variable"
+   313→                        checked={rounds.interview}
+   314→                        onToggle={() =>
+   315→                          setRounds({ ...rounds, interview: !rounds.interview })
+   316→                        }
+   317→                      />
+   318→                    </div>
+   319→
+   320→                    {/* Score weights */}
+   321→                    {(
+   322→                      [rounds.aptitude, rounds.coding, rounds.interview].filter(
+   323→                        Boolean,
+   324→                      ).length > 1
+   325→                    ) && (
+   326→                      <div className="mt-6 border-t border-black/5 pt-5 dark:border-white/5">
+   327→                        <div className="flex items-center justify-between">
+   328→                          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   329→                            Score Weights
+   330→                          </p>
+   331→                          <span
+   332→                            className={cn(
+   333→                              "rounded-full border px-2.5 py-0.5 text-xs font-medium",
+   334→                              weightInvalid
+   335→                                ? "border-rose-400/40 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+   336→                                : "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+   337→                            )}
+   338→                          >
+   339→                            Σ {totalWeight}%
+   340→                          </span>
+   341→                        </div>
+   342→                        <div className="mt-4 space-y-5">
+   343→                          {rounds.aptitude && (
+   344→                            <WeightSlider
+   345→                              label="Aptitude"
+   346→                              icon={<Brain className="h-3.5 w-3.5" />}
+   347→                              value={weights.aptitude}
+   348→                              onChange={(v) =>
+   349→                                setWeights({ ...weights, aptitude: v[0] })
+   350→                              }
+   351→                            />
+   352→                          )}
+   353→                          {rounds.coding && (
+   354→                            <WeightSlider
+   355→                              label="Coding"
+   356→                              icon={<Code2 className="h-3.5 w-3.5" />}
+   357→                              value={weights.coding}
+   358→                              onChange={(v) =>
+   359→                                setWeights({ ...weights, coding: v[0] })
+   360→                              }
+   361→                            />
+   362→                          )}
+   363→                          {rounds.interview && (
+   364→                            <WeightSlider
+   365→                              label="Interview"
+   366→                              icon={<Mic className="h-3.5 w-3.5" />}
+   367→                              value={weights.interview}
+   368→                              onChange={(v) =>
+   369→                                setWeights({ ...weights, interview: v[0] })
+   370→                              }
+   371→                            />
+   372→                          )}
+   373→                        </div>
+   374→                        {weightInvalid && (
+   375→                          <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-rose-600 dark:text-rose-300">
+   376→                            <AlertTriangle className="h-3.5 w-3.5" />
+   377→                            Weights must sum to 100% before you can create the
+   378→                            campaign.
+   379→                          </p>
+   380→                        )}
+   381→                      </div>
+   382→                    )}
+   383→                  </div>
+   384→
+   385→                  {/* Qualification cutoffs */}
+   386→                  <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   387→                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   388→                      Qualification Cutoffs
+   389→                    </p>
+   390→                    <p className="mt-1 text-xs text-muted-foreground">
+   391→                      Candidates who fall below these thresholds cannot proceed
+   392→                      to the next round.
+   393→                    </p>
+   394→                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+   395→                      <div className="space-y-1.5">
+   396→                        <Label className="text-xs text-muted-foreground">
+   397→                          Min Aptitude Score to Qualify (%)
+   398→                        </Label>
+   399→                        <Input
+   400→                          type="number"
+   401→                          min={0}
+   402→                          max={100}
+   403→                          value={minAptitude}
+   404→                          onChange={(e) => setMinAptitude(e.target.value)}
+   405→                          className="h-10"
+   406→                        />
+   407→                        <p className="text-xs text-muted-foreground">
+   408→                          Below this, the Coding round stays locked.
+   409→                        </p>
+   410→                      </div>
+   411→                      <div className="space-y-1.5">
+   412→                        <Label className="text-xs text-muted-foreground">
+   413→                          Min Coding Questions to Solve Correctly
+   414→                        </Label>
+   415→                        <Input
+   416→                          type="number"
+   417→                          min={0}
+   418→                          max={3}
+   419→                          value={minCodingSolved}
+   420→                          onChange={(e) => setMinCodingSolved(e.target.value)}
+   421→                          className="h-10"
+   422→                        />
+   423→                        <p className="text-xs text-muted-foreground">
+   424→                          Fewer solved = Interview round locked.
+   425→                          Attempts alone do not qualify.
+   426→                        </p>
+   427→                      </div>
+   428→                    </div>
+   429→                  </div>
+   430→
+   431→                  {/* Interview type selector */}
+   432→                  {rounds.interview && (
+   433→                    <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   434→                      <div className="flex items-center justify-between">
+   435→                        <div>
+   436→                          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   437→                            Interview Type
+   438→                          </p>
+   439→                          <p className="mt-1 text-xs text-muted-foreground">
+   440→                            Choose the AI interview format. Each type pulls
+   441→                            questions from a different bank.
+   442→                          </p>
+   443→                        </div>
+   444→                        <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+   445→                      </div>
+   446→                      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+   447→                        {INTERVIEW_TYPES.map((t) => (
+   448→                          <button
+   449→                            key={t.id}
+   450→                            type="button"
+   451→                            onClick={() => setInterviewType(t.id)}
+   452→                            className={cn(
+   453→                              "flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors",
+   454→                              interviewType === t.id
+   455→                                ? "border-violet-400/60 bg-violet-500/10"
+   456→                                : "border-black/10 bg-background hover:border-violet-400/40 hover:bg-muted/30 dark:border-white/10",
+   457→                            )}
+   458→                          >
+   459→                            <div className="flex items-center justify-between">
+   460→                              <p className="text-sm font-medium">{t.label}</p>
+   461→                              {interviewType === t.id && (
+   462→                                <Check className="h-3.5 w-3.5 text-violet-600 dark:text-violet-300" />
+   463→                              )}
+   464→                            </div>
+   465→                            <p className="text-xs text-muted-foreground">
+   466→                              {t.desc}
+   467→                            </p>
+   468→                            <div className="mt-1 flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+   469→                              <span className="rounded-full border border-black/10 bg-muted/40 px-1.5 py-0.5 dark:border-white/10">
+   470→                                {t.duration}
+   471→                              </span>
+   472→                              <span className="rounded-full border border-black/10 bg-muted/40 px-1.5 py-0.5 dark:border-white/10">
+   473→                                {t.questions}
+   474→                              </span>
+   475→                            </div>
+   476→                          </button>
+   477→                        ))}
+   478→                      </div>
+   479→                    </div>
+   480→                  )}
+   481→
+   482→                  {/* Proctoring + Anti-AI */}
+   483→                  <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   484→                    <div className="flex items-center justify-between">
+   485→                      <div className="flex items-center gap-2">
+   486→                        <ShieldCheck className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+   487→                        <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   488→                          Proctoring &amp; Integrity
+   489→                        </p>
+   490→                      </div>
+   491→                      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+   492→                        <ShieldAlert className="h-3 w-3" />
+   493→                        {activeDqCount + activeAntiAiCount} rules active
+   494→                      </span>
+   495→                    </div>
+   496→
+   497→                    {/* Strictness */}
+   498→                    <div className="mt-4 space-y-1.5">
+   499→                      <Label className="text-xs text-muted-foreground">
+   500→                        Strictness
+   501→                      </Label>
+   502→                      <Select
+   503→                        value={strictness}
+   504→                        onValueChange={(v) =>
+   505→                          setStrictness(v as typeof strictness)
+   506→                        }
+   507→                      >
+   508→                        <SelectTrigger className="w-full">
+   509→                          <SelectValue />
+   510→                        </SelectTrigger>
+   511→                        <SelectContent>
+   512→                          <SelectItem value="relaxed">
+   513→                            Relaxed · Warnings only
+   514→                          </SelectItem>
+   515→                          <SelectItem value="standard">
+   516→                            Standard · Auto-submit on 3rd strike
+   517→                          </SelectItem>
+   518→                          <SelectItem value="strict">
+   519→                            Strict · Auto-disqualify on 2nd strike
+   520→                          </SelectItem>
+   521→                        </SelectContent>
+   522→                      </Select>
+   523→                    </div>
+   524→
+   525→                    {/* Auto-DQ */}
+   526→                    <div className="mt-5">
+   527→                      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   528→                        Auto-disqualify on
+   529→                      </p>
+   530→                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+   531→                        <DQToggle
+   532→                          icon={<MonitorSmartphone className="h-3.5 w-3.5" />}
+   533→                          label="3+ tab switches"
+   534→                          desc="Auto-submit + 20% penalty"
+   535→                          checked={autoDq.tab}
+   536→                          onToggle={() =>
+   537→                            setAutoDq({ ...autoDq, tab: !autoDq.tab })
+   538→                          }
+   539→                        />
+   540→                        <DQToggle
+   541→                          icon={<Smartphone className="h-3.5 w-3.5" />}
+   542→                          label="Phone detected in frame"
+   543→                          desc="Capture frame + flag for review"
+   544→                          checked={autoDq.phone}
+   545→                          onToggle={() =>
+   546→                            setAutoDq({ ...autoDq, phone: !autoDq.phone })
+   547→                          }
+   548→                        />
+   549→                        <DQToggle
+   550→                          icon={<Users className="h-3.5 w-3.5" />}
+   551→                          label="Extra person in frame"
+   552→                          desc="Capture frame + flag for review"
+   553→                          checked={autoDq.person}
+   554→                          onToggle={() =>
+   555→                            setAutoDq({ ...autoDq, person: !autoDq.person })
+   556→                          }
+   557→                        />
+   558→                        <DQToggle
+   559→                          icon={<Clipboard className="h-3.5 w-3.5" />}
+   560→                          label="Copy / paste detected"
+   561→                          desc="Block clipboard + log attempt"
+   562→                          checked={autoDq.copyPaste}
+   563→                          onToggle={() =>
+   564→                            setAutoDq({ ...autoDq, copyPaste: !autoDq.copyPaste })
+   565→                          }
+   566→                        />
+   567→                        <DQToggle
+   568→                          icon={<EyeOff className="h-3.5 w-3.5" />}
+   569→                          label="Right-click / context menu"
+   570→                          desc="Block + log attempt"
+   571→                          checked={autoDq.rightClick}
+   572→                          onToggle={() =>
+   573→                            setAutoDq({ ...autoDq, rightClick: !autoDq.rightClick })
+   574→                          }
+   575→                        />
+   576→                        <DQToggle
+   577→                          icon={<Code2 className="h-3.5 w-3.5" />}
+   578→                          label="DevTools open"
+   579→                          desc="Auto-DQ + flag for manual review"
+   580→                          checked={autoDq.devtools}
+   581→                          onToggle={() =>
+   582→                            setAutoDq({ ...autoDq, devtools: !autoDq.devtools })
+   583→                          }
+   584→                        />
+   585→                      </div>
+   586→                    </div>
+   587→
+   588→                    {/* Anti-AI detection (parakeet.ai etc.) */}
+   589→                    <div className="mt-6 rounded-lg border border-rose-400/30 bg-rose-500/[0.04] p-4">
+   590→                      <div className="flex items-start gap-2">
+   591→                        <Bot className="mt-0.5 h-4 w-4 shrink-0 text-rose-600 dark:text-rose-300" />
+   592→                        <div>
+   593→                          <p className="text-sm font-medium text-rose-700 dark:text-rose-200">
+   594→                            Anti-AI / Anti-Parakeet Detection
+   595→                          </p>
+   596→                          <p className="mt-0.5 text-xs text-rose-700/80 dark:text-rose-200/70">
+   597→                            Detects candidates using AI assistants (Parakeet,
+   598→                            ChatGPT, Whisper, etc.) for live answer generation.
+   599→                            All detections are flagged for human review.
+   600→                          </p>
+   601→                        </div>
+   602→                      </div>
+   603→
+   604→                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+   605→                        <DQToggle
+   606→                          icon={<Volume2 className="h-3.5 w-3.5" />}
+   607→                          label="Secondary voice detection"
+   608→                          desc="Detects whispered AI prompts via mic"
+   609→                          checked={antiAi.voiceDetect}
+   610→                          onToggle={() =>
+   611→                            setAntiAi({ ...antiAi, voiceDetect: !antiAi.voiceDetect })
+   612→                          }
+   613→                          tone="rose"
+   614→                        />
+   615→                        <DQToggle
+   616→                          icon={<Eye className="h-3.5 w-3.5" />}
+   617→                          label="Gaze tracking"
+   618→                          desc="Off-screen glances pattern-matched to AI use"
+   619→                          checked={antiAi.eyeTracking}
+   620→                          onToggle={() =>
+   621→                            setAntiAi({ ...antiAi, eyeTracking: !antiAi.eyeTracking })
+   622→                          }
+   623→                          tone="rose"
+   624→                        />
+   625→                        <DQToggle
+   626→                          icon={<MonitorSmartphone className="h-3.5 w-3.5" />}
+   627→                          label="Screen-share / second monitor"
+   628→                          desc="Detects mirroring to a 2nd device"
+   629→                          checked={antiAi.screenShareDetect}
+   630→                          onToggle={() =>
+   631→                            setAntiAi({
+   632→                              ...antiAi,
+   633→                              screenShareDetect: !antiAi.screenShareDetect,
+   634→                            })
+   635→                          }
+   636→                          tone="rose"
+   637→                        />
+   638→                        <DQToggle
+   639→                          icon={<Smartphone className="h-3.5 w-3.5" />}
+   640→                          label="Second device detection"
+   641→                          desc="Audio fingerprint for nearby phones"
+   642→                          checked={antiAi.secondDeviceDetect}
+   643→                          onToggle={() =>
+   644→                            setAntiAi({
+   645→                              ...antiAi,
+   646→                              secondDeviceDetect: !antiAi.secondDeviceDetect,
+   647→                            })
+   648→                          }
+   649→                          tone="rose"
+   650→                        />
+   651→                        <DQToggle
+   652→                          icon={<Lock className="h-3.5 w-3.5" />}
+   653→                          label="Browser extension scan"
+   654→                          desc="Block known AI-helper extensions (Parakeet)"
+   655→                          checked={antiAi.browserExtensionScan}
+   656→                          onToggle={() =>
+   657→                            setAntiAi({
+   658→                              ...antiAi,
+   659→                              browserExtensionScan: !antiAi.browserExtensionScan,
+   660→                            })
+   661→                          }
+   662→                          tone="rose"
+   663→                        />
+   664→                        <DQToggle
+   665→                          icon={<Code2 className="h-3.5 w-3.5" />}
+   666→                          label="Keystroke dynamics"
+   667→                          desc="Flag paste-from-AI typing patterns"
+   668→                          checked={antiAi.keystrokeDynamics}
+   669→                          onToggle={() =>
+   670→                            setAntiAi({
+   671→                              ...antiAi,
+   672→                              keystrokeDynamics: !antiAi.keystrokeDynamics,
+   673→                            })
+   674→                          }
+   675→                          tone="rose"
+   676→                        />
+   677→                        <DQToggle
+   678→                          icon={<Clipboard className="h-3.5 w-3.5" />}
+   679→                          label="Clipboard lock"
+   680→                          desc="Disable clipboard + log every paste attempt"
+   681→                          checked={antiAi.clipboardLock}
+   682→                          onToggle={() =>
+   683→                            setAntiAi({
+   684→                              ...antiAi,
+   685→                              clipboardLock: !antiAi.clipboardLock,
+   686→                            })
+   687→                          }
+   688→                          tone="rose"
+   689→                        />
+   690→                        <DQToggle
+   691→                          icon={<Sparkles className="h-3.5 w-3.5" />}
+   692→                          label="AI-response latency analysis"
+   693→                          desc="Flag answers with LLM-typical cadence"
+   694→                          checked={antiAi.aiResponseLatency}
+   695→                          onToggle={() =>
+   696→                            setAntiAi({
+   697→                              ...antiAi,
+   698→                              aiResponseLatency: !antiAi.aiResponseLatency,
+   699→                            })
+   700→                          }
+   701→                          tone="rose"
+   702→                        />
+   703→                      </div>
+   704→
+   705→                      <div className="mt-4 flex items-start gap-2 rounded-lg border border-rose-400/20 bg-rose-500/5 p-3 text-xs text-rose-700/90 dark:text-rose-100/80">
+   706→                        <Camera className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+   707→                        <span>
+   708→                          When AI-use is detected, a high-res webcam snapshot +
+   709→                          audio recording is captured and queued for human
+   710→                          review. The candidate sees no warning until the
+   711→                          admin confirms.
+   712→                        </span>
+   713→                      </div>
+   714→                    </div>
+   715→                  </div>
+   716→                </div>
+   717→
+   718→                {/* ── RIGHT: summary + submit ────────────────────────────── */}
+   719→                <div className="space-y-5">
+   720→                  <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10 lg:sticky lg:top-6">
+   721→                    <div className="flex items-center gap-2">
+   722→                      <Sliders className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+   723→                      <p className="text-sm font-medium">Live summary</p>
+   724→                    </div>
+   725→                    <ul className="mt-3 space-y-2 text-sm">
+   726→                      <SummaryRow
+   727→                        label="Rounds active"
+   728→                        value={
+   729→                          Object.values(rounds).filter(Boolean).length + " / 3"
+   730→                        }
+   731→                      />
+   732→                      <SummaryRow
+   733→                        label="Weight total"
+   734→                        value={`${totalWeight}%`}
+   735→                        ok={totalWeight === 100}
+   736→                      />
+   737→                      {rounds.interview && (
+   738→                        <SummaryRow
+   739→                          label="Interview"
+   740→                          value={
+   741→                            INTERVIEW_TYPES.find((t) => t.id === interviewType)
+   742→                              ?.label ?? "—"
+   743→                          }
+   744→                        />
+   745→                      )}
+   746→                      <SummaryRow
+   747→                        label="Min aptitude"
+   748→                        value={`${minAptitude}%`}
+   749→                      />
+   750→                      <SummaryRow
+   751→                        label="Min coding solved"
+   752→                        value={`${minCodingSolved} of 3`}
+   753→                      />
+   754→                      <SummaryRow label="Strictness" value={strictness} />
+   755→                      <SummaryRow
+   756→                        label="Auto-DQ rules"
+   757→                        value={`${activeDqCount} enabled`}
+   758→                      />
+   759→                      <SummaryRow
+   760→                        label="Anti-AI rules"
+   761→                        value={`${activeAntiAiCount} enabled`}
+   762→                      />
+   763→                    </ul>
+   764→
+   765→                    <Button
+   766→                      type="submit"
+   767→                      disabled={weightInvalid || loading}
+   768→                      className="mt-5 h-11 w-full bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-600"
+   769→                    >
+   770→                      {loading ? (
+   771→                        <>
+   772→                          <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+   773→                          Creating...
+   774→                        </>
+   775→                      ) : (
+   776→                        <>
+   777→                          <Plus className="mr-2 h-4 w-4" />
+   778→                          Create Campaign &amp; Generate Link
+   779→                        </>
+   780→                      )}
+   781→                    </Button>
+   782→
+   783→                    <p className="mt-3 text-center text-[11px] text-muted-foreground">
+   784→                      You can edit any of these settings after creation.
+   785→                    </p>
+   786→                  </div>
+   787→                </div>
+   788→              </form>
+   789→            </motion.div>
+   790→          ) : (
+   791→            <motion.div
+   792→              key="success"
+   793→              initial={{ opacity: 0, y: 16 }}
+   794→              animate={{ opacity: 1, y: 0 }}
+   795→              exit={{ opacity: 0, y: -10 }}
+   796→              transition={{ duration: 0.4 }}
+   797→            >
+   798→              <div className="mx-auto max-w-3xl text-center">
+   799→                <motion.div
+   800→                  initial={{ scale: 0.4, opacity: 0 }}
+   801→                  animate={{ scale: 1, opacity: 1 }}
+   802→                  transition={{
+   803→                    type: "spring",
+   804→                    stiffness: 220,
+   805→                    damping: 18,
+   806→                  }}
+   807→                  className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-500 text-white shadow-sm"
+   808→                >
+   809→                  <Check className="h-9 w-9" strokeWidth={3} />
+   810→                </motion.div>
+   811→                <h1 className="mt-6 text-3xl font-semibold tracking-tight md:text-4xl">
+   812→                  Campaign created successfully.
+   813→                </h1>
+   814→                <p className="mt-2 text-sm text-muted-foreground">
+   815→                  Share the public apply link. Resumes will appear here
+   816→                  automatically as candidates apply.
+   817→                </p>
+   818→              </div>
+   819→
+   820→              {/* Campaign details */}
+   821→              <div className="mx-auto mt-8 max-w-3xl rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   822→                <div className="grid gap-4 sm:grid-cols-3">
+   823→                  <Detail label="Campaign" value={name} />
+   824→                  <Detail label="Job role" value={role} />
+   825→                  <Detail
+   826→                    label="Deadline"
+   827→                    value={deadline.replace("T", " · ")}
+   828→                  />
+   829→                </div>
+   830→                <div className="mt-4 grid gap-4 border-t border-black/5 pt-4 sm:grid-cols-3 dark:border-white/5">
+   831→                  <Detail
+   832→                    label="Interview"
+   833→                    value={
+   834→                      INTERVIEW_TYPES.find((t) => t.id === interviewType)
+   835→                        ?.label ?? "—"
+   836→                    }
+   837→                  />
+   838→                  <Detail
+   839→                    label="Min coding solved"
+   840→                    value={`${minCodingSolved} of 3`}
+   841→                  />
+   842→                  <Detail label="Strictness" value={strictness} />
+   843→                </div>
+   844→              </div>
+   845→
+   846→              {/* Apply link box */}
+   847→              <ApplyLinkBox url="https://interviewai.com/apply/backend-sde-1-a3f2" />
+   848→
+   849→              {/* Actions */}
+   850→              <div className="mx-auto mt-8 flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-center">
+   851→                <Button
+   852→                  onClick={() => set("question-manager")}
+   853→                  className="h-11 rounded-full bg-violet-500 px-6 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
+   854→                >
+   855→                  <Plus className="mr-2 h-4 w-4" />
+   856→                  Add Questions
+   857→                </Button>
+   858→                <Button
+   859→                  variant="outline"
+   860→                  onClick={() => set("candidate-leaderboard")}
+   861→                  className="h-11 rounded-full px-6"
+   862→                >
+   863→                  <Users className="mr-2 h-4 w-4" />
+   864→                  View Applicants
+   865→                </Button>
+   866→              </div>
+   867→            </motion.div>
+   868→          )}
+   869→        </AnimatePresence>
+   870→
+   871→      </PageWrap>
+   872→    </div>
+   873→  );
+   874→}
+   875→
+   876→/* ---------- Apply Link Box (with QR) ---------- */
+   877→
+   878→function ApplyLinkBox({ url }: { url: string }) {
+   879→  const [copied, setCopied] = useState(false);
+   880→  const copy = () => {
+   881→    if (typeof navigator !== "undefined" && navigator.clipboard) {
+   882→      navigator.clipboard.writeText(url).catch(() => {});
+   883→    }
+   884→    setCopied(true);
+   885→    setTimeout(() => setCopied(false), 1800);
+   886→  };
+   887→
+   888→  return (
+   889→    <div className="mx-auto mt-8 max-w-3xl">
+   890→      <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   891→        <div className="flex items-center gap-2">
+   892→          <Link2 className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+   893→          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   894→            Your Public Apply Link
+   895→          </p>
+   896→        </div>
+   897→        <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center">
+   898→          <div className="flex-1">
+   899→            <code className="block select-all break-all rounded-lg border border-black/10 bg-muted/30 p-3 font-mono text-sm text-violet-700 dark:border-white/10 dark:text-violet-300">
+   900→              {url}
+   901→            </code>
+   902→            <div className="mt-3 flex flex-wrap gap-2">
+   903→              <Button
+   904→                size="sm"
+   905→                onClick={copy}
+   906→                className="h-9 rounded-full bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
+   907→              >
+   908→                {copied ? (
+   909→                  <Check className="mr-1.5 h-3.5 w-3.5" />
+   910→                ) : (
+   911→                  <Copy className="mr-1.5 h-3.5 w-3.5" />
+   912→                )}
+   913→                {copied ? "Copied" : "Copy link"}
+   914→              </Button>
+   915→              <Button
+   916→                size="sm"
+   917→                variant="outline"
+   918→                className="h-9 rounded-full"
+   919→              >
+   920→                <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+   921→                Copy with caption
+   922→              </Button>
+   923→            </div>
+   924→          </div>
+   925→
+   926→          {/* QR placeholder */}
+   927→          <div className="shrink-0">
+   928→            <div className="rounded-lg border border-black/10 bg-white p-3 dark:border-white/10">
+   929→              <QRPlaceholder />
+   930→              <p className="mt-2 text-center text-[10px] text-muted-foreground">
+   931→                Scan to apply
+   932→              </p>
+   933→            </div>
+   934→          </div>
+   935→        </div>
+   936→
+   937→        <div className="mt-4 flex items-start gap-2 rounded-lg border border-black/5 bg-muted/30 p-3 text-xs text-muted-foreground dark:border-white/5">
+   938→          <QrCode className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
+   939→          <span>
+   940→            Share this link on LinkedIn, Naukri, or send directly to
+   941→            candidates. Resumes will appear here automatically as they apply.
+   942→          </span>
+   943→        </div>
+   944→      </div>
+   945→    </div>
+   946→  );
+   947→}
+   948→
+   949→function QRPlaceholder() {
+   950→  // Deterministic pseudo-QR grid. 21x21 modules
+   951→  const cells = useMemo(() => {
+   952→    const N = 21;
+   953→    const grid: boolean[][] = Array.from({ length: N }, () =>
+   954→      Array.from({ length: N }, () => false),
+   955→    );
+   956→    const stamp = (r0: number, c0: number) => {
+   957→      for (let r = 0; r < 7; r++) {
+   958→        for (let c = 0; c < 7; c++) {
+   959→          const onOuter = r === 0 || r === 6 || c === 0 || c === 6;
+   960→          const onInner =
+   961→            r >= 2 && r <= 4 && c >= 2 && c <= 4 && (r === 2 || r === 4 || c === 2 || c === 4 || (r === 3 && c === 3));
+   962→          grid[r0 + r][c0 + c] = onOuter || (r >= 2 && r <= 4 && c >= 2 && c <= 4 && r === 3 && c === 3) || onInner;
+   963→        }
+   964→      }
+   965→    };
+   966→    stamp(0, 0);
+   967→    stamp(0, N - 7);
+   968→    stamp(N - 7, 0);
+   969→    let seed = 7;
+   970→    const rand = () => {
+   971→      seed = (seed * 9301 + 49297) % 233280;
+   972→      return seed / 233280;
+   973→    };
+   974→    for (let r = 0; r < N; r++) {
+   975→      for (let c = 0; c < N; c++) {
+   976→        const inFinder =
+   977→          (r < 8 && c < 8) ||
+   978→          (r < 8 && c > N - 9) ||
+   979→          (r > N - 9 && c < 8);
+   980→        if (inFinder) continue;
+   981→        grid[r][c] = rand() > 0.55;
+   982→      }
+   983→    }
+   984→    return grid;
+   985→  }, []);
+   986→
+   987→  return (
+   988→    <div className="grid h-36 w-36 grid-cols-[repeat(21,1fr)] gap-0 overflow-hidden rounded-md">
+   989→      {cells.flatMap((row, ri) =>
+   990→        row.map((on, ci) => (
+   991→          <div
+   992→            key={`${ri}-${ci}`}
+   993→            className={on ? "bg-slate-900" : "bg-white"}
+   994→            style={{ aspectRatio: "1 / 1" }}
+   995→          />
+   996→        )),
+   997→      )}
+   998→    </div>
+   999→  );
+  1000→}
+  1001→
+  1002→/* ---------- small form sub-components ---------- */
+  1003→
+  1004→function RoundToggle({
+  1005→  icon,
+  1006→  label,
+  1007→  desc,
+  1008→  checked,
+  1009→  onToggle,
+  1010→}: {
+  1011→  icon: React.ReactNode;
+  1012→  label: string;
+  1013→  desc: string;
+  1014→  checked: boolean;
+  1015→  onToggle: () => void;
+  1016→}) {
+  1017→  return (
+  1018→    <button
+  1019→      type="button"
+  1020→      onClick={onToggle}
+  1021→      className={cn(
+  1022→        "flex items-center gap-3 rounded-lg border p-3 text-left transition-colors",
+  1023→        checked
+  1024→          ? "border-violet-400/40 bg-violet-500/10"
+  1025→          : "border-black/10 bg-background hover:bg-muted/30 dark:border-white/10",
+  1026→      )}
+  1027→    >
+  1028→      <span
+  1029→        className={cn(
+  1030→          "grid h-9 w-9 place-items-center rounded-lg",
+  1031→          checked
+  1032→            ? "bg-violet-500/20 text-violet-700 dark:text-violet-200"
+  1033→            : "bg-muted/40 text-muted-foreground",
+  1034→        )}
+  1035→      >
+  1036→        {icon}
+  1037→      </span>
+  1038→      <div className="flex-1">
+  1039→        <p className="text-sm font-medium">{label}</p>
+  1040→        <p className="text-xs text-muted-foreground">{desc}</p>
+  1041→      </div>
+  1042→      <Checkbox checked={checked} />
+  1043→    </button>
+  1044→  );
+  1045→}
+  1046→
+  1047→function WeightSlider({
+  1048→  label,
+  1049→  icon,
+  1050→  value,
+  1051→  onChange,
+  1052→}: {
+  1053→  label: string;
+  1054→  icon: React.ReactNode;
+  1055→  value: number;
+  1056→  onChange: (v: number[]) => void;
+  1057→}) {
+  1058→  return (
+  1059→    <div>
+  1060→      <div className="mb-2 flex items-center justify-between">
+  1061→        <span className="inline-flex items-center gap-1.5 text-sm">
+  1062→          <span className="text-muted-foreground">{icon}</span>
+  1063→          {label}
+  1064→        </span>
+  1065→        <span className="text-sm font-semibold text-violet-700 dark:text-violet-300">{value}%</span>
+  1066→      </div>
+  1067→      <Slider
+  1068→        value={[value]}
+  1069→        max={100}
+  1070→        step={5}
+  1071→        onValueChange={onChange}
+  1072→        className="[&_[data-slot=slider-range]]:bg-violet-500"
+  1073→      />
+  1074→    </div>
+  1075→  );
+  1076→}
+  1077→
+  1078→function DQToggle({
+  1079→  icon,
+  1080→  label,
+  1081→  desc,
+  1082→  checked,
+  1083→  onToggle,
+  1084→  tone = "default",
+  1085→}: {
+  1086→  icon: React.ReactNode;
+  1087→  label: string;
+  1088→  desc: string;
+  1089→  checked: boolean;
+  1090→  onToggle: () => void;
+  1091→  tone?: "default" | "rose";
+  1092→}) {
+  1093→  return (
+  1094→    <button
+  1095→      type="button"
+  1096→      onClick={onToggle}
+  1097→      className={cn(
+  1098→        "flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors",
+  1099→        tone === "rose"
+  1100→          ? "border-rose-400/20 bg-rose-500/[0.04] hover:bg-rose-500/10"
+  1101→          : "border-black/5 bg-muted/30 hover:bg-muted/50 dark:border-white/5",
+  1102→        checked && tone === "rose" && "border-rose-400/50 bg-rose-500/10",
+  1103→        checked && tone !== "rose" && "border-violet-400/40 bg-violet-500/10",
+  1104→      )}
+  1105→    >
+  1106→      <Checkbox checked={checked} className="mt-0.5" />
+  1107→      <div className="flex-1">
+  1108→        <div className="flex items-center gap-1.5">
+  1109→          <span className="text-muted-foreground">{icon}</span>
+  1110→          <p className="text-sm font-medium">{label}</p>
+  1111→        </div>
+  1112→        <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
+  1113→      </div>
+  1114→      {checked && tone === "rose" && (
+  1115→        <ShieldAlert className="h-4 w-4 text-rose-600 dark:text-rose-300" />
+  1116→      )}
+  1117→      {checked && tone !== "rose" && (
+  1118→        <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+  1119→      )}
+  1120→    </button>
+  1121→  );
+  1122→}
+  1123→
+  1124→function SummaryRow({
+  1125→  label,
+  1126→  value,
+  1127→  ok,
+  1128→}: {
+  1129→  label: string;
+  1130→  value: string;
+  1131→  ok?: boolean;
+  1132→}) {
+  1133→  return (
+  1134→    <li className="flex items-center justify-between text-sm">
+  1135→      <span className="text-muted-foreground">{label}</span>
+  1136→      <span
+  1137→        className={cn(
+  1138→          "font-medium capitalize",
+  1139→          ok === undefined && "text-foreground/90",
+  1140→          ok === true && "text-emerald-600 dark:text-emerald-300",
+  1141→          ok === false && "text-rose-600 dark:text-rose-300",
+  1142→        )}
+  1143→      >
+  1144→        {value}
+  1145→      </span>
+  1146→    </li>
+  1147→  );
+  1148→}
+  1149→
+  1150→function Detail({ label, value }: { label: string; value: string }) {
+  1151→  return (
+  1152→    <div>
+  1153→      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+  1154→        {label}
+  1155→      </p>
+  1156→      <p className="mt-1 text-sm font-medium text-foreground/90">{value}</p>
+  1157→    </div>
+  1158→  );
+  1159→}
+  1160→

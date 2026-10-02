@@ -1,0 +1,558 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import { useState } from "react";
+     4→     4→import { AnimatePresence, motion } from "framer-motion";
+     5→     5→import {
+     6→     6→  AlertTriangle,
+     7→     7→  ArrowRight,
+     8→     8→  BookOpen,
+     9→     9→  CheckCircle2,
+    10→    10→  Clock,
+    11→    11→  Download,
+    12→    12→  FileText,
+    13→    13→  Info,
+    14→    14→  Loader2,
+    15→    15→  Upload,
+    16→    16→  X,
+    17→    17→} from "lucide-react";
+    18→    18→import {
+    19→    19→  PageWrap,
+    20→    20→  SectionHeading,
+    21→    21→  Shimmer,
+    22→    22→  StaggeredReveal,
+    23→    23→  revealItem,
+    24→    24→} from "@/components/shared/primitives";
+    25→    25→import { BackToHome } from "@/components/shared/top-nav";
+    26→    26→import { Button } from "@/components/ui/button";
+    27→    27→import { Badge } from "@/components/ui/badge";
+    28→    28→import { Progress } from "@/components/ui/progress";
+    29→    29→import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+    30→    30→import {
+    31→    31→  Table,
+    32→    32→  TableBody,
+    33→    33→  TableCell,
+    34→    34→  TableHead,
+    35→    35→  TableHeader,
+    36→    36→  TableRow,
+    37→    37→} from "@/components/ui/table";
+    38→    38→import { useNav } from "@/lib/store";
+    39→    39→import { cn } from "@/lib/utils";
+    40→    40→
+    41→    41→type TabKey = "upload" | "results" | "history";
+    42→    42→
+    43→    43→const SKILLS_FOUND = ["Python", "FastAPI", "React", "SQL", "PostgreSQL", "REST", "Git"];
+    44→    44→const SKILLS_MISSING = ["Docker", "CI/CD", "Testing"];
+    45→    45→const SKILLS_RECOMMENDED = ["System Design", "Redis", "Kafka"];
+    46→    46→
+    47→    47→const GRAMMAR_ISSUES = [
+    48→    48→  { line: 12, issue: "“utilised” - overused verb", fix: "Use “built” or “shipped” for impact." },
+    49→    49→  { line: 23, issue: "Passive voice - “was implemented”", fix: "Use active: “Implemented a FastAPI service…”" },
+    50→    50→  { line: 41, issue: "Missing Oxford comma", fix: "Add a comma before the final “and”." },
+    51→    51→];
+    52→    52→
+    53→    53→const FORMAT_ISSUES = [
+    54→    54→  "No consistent date format (mix of Mar 2022 and 03/2022).",
+    55→    55→  "Missing LinkedIn URL in the header.",
+    56→    56→  "Bullet points inconsistent (some end with periods, some don’t).",
+    57→    57→  "Two fonts detected (Inter + Georgia).",
+    58→    58→];
+    59→    59→
+    60→    60→const HISTORY = [
+    61→    61→  { date: "Jan 15, 2025", ats: 87, fit: 78, role: "Backend Developer", file: "priya_sharma_v4.pdf" },
+    62→    62→  { date: "Dec 28, 2024", ats: 81, fit: 72, role: "Backend Developer", file: "priya_sharma_v3.pdf" },
+    63→    63→  { date: "Dec 10, 2024", ats: 74, fit: 68, role: "Full-stack Developer", file: "priya_sharma_v2.pdf" },
+    64→    64→  { date: "Nov 22, 2024", ats: 67, fit: 60, role: "Backend Developer", file: "priya_sharma_v1.pdf" },
+    65→    65→];
+    66→    66→
+    67→    67→export function ResumeHub() {
+    68→    68→  const { set } = useNav();
+    69→    69→  const [tab, setTab] = useState<TabKey>("upload");
+    70→    70→  const [file, setFile] = useState<{ name: string; size: string } | null>(null);
+    71→    71→  const [phase, setPhase] = useState<"idle" | "loading">("idle");
+    72→    72→
+    73→    73→  const onPick = () => {
+    74→    74→    setFile({ name: "priya_sharma_v4.pdf", size: "184 KB" });
+    75→    75→    setPhase("idle");
+    76→    76→  };
+    77→    77→  const onAnalyze = () => {
+    78→    78→    if (!file) return;
+    79→    79→    setPhase("loading");
+    80→    80→    setTimeout(() => {
+    81→    81→      setPhase("idle");
+    82→    82→      setTab("results");
+    83→    83→    }, 1600);
+    84→    84→  };
+    85→    85→
+    86→    86→  return (
+    87→    87→    <div className="min-h-screen bg-background text-foreground">
+    88→    88→      <PageWrap>
+    89→    89→        <BackToHome />
+    90→    90→        <SectionHeading
+    91→    91→          eyebrow="Resume Hub"
+    92→    92→          title={<>Resume <span className="text-violet-500 dark:text-violet-400">ATS Analyzer</span></>}
+    93→    93→          description="Upload your resume in PDF or DOCX. Our AI gives you an ATS score, missing keywords, grammar and formatting issues, and a personalised improvement plan in under 15 seconds."
+    94→    94→          align="left"
+    95→    95→        />
+    96→    96→
+    97→    97→        {/* In-page tabs */}
+    98→    98→        <div className="mt-6 flex flex-wrap items-center gap-2">
+    99→    99→          {([
+   100→   100→            ["upload", "1. Upload"],
+   101→   101→            ["results", "2. Results"],
+   102→   102→            ["history", "3. History"],
+   103→   103→          ] as const).map(([k, label]) => (
+   104→   104→            <button
+   105→   105→              key={k}
+   106→   106→              onClick={() => setTab(k)}
+   107→   107→              className={cn(
+   108→   108→                "relative rounded-full border px-4 py-1.5 text-xs font-medium transition-colors",
+   109→   109→                tab === k
+   110→   110→                  ? "border-violet-400/40 bg-violet-500/10 text-violet-700 dark:text-violet-100"
+   111→   111→                  : "border-black/10 bg-black/[0.02] text-muted-foreground hover:text-foreground dark:border-white/10 dark:bg-white/[0.03]",
+   112→   112→              )}
+   113→   113→            >
+   114→   114→              {label}
+   115→   115→              {tab === k && (
+   116→   116→                <motion.span
+   117→   117→                  layoutId="resume-tab-pill"
+   118→   118→                  className="absolute inset-x-2 -bottom-px h-px bg-violet-400"
+   119→   119→                />
+   120→   120→              )}
+   121→   121→            </button>
+   122→   122→          ))}
+   123→   123→        </div>
+   124→   124→
+   125→   125→        <div className="mt-6">
+   126→   126→          <AnimatePresence mode="wait">
+   127→   127→            {tab === "upload" && (
+   128→   128→              <motion.div
+   129→   129→                key="upload"
+   130→   130→                initial={{ opacity: 0, y: 12 }}
+   131→   131→                animate={{ opacity: 1, y: 0 }}
+   132→   132→                exit={{ opacity: 0, y: -12 }}
+   133→   133→                transition={{ duration: 0.25 }}
+   134→   134→              >
+   135→   135→                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm sm:p-8 dark:border-white/10">
+   136→   136→                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-center">
+   137→   137→                    <div>
+   138→   138→                      <Badge variant="outline" className="mb-3 border-emerald-400/30 bg-emerald-500/10 text-[11px] uppercase tracking-widest text-emerald-700 dark:text-emerald-200">
+   139→   139→                        Free analysis · 15s avg
+   140→   140→                      </Badge>
+   141→   141→                      <h3 className="text-xl font-semibold tracking-tight">Drop your resume here</h3>
+   142→   142→                      <p className="mt-2 text-sm text-muted-foreground">
+   143→   143→                        We accept PDF or DOCX up to 5&nbsp;MB. Your resume never leaves the platform. Analysis runs over a secure worker and is deleted after 30 days. All past versions are saved to your account so you can compare progress over time.
+   144→   144→                      </p>
+   145→   145→                      <ul className="mt-4 space-y-2 text-sm text-foreground/80">
+   146→   146→                        {[
+   147→   147→                          "ATS keyword scan against 200+ role templates",
+   148→   148→                          "Grammar & formatting audit with line-level fixes",
+   149→   149→                          "Skill-gap detection and recommendation list",
+   150→   150→                          "Job-fit percentage for your chosen role",
+   151→   151→                        ].map((l) => (
+   152→   152→                          <li key={l} className="flex items-start gap-2">
+   153→   153→                            <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-violet-500 dark:bg-violet-400" />
+   154→   154→                            {l}
+   155→   155→                          </li>
+   156→   156→                        ))}
+   157→   157→                      </ul>
+   158→   158→                    </div>
+   159→   159→                    <Dropzone
+   160→   160→                      file={file}
+   161→   161→                      onPick={onPick}
+   162→   162→                      onClear={() => setFile(null)}
+   163→   163→                      onAnalyze={onAnalyze}
+   164→   164→                      loading={phase === "loading"}
+   165→   165→                    />
+   166→   166→                  </div>
+   167→   167→                </div>
+   168→   168→
+   169→   169→                {phase === "loading" && (
+   170→   170→                  <div className="mt-4 rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   171→   171→                    <div className="flex items-center gap-3">
+   172→   172→                      <Loader2 className="h-4 w-4 animate-spin text-violet-500 dark:text-violet-400" />
+   173→   173→                      <p className="text-sm text-muted-foreground">
+   174→   174→                        Analyzing resume… extracting skills, running ATS scan, scoring grammar.
+   175→   175→                      </p>
+   176→   176→                    </div>
+   177→   177→                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+   178→   178→                      {Array.from({ length: 3 }).map((_, i) => (
+   179→   179→                        <Shimmer key={i} className="h-28" />
+   180→   180→                      ))}
+   181→   181→                    </div>
+   182→   182→                    <Shimmer className="mt-3 h-40" />
+   183→   183→                  </div>
+   184→   184→                )}
+   185→   185→              </motion.div>
+   186→   186→            )}
+   187→   187→
+   188→   188→            {tab === "results" && (
+   189→   189→              <motion.div
+   190→   190→                key="results"
+   191→   191→                initial={{ opacity: 0, y: 12 }}
+   192→   192→                animate={{ opacity: 1, y: 0 }}
+   193→   193→                exit={{ opacity: 0, y: -12 }}
+   194→   194→                transition={{ duration: 0.25 }}
+   195→   195→                className="space-y-4"
+   196→   196→              >
+   197→   197→                <StaggeredReveal className="grid grid-cols-1 gap-4 md:grid-cols-3">
+   198→   198→                  <motion.div variants={revealItem}>
+   199→   199→                    <ScoreCard label="ATS Score" value={87} max={100} tone="emerald" hint="Top quartile for Backend Developer" />
+   200→   200→                  </motion.div>
+   201→   201→                  <motion.div variants={revealItem}>
+   202→   202→                    <ScoreCard label="Overall Resume Score" value={82} max={100} tone="violet" hint="Weighted across structure, content, keywords" />
+   203→   203→                  </motion.div>
+   204→   204→                  <motion.div variants={revealItem}>
+   205→   205→                    <ScoreCard label="Job Fit" value={78} max={100} tone="amber" hint="Backend Developer · +6 since last edit" />
+   206→   206→                  </motion.div>
+   207→   207→                </StaggeredReveal>
+   208→   208→
+   209→   209→                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+   210→   210→                  <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   211→   211→                    <div className="flex items-center justify-between">
+   212→   212→                      <p className="text-sm font-medium">Skills Found</p>
+   213→   213→                      <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">{SKILLS_FOUND.length}</Badge>
+   214→   214→                    </div>
+   215→   215→                    <div className="mt-3 flex flex-wrap gap-1.5">
+   216→   216→                      {SKILLS_FOUND.map((s) => (
+   217→   217→                        <Badge key={s} className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">{s}</Badge>
+   218→   218→                      ))}
+   219→   219→                    </div>
+   220→   220→                  </div>
+   221→   221→                  <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   222→   222→                    <p className="text-sm font-medium">Missing & Recommended Skills</p>
+   223→   223→                    <div className="mt-3">
+   224→   224→                      <p className="text-[11px] uppercase tracking-wider text-rose-600 dark:text-rose-300">Missing. High priority</p>
+   225→   225→                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+   226→   226→                        {SKILLS_MISSING.map((s) => (
+   227→   227→                          <Badge key={s} className="border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-200">
+   228→   228→                            <X className="h-3 w-3" /> {s}
+   229→   229→                          </Badge>
+   230→   230→                        ))}
+   231→   231→                      </div>
+   232→   232→                      <p className="mt-3 text-[11px] uppercase tracking-wider text-amber-600 dark:text-amber-300">Recommended. Bonus</p>
+   233→   233→                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+   234→   234→                        {SKILLS_RECOMMENDED.map((s) => (
+   235→   235→                          <Badge key={s} className="border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-200">{s}</Badge>
+   236→   236→                        ))}
+   237→   237→                      </div>
+   238→   238→                    </div>
+   239→   239→                  </div>
+   240→   240→                </div>
+   241→   241→
+   242→   242→                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+   243→   243→                  <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   244→   244→                    <div className="flex items-center justify-between">
+   245→   245→                      <p className="text-sm font-medium">Grammar Issues</p>
+   246→   246→                      <Badge className="border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-200">{GRAMMAR_ISSUES.length}</Badge>
+   247→   247→                    </div>
+   248→   248→                    <ul className="mt-3 space-y-2">
+   249→   249→                      {GRAMMAR_ISSUES.map((g) => (
+   250→   250→                        <li key={g.line} className="rounded-md border border-black/5 bg-black/[0.02] p-3 text-xs dark:border-white/5 dark:bg-white/[0.02]">
+   251→   251→                          <div className="flex items-center gap-2">
+   252→   252→                            <span className="rounded bg-rose-500/15 px-1.5 py-0.5 font-mono text-rose-700 dark:text-rose-200">L{g.line}</span>
+   253→   253→                            <span className="text-foreground/80">{g.issue}</span>
+   254→   254→                          </div>
+   255→   255→                          <p className="mt-1.5 text-emerald-700 dark:text-emerald-300">
+   256→   256→                            <span className="font-medium">Fix:</span> {g.fix}
+   257→   257→                          </p>
+   258→   258→                        </li>
+   259→   259→                      ))}
+   260→   260→                    </ul>
+   261→   261→                  </div>
+   262→   262→                  <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   263→   263→                    <div className="flex items-center justify-between">
+   264→   264→                      <p className="text-sm font-medium">Formatting Issues</p>
+   265→   265→                      <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+   266→   266→                    </div>
+   267→   267→                    <ul className="mt-3 space-y-2 text-xs text-foreground/80">
+   268→   268→                      {FORMAT_ISSUES.map((f, i) => (
+   269→   269→                        <li key={i} className="flex items-start gap-2 rounded-md border border-black/5 bg-black/[0.02] px-3 py-2 dark:border-white/5 dark:bg-white/[0.02]">
+   270→   270→                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+   271→   271→                          {f}
+   272→   272→                        </li>
+   273→   273→                      ))}
+   274→   274→                    </ul>
+   275→   275→                  </div>
+   276→   276→                </div>
+   277→   277→
+   278→   278→                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   279→   279→                  <div className="flex items-center gap-2">
+   280→   280→                    <FileText className="h-4 w-4 text-violet-500 dark:text-violet-400" />
+   281→   281→                    <p className="text-sm font-medium">AI Summary</p>
+   282→   282→                  </div>
+   283→   283→                  <p className="mt-3 text-sm text-pretty text-muted-foreground">
+   284→   284→                    Priya has a strong foundation in backend development with Python and FastAPI. Her resume shows real impact, shipping a service that handles 2M requests/day, and owning a key ingestion pipeline end-to-end. However, the document under-sells her DevOps experience: she mentions Docker briefly but doesn&apos;t list CI/CD tools (GitHub Actions, GitLab CI) which the backend JD requires. Adding 2-3 measurable bullets around observability and testing would push her ATS score past 90 for the Backend Developer role.
+   285→   285→                  </p>
+   286→   286→                  <p className="mt-3 text-sm text-pretty text-muted-foreground">
+   287→   287→                    The resume is clean and uses action verbs, but mixes two typefaces (Inter + Georgia) and lacks a LinkedIn URL. Address these formatting issues first. They&apos;re 10-minute fixes. Then add the missing keywords (Docker, CI/CD, Testing) and re-upload to see the score jump.
+   288→   288→                  </p>
+   289→   289→                  <div className="mt-4 flex flex-wrap items-center gap-2">
+   290→   290→                    <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5">Experience Level: Junior</Badge>
+   291→   291→                    <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5">Word Count: 487</Badge>
+   292→   292→                    <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5">Pages: 1</Badge>
+   293→   293→                    <Badge variant="outline" className="border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5">File: PDF · 184 KB</Badge>
+   294→   294→                  </div>
+   295→   295→                </div>
+   296→   296→
+   297→   297→                <div className="flex flex-wrap gap-3">
+   298→   298→                  <Button className="rounded-full bg-violet-500 text-white hover:bg-violet-600">
+   299→   299→                    <Download className="mr-2 h-4 w-4" /> Download Full Report
+   300→   300→                  </Button>
+   301→   301→                  <Button
+   302→   302→                    variant="outline"
+   303→   303→                    onClick={() => setTab("upload")}
+   304→   304→                    className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   305→   305→                  >
+   306→   306→                    <Upload className="mr-2 h-4 w-4" /> Upload New Resume
+   307→   307→                  </Button>
+   308→   308→                </div>
+   309→   309→              </motion.div>
+   310→   310→            )}
+   311→   311→
+   312→   312→            {tab === "history" && (
+   313→   313→              <motion.div
+   314→   314→                key="history"
+   315→   315→                initial={{ opacity: 0, y: 12 }}
+   316→   316→                animate={{ opacity: 1, y: 0 }}
+   317→   317→                exit={{ opacity: 0, y: -12 }}
+   318→   318→                transition={{ duration: 0.25 }}
+   319→   319→              >
+   320→   320→                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   321→   321→                  <div className="flex items-center justify-between">
+   322→   322→                    <div>
+   323→   323→                      <p className="text-sm font-medium">Upload History</p>
+   324→   324→                      <p className="text-[11px] text-muted-foreground">All resume versions are saved. Click “View” to re-open an analysis.</p>
+   325→   325→                    </div>
+   326→   326→                    <BookOpen className="h-4 w-4 text-violet-500 dark:text-violet-400" />
+   327→   327→                  </div>
+   328→   328→
+   329→   329→                  {/* Desktop table */}
+   330→   330→                  <div className="mt-4 hidden overflow-hidden rounded-lg border border-black/10 md:block dark:border-white/10">
+   331→   331→                    <Table>
+   332→   332→                      <TableHeader>
+   333→   333→                        <TableRow className="border-black/10 hover:bg-transparent dark:border-white/10">
+   334→   334→                          <TableHead className="text-muted-foreground">Date</TableHead>
+   335→   335→                          <TableHead className="text-muted-foreground">File</TableHead>
+   336→   336→                          <TableHead className="text-muted-foreground">Target Role</TableHead>
+   337→   337→                          <TableHead className="text-muted-foreground">ATS Score</TableHead>
+   338→   338→                          <TableHead className="text-muted-foreground">Job Fit</TableHead>
+   339→   339→                          <TableHead className="text-right text-muted-foreground">Action</TableHead>
+   340→   340→                        </TableRow>
+   341→   341→                      </TableHeader>
+   342→   342→                      <TableBody>
+   343→   343→                        {HISTORY.map((h, i) => (
+   344→   344→                          <TableRow key={i} className="border-black/10 hover:bg-black/[0.02] dark:border-white/10 dark:hover:bg-white/[0.02]">
+   345→   345→                            <TableCell className="text-sm">{h.date}</TableCell>
+   346→   346→                            <TableCell className="font-mono text-xs text-muted-foreground">{h.file}</TableCell>
+   347→   347→                            <TableCell className="text-sm">{h.role}</TableCell>
+   348→   348→                            <TableCell>
+   349→   349→                              <span className={cn("font-mono font-semibold", h.ats >= 80 ? "text-emerald-600 dark:text-emerald-300" : h.ats >= 70 ? "text-amber-600 dark:text-amber-300" : "text-rose-600 dark:text-rose-300")}>
+   350→   350→                                {h.ats}/100
+   351→   351→                              </span>
+   352→   352→                            </TableCell>
+   353→   353→                            <TableCell>
+   354→   354→                              <span className="font-mono font-semibold text-foreground">{h.fit}%</span>
+   355→   355→                            </TableCell>
+   356→   356→                            <TableCell className="text-right">
+   357→   357→                              <button
+   358→   358→                                onClick={() => setTab("results")}
+   359→   359→                                className="text-xs text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+   360→   360→                              >
+   361→   361→                                View →
+   362→   362→                              </button>
+   363→   363→                            </TableCell>
+   364→   364→                          </TableRow>
+   365→   365→                        ))}
+   366→   366→                      </TableBody>
+   367→   367→                    </Table>
+   368→   368→                  </div>
+   369→   369→
+   370→   370→                  {/* Mobile cards */}
+   371→   371→                  <ul className="mt-4 space-y-2 md:hidden">
+   372→   372→                    {HISTORY.map((h, i) => (
+   373→   373→                      <li key={i} className="rounded-lg border border-black/10 bg-black/[0.02] p-3 dark:border-white/10 dark:bg-white/[0.02]">
+   374→   374→                        <div className="flex items-center justify-between">
+   375→   375→                          <p className="text-sm font-medium">{h.role}</p>
+   376→   376→                          <button
+   377→   377→                            onClick={() => setTab("results")}
+   378→   378→                            className="text-xs text-violet-600 dark:text-violet-400"
+   379→   379→                          >
+   380→   380→                            View →
+   381→   381→                          </button>
+   382→   382→                        </div>
+   383→   383→                        <p className="mt-1 text-[11px] text-muted-foreground">{h.date} · {h.file}</p>
+   384→   384→                        <div className="mt-2 flex items-center gap-3 text-xs">
+   385→   385→                          <span className="text-emerald-600 dark:text-emerald-300">ATS {h.ats}</span>
+   386→   386→                          <span className="text-muted-foreground">·</span>
+   387→   387→                          <span>Fit {h.fit}%</span>
+   388→   388→                        </div>
+   389→   389→                      </li>
+   390→   390→                    ))}
+   391→   391→                  </ul>
+   392→   392→                </div>
+   393→   393→              </motion.div>
+   394→   394→            )}
+   395→   395→          </AnimatePresence>
+   396→   396→        </div>
+   397→   397→
+   398→   398→        {/* Inline tab list at bottom */}
+   399→   399→        <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mt-8 hidden">
+   400→   400→          <TabsList>
+   401→   401→            <TabsTrigger value="upload">Upload</TabsTrigger>
+   402→   402→            <TabsTrigger value="results">Results</TabsTrigger>
+   403→   403→            <TabsTrigger value="history">History</TabsTrigger>
+   404→   404→          </TabsList>
+   405→   405→          <TabsContent value="upload" />
+   406→   406→          <TabsContent value="results" />
+   407→   407→          <TabsContent value="history" />
+   408→   408→        </Tabs>
+   409→   409→
+   410→   410→        {/* Footer CTA */}
+   411→   411→        <div className="mt-10 flex flex-col items-start justify-between gap-4 rounded-lg border border-black/10 bg-card p-5 shadow-sm sm:flex-row sm:items-center dark:border-white/10">
+   412→   412→          <div className="flex items-start gap-3">
+   413→   413→            <Info className="mt-0.5 h-4 w-4 text-sky-600 dark:text-sky-300" />
+   414→   414→            <div>
+   415→   415→              <p className="text-sm font-medium">Want tailored interview questions for your role?</p>
+   416→   416→              <p className="text-xs text-muted-foreground">Take an AI interview. Questions are generated from your resume + profile.</p>
+   417→   417→            </div>
+   418→   418→          </div>
+   419→   419→          <Button
+   420→   420→            onClick={() => set("interview")}
+   421→   421→            className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   422→   422→          >
+   423→   423→            Start Interview <ArrowRight className="ml-2 h-4 w-4" />
+   424→   424→          </Button>
+   425→   425→        </div>
+   426→   426→
+   427→   427→      </PageWrap>
+   428→   428→    </div>
+   429→   429→  );
+   430→   430→}
+   431→   431→
+   432→   432→/* -------------------------------------------------------------------------- */
+   433→   433→
+   434→   434→function Dropzone({
+   435→   435→  file,
+   436→   436→  onPick,
+   437→   437→  onClear,
+   438→   438→  onAnalyze,
+   439→   439→  loading,
+   440→   440→}: {
+   441→   441→  file: { name: string; size: string } | null;
+   442→   442→  onPick: () => void;
+   443→   443→  onClear: () => void;
+   444→   444→  onAnalyze: () => void;
+   445→   445→  loading: boolean;
+   446→   446→}) {
+   447→   447→  const [dragging, setDragging] = useState(false);
+   448→   448→  return (
+   449→   449→    <div>
+   450→   450→      <button
+   451→   451→        onClick={onPick}
+   452→   452→        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+   453→   453→        onDragLeave={() => setDragging(false)}
+   454→   454→        onDrop={(e) => {
+   455→   455→          e.preventDefault();
+   456→   456→          setDragging(false);
+   457→   457→          onPick();
+   458→   458→        }}
+   459→   459→        className={cn(
+   460→   460→          "group grid min-h-[260px] w-full place-items-center rounded-lg border-2 border-dashed p-6 text-center transition-colors",
+   461→   461→          dragging
+   462→   462→            ? "border-violet-400/60 bg-violet-500/10"
+   463→   463→            : "border-black/15 bg-black/[0.02] hover:border-violet-400/40 hover:bg-black/[0.03] dark:border-white/15 dark:bg-white/[0.02] dark:hover:bg-white/[0.03]",
+   464→   464→        )}
+   465→   465→      >
+   466→   466→        <div>
+   467→   467→          <motion.div
+   468→   468→            animate={{ y: [0, -6, 0] }}
+   469→   469→            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+   470→   470→            className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-violet-500/10 text-violet-500 ring-1 ring-inset ring-black/10 dark:text-violet-400 dark:ring-white/10"
+   471→   471→          >
+   472→   472→            <Upload className="h-6 w-6" />
+   473→   473→          </motion.div>
+   474→   474→          <p className="mt-4 text-sm font-medium">
+   475→   475→            {dragging ? "Drop your file to upload" : "Drag & drop your resume"}
+   476→   476→          </p>
+   477→   477→          <p className="mt-1 text-xs text-muted-foreground">
+   478→   478→            or <span className="text-violet-600 underline-offset-2 group-hover:underline dark:text-violet-400">browse files</span> · PDF or DOCX · max 5&nbsp;MB
+   479→   479→          </p>
+   480→   480→        </div>
+   481→   481→      </button>
+   482→   482→
+   483→   483→      {file && (
+   484→   484→        <div className="mt-3 flex items-center justify-between rounded-lg border border-black/10 bg-black/[0.02] px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.03]">
+   485→   485→          <div className="flex min-w-0 items-center gap-3">
+   486→   486→            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-300">
+   487→   487→              <FileText className="h-4 w-4" />
+   488→   488→            </span>
+   489→   489→            <div className="min-w-0">
+   490→   490→              <p className="truncate text-sm font-medium">{file.name}</p>
+   491→   491→              <p className="text-[11px] text-muted-foreground">{file.size} · ready to analyze</p>
+   492→   492→            </div>
+   493→   493→          </div>
+   494→   494→          <div className="flex items-center gap-2">
+   495→   495→            <button
+   496→   496→              onClick={onClear}
+   497→   497→              className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:text-rose-500"
+   498→   498→              aria-label="Remove file"
+   499→   499→            >
+   500→   500→              <X className="h-4 w-4" />
+   501→   501→            </button>
+   502→   502→            <Button
+   503→   503→              onClick={onAnalyze}
+   504→   504→              disabled={loading}
+   505→   505→              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   506→   506→            >
+   507→   507→              {loading ? (
+   508→   508→                <>
+   509→   509→                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing…
+   510→   510→                </>
+   511→   511→              ) : (
+   512→   512→                <>
+   513→   513→                  <FileText className="mr-2 h-4 w-4" /> Analyze Resume
+   514→   514→                </>
+   515→   515→              )}
+   516→   516→            </Button>
+   517→   517→          </div>
+   518→   518→        </div>
+   519→   519→      )}
+   520→   520→    </div>
+   521→   521→  );
+   522→   522→}
+   523→   523→
+   524→   524→function ScoreCard({
+   525→   525→  label,
+   526→   526→  value,
+   527→   527→  max,
+   528→   528→  tone,
+   529→   529→  hint,
+   530→   530→}: {
+   531→   531→  label: string;
+   532→   532→  value: number;
+   533→   533→  max: number;
+   534→   534→  tone: "emerald" | "violet" | "amber";
+   535→   535→  hint: string;
+   536→   536→}) {
+   537→   537→  const toneRing: Record<string, string> = {
+   538→   538→    emerald: "text-emerald-600 dark:text-emerald-300",
+   539→   539→    violet: "text-violet-500 dark:text-violet-300",
+   540→   540→    amber: "text-amber-600 dark:text-amber-300",
+   541→   541→  };
+   542→   542→  const pct = (value / max) * 100;
+   543→   543→  return (
+   544→   544→    <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   545→   545→      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+   546→   546→      <div className="mt-2 flex items-baseline gap-1">
+   547→   547→        <span className={cn("text-4xl font-semibold tracking-tight", toneRing[tone])}>{value}</span>
+   548→   548→        <span className="text-sm text-muted-foreground">/{max}</span>
+   549→   549→      </div>
+   550→   550→      <Progress value={pct} className={cn("mt-3 bg-black/10 dark:bg-white/10")} />
+   551→   551→      <p className="mt-2 text-[11px] text-muted-foreground">{hint}</p>
+   552→   552→    </div>
+   553→   553→  );
+   554→   554→}
+   555→   555→
+   556→   556→/* keep imports referenced */
+   557→   557→export const __icons = { Clock };
+   558→   558→

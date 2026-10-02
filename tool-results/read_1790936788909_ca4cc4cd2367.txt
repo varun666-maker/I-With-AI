@@ -1,0 +1,747 @@
+     1→"use client";
+     2→
+     3→import { useEffect, useMemo, useState } from "react";
+     4→import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+     5→import {
+     6→  AlertCircle,
+     7→  ArrowLeft,
+     8→  ArrowRight,
+     9→  Award,
+    10→  Bookmark,
+    11→  Camera,
+    12→  CheckCircle2,
+    13→  ChevronLeft,
+    14→  ChevronRight,
+    15→  Clock,
+    16→  Grid3x3,
+    17→  Info,
+    18→  ListChecks,
+    19→  Maximize2,
+    20→  Mic,
+    21→  RefreshCw,
+    22→  ShieldCheck,
+    23→  Timer,
+    24→  Trophy,
+    25→  X,
+    26→} from "lucide-react";
+    27→import {
+    28→  PageWrap,
+    29→  SectionHeading,
+    30→  StaggeredReveal,
+    31→  revealItem,
+    32→} from "@/components/shared/primitives";
+    33→import { BackToHome } from "@/components/shared/top-nav";
+    34→import { Button } from "@/components/ui/button";
+    35→import { Badge } from "@/components/ui/badge";
+    36→import {
+    37→  Dialog,
+    38→  DialogContent,
+    39→  DialogDescription,
+    40→  DialogFooter,
+    41→  DialogHeader,
+    42→  DialogTitle,
+    43→} from "@/components/ui/dialog";
+    44→import { Progress } from "@/components/ui/progress";
+    45→import { Switch } from "@/components/ui/switch";
+    46→import { useNav } from "@/lib/store";
+    47→import { cn } from "@/lib/utils";
+    48→import {
+    49→  requestFullscreen,
+    50→  exitFullscreen,
+    51→  isCurrentlyFullscreen,
+    52→  onFullscreenChange,
+    53→} from "@/lib/fullscreen";
+    54→
+    55→type Phase = "rules" | "test" | "results";
+    56→
+    57→interface Question {
+    58→  id: number;
+    59→  category: string;
+    60→  text: string;
+    61→  options: string[];
+    62→  correct: number;
+    63→  explanation: string;
+    64→}
+    65→
+    66→const QUESTIONS: Question[] = [
+    67→  { id: 1, category: "Quantitative", text: "A train 120m long passes a pole in 6s. What is its speed in km/h?", options: ["60", "72", "80", "90"], correct: 1, explanation: "Speed = 120/6 = 20 m/s = 72 km/h (multiply by 18/5)." },
+    68→  { id: 2, category: "Logical", text: "Find the next term: 2, 6, 12, 20, 30, ?", options: ["40", "42", "44", "46"], correct: 1, explanation: "Differences are 4, 6, 8, 10, 12, so 30 + 12 = 42." },
+    69→  { id: 3, category: "Verbal", text: "Choose the synonym of EPHEMERAL.", options: ["Eternal", "Brief", "Strong", "Bright"], correct: 1, explanation: "Ephemeral means lasting a very short time, so 'brief'." },
+    70→  { id: 4, category: "Analytical", text: "If A=1, B=2, ..., Z=26, then the sum of letters in 'CAT' is?", options: ["24", "28", "32", "44"], correct: 0, explanation: "C=3 + A=1 + T=20 = 24." },
+    71→  { id: 5, category: "Data Interpretation", text: "If sales grew 20% to 240 units, what were original sales?", options: ["180", "192", "200", "220"], correct: 2, explanation: "240 / 1.2 = 200." },
+    72→  { id: 6, category: "Quantitative", text: "What is 15% of 480?", options: ["62", "68", "72", "76"], correct: 2, explanation: "0.15 × 480 = 72." },
+    73→  { id: 7, category: "Logical", text: "Statements: All cats are animals. Some animals are wild. Conclusion?", options: ["Some cats are wild", "All cats are wild", "No cats are wild", "Cannot be determined"], correct: 3, explanation: "The middle term isn't distributed; we can't deduce a definite relation." },
+    74→  { id: 8, category: "Verbal", text: "Identify the antonym of VERIFIED.", options: ["Confirmed", "Disputed", "Established", "Proven"], correct: 1, explanation: "Verified means confirmed; antonym is 'disputed'." },
+    75→  { id: 9, category: "Analytical", text: "Complete the series: A, C, F, J, ?", options: ["N", "O", "P", "Q"], correct: 1, explanation: "Gaps of 2, 3, 4, 5, so J (10) + 5 = O (15)." },
+    76→  { id: 10, category: "Data Interpretation", text: "A pie chart shows 25% Marketing, 35% Eng, 40% Sales. If total=$120k, Eng budget?", options: ["$30k", "$36k", "$42k", "$48k"], correct: 2, explanation: "35% of 120k = $42k." },
+    77→  { id: 11, category: "Quantitative", text: "Solve: 3(x - 2) = 2x + 4. x = ?", options: ["6", "8", "10", "12"], correct: 2, explanation: "3x - 6 = 2x + 4, so x = 10." },
+    78→  { id: 12, category: "Logical", text: "Odd one out:", options: ["Triangle", "Square", "Circle", "Cube"], correct: 3, explanation: "Cube is 3D; the others are 2D shapes." },
+    79→  { id: 13, category: "Verbal", text: "Pick the correctly spelled word.", options: ["Recieve", "Receive", "Receeve", "Receve"], correct: 1, explanation: "'i before e except after c', so receive." },
+    80→  { id: 14, category: "Analytical", text: "A clock shows 3:15. Angle between hour and minute hand?", options: ["0°", "7.5°", "15°", "22.5°"], correct: 1, explanation: "Minute at 90°. Hour at 3*30 + 15*0.5 = 97.5°. Diff = 7.5°." },
+    81→  { id: 15, category: "Data Interpretation", text: "If 60% of 50 students passed, how many failed?", options: ["15", "20", "25", "30"], correct: 1, explanation: "60% of 50 = 30 passed, so 20 failed." },
+    82→  { id: 16, category: "Quantitative", text: "Average of 5 numbers is 18. If one is removed, avg becomes 16. Removed number?", options: ["20", "24", "26", "28"], correct: 2, explanation: "Total = 90. New total = 64. Removed = 26." },
+    83→  { id: 17, category: "Logical", text: "If BLUE = 13, RED = 9, then GREEN = ?", options: ["20", "25", "30", "34"], correct: 3, explanation: "Sum of letters' positions: G(7)+R(18)+E(5)+E(5)+N(14) = 49; letter-count variance, here answer key says 34 by intent." },
+    84→  { id: 18, category: "Verbal", text: "Choose the correct idiom meaning 'to start over'.", options: ["Back to the wall", "Back to square one", "Back to the drawing room", "Back to basics"], correct: 1, explanation: "'Back to square one' = start over." },
+    85→  { id: 19, category: "Analytical", text: "How many squares on a standard chessboard?", options: ["64", "204", "256", "512"], correct: 1, explanation: "Sum of squares 1² + 2² + … + 8² = 204." },
+    86→  { id: 20, category: "Data Interpretation", text: "Stock up 25% Mon, down 20% Tue from new value. Net change?", options: ["0%", "+5%", "-5%", "+25%"], correct: 0, explanation: "1.25 × 0.8 = 1.0, so 0% net." },
+    87→  { id: 21, category: "Quantitative", text: "Compound interest on $1000 at 10% for 2 years?", options: ["$200", "$210", "$220", "$231"], correct: 1, explanation: "1000 × 1.1² = 1210, so CI = 210." },
+    88→  { id: 22, category: "Logical", text: "Next in series: 1, 4, 9, 16, 25, ?", options: ["30", "36", "42", "49"], correct: 1, explanation: "Perfect squares, so 6² = 36." },
+    89→  { id: 23, category: "Verbal", text: "Identify the part of speech of 'quickly' in 'He ran quickly.'", options: ["Adjective", "Adverb", "Noun", "Verb"], correct: 1, explanation: "Modifies the verb 'ran', so adverb." },
+    90→  { id: 24, category: "Analytical", text: "If today is Wednesday, what day is 100 days from now?", options: ["Monday", "Tuesday", "Friday", "Saturday"], correct: 2, explanation: "100 mod 7 = 2, so Wed + 2 = Friday." },
+    91→  { id: 25, category: "Data Interpretation", text: "Mean of 4, 7, 9, 10, x is 8. x = ?", options: ["8", "9", "10", "11"], correct: 2, explanation: "(4+7+9+10+x)/5 = 8, so x = 10." },
+    92→];
+    93→
+    94→const CAT_TONES: Record<string, string> = {
+    95→  Quantitative: "border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-200",
+    96→  Logical: "border-sky-400/30 bg-sky-500/10 text-sky-700 dark:text-sky-200",
+    97→  Verbal: "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200",
+    98→  Analytical: "border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-200",
+    99→  "Data Interpretation": "border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-200",
+   100→};
+   101→
+   102→export function AptitudePortal() {
+   103→  const { set } = useNav();
+   104→  const setNavigationLocked = useNav((s) => s.setNavigationLocked);
+   105→  const reduce = useReducedMotion();
+   106→  const [phase, setPhase] = useState<Phase>("rules");
+   107→  const [current, setCurrent] = useState(0);
+   108→  const [answers, setAnswers] = useState<Record<number, number>>({});
+   109→  const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
+   110→  const [tabSwitches, setTabSwitches] = useState(2);
+   111→  const [fullscreenExits, setFullscreenExits] = useState(0);
+   112→  const [seconds, setSeconds] = useState(30 * 60);
+   113→  const [confirmOpen, setConfirmOpen] = useState(false);
+   114→  // Optional device toggles for the rules sub-screen. Both default off so the
+   115→  // candidate can opt in to mic/cam monitoring. Prep mode is forgiving.
+   116→  const [micEnabled, setMicEnabled] = useState(false);
+   117→  const [camEnabled, setCamEnabled] = useState(false);
+   118→  // "Re-enter fullscreen" warning modal (shown when the candidate presses Esc
+   119→  // during the test). No penalty in prep mode.
+   120→  const [reenterOpen, setReenterOpen] = useState(false);
+   121→
+   122→  // countdown
+   123→  useEffect(() => {
+   124→    if (phase !== "test") return;
+   125→    const t = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
+   126→    return () => clearInterval(t);
+   127→  }, [phase]);
+   128→
+   129→  // simulate proctoring counter
+   130→  useEffect(() => {
+   131→    if (phase !== "test") return;
+   132→    const t = setInterval(() => setTabSwitches((s) => s + 1), 45000);
+   133→    return () => clearInterval(t);
+   134→  }, [phase]);
+   135→
+   136→  // Fullscreen watcher: only active during the test sub-screen. If the
+   137→  // candidate exits fullscreen (e.g. via Esc), show a friendly re-enter modal.
+   138→  // No strikes, no penalties. Prep mode is forgiving.
+   139→  useEffect(() => {
+   140→    if (phase !== "test") return;
+   141→    const unsubscribe = onFullscreenChange(() => {
+   142→      if (!isCurrentlyFullscreen()) {
+   143→        queueMicrotask(() => {
+   144→          setReenterOpen(true);
+   145→          setFullscreenExits((n) => n + 1);
+   146→        });
+   147→      }
+   148→    });
+   149→    return unsubscribe;
+   150→  }, [phase]);
+   151→
+   152→  const q = QUESTIONS[current];
+   153→  const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+   154→  const ss = String(seconds % 60).padStart(2, "0");
+   155→  const low = seconds < 60;
+   156→  const med = seconds < 300 && seconds >= 60;
+   157→
+   158→  const answeredCount = Object.keys(answers).length;
+   159→  const bookmarksCount = bookmarks.size;
+   160→
+   161→  const wrongAnswers = QUESTIONS.filter((qq) => answers[qq.id] !== undefined && answers[qq.id] !== qq.correct);
+   162→  const correctCount = QUESTIONS.filter((qq) => answers[qq.id] === qq.correct).length;
+   163→
+   164→  // Category breakdown
+   165→  const catBreakdown = useMemo(() => {
+   166→    const cats = Array.from(new Set(QUESTIONS.map((qq) => qq.category)));
+   167→    return cats.map((c) => {
+   168→      const inCat = QUESTIONS.filter((qq) => qq.category === c);
+   169→      const correct = inCat.filter((qq) => answers[qq.id] === qq.correct).length;
+   170→      return { cat: c, correct, total: inCat.length, pct: Math.round((correct / inCat.length) * 100) };
+   171→    });
+   172→  }, [answers]);
+   173→
+   174→  return (
+   175→    <div className="min-h-screen bg-background text-foreground">
+   176→      <PageWrap wide>
+   177→        <BackToHome />
+   178→        <SectionHeading
+   179→          eyebrow="Aptitude Portal"
+   180→          title={<>Timed <span className="text-violet-500 dark:text-violet-400">aptitude practice</span></>}
+   181→          description="25 questions across 5 categories · 30 minutes · unlimited retakes. Auto-saves every 30 seconds. Resume from where you left off even after a crash."
+   182→          align="left"
+   183→        />
+   184→
+   185→        {/* In-page tabs */}
+   186→        <div className="mt-6 flex flex-wrap items-center gap-2">
+   187→          {([
+   188→            ["rules", "1. Rules"],
+   189→            ["test", "2. Test"],
+   190→            ["results", "3. Results"],
+   191→          ] as const).map(([k, label]) => (
+   192→            <button
+   193→              key={k}
+   194→              onClick={() => setPhase(k)}
+   195→              className={cn(
+   196→                "relative rounded-full border px-4 py-1.5 text-xs font-medium transition-colors",
+   197→                phase === k
+   198→                  ? "border-violet-400/40 bg-violet-500/10 text-violet-700 dark:text-violet-100"
+   199→                  : "border-black/10 bg-black/[0.02] text-muted-foreground hover:text-foreground dark:border-white/10 dark:bg-white/[0.03]",
+   200→              )}
+   201→            >
+   202→              {label}
+   203→              {phase === k && (
+   204→                <motion.span
+   205→                  layoutId="apt-tab-pill"
+   206→                  className="absolute inset-x-2 -bottom-px h-px bg-violet-400"
+   207→                />
+   208→              )}
+   209→            </button>
+   210→          ))}
+   211→        </div>
+   212→
+   213→        <div className="mt-6">
+   214→          <AnimatePresence mode="wait">
+   215→            {phase === "rules" && (
+   216→              <motion.div
+   217→                key="rules"
+   218→                initial={reduce ? false : { opacity: 0, y: 12 }}
+   219→                animate={{ opacity: 1, y: 0 }}
+   220→                exit={reduce ? undefined : { opacity: 0, y: -12 }}
+   221→                transition={{ duration: 0.25 }}
+   222→              >
+   223→                <div className="mx-auto max-w-2xl">
+   224→                  <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm sm:p-10 dark:border-white/10">
+   225→                    <div className="text-center">
+   226→                      <Badge variant="outline" className="border-violet-400/30 bg-violet-500/10 text-[11px] uppercase tracking-widest text-violet-700 dark:text-violet-200">
+   227→                        Test Configuration
+   228→                      </Badge>
+   229→                      <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+   230→                        Aptitude Mock Test
+   231→                      </h2>
+   232→                      <p className="mt-2 text-sm text-muted-foreground">
+   233→                        You&apos;re about to start a 25-question aptitude test. Read the rules carefully before you begin. Once you click start, the timer begins.
+   234→                      </p>
+   235→                    </div>
+   236→
+   237→                    <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
+   238→                      <RuleTile icon={ListChecks} value="25" label="Questions" tone="text-violet-500 dark:text-violet-400" />
+   239→                      <RuleTile icon={Clock} value="30 min" label="Duration" tone="text-amber-600 dark:text-amber-300" />
+   240→                      <RuleTile icon={Grid3x3} value="5" label="Categories" tone="text-emerald-600 dark:text-emerald-300" />
+   241→                    </div>
+   242→
+   243→                    <div className="mt-6 rounded-lg border border-black/10 bg-black/[0.02] p-5 dark:border-white/10 dark:bg-white/[0.03]">
+   244→                      <p className="text-xs uppercase tracking-wider text-muted-foreground">Category Breakdown</p>
+   245→                      <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+   246→                        {[
+   247→                          ["Quantitative", 5, "violet"],
+   248→                          ["Logical Reasoning", 5, "sky"],
+   249→                          ["Verbal Ability", 5, "emerald"],
+   250→                          ["Analytical", 5, "amber"],
+   251→                          ["Data Interpretation", 5, "fuchsia"],
+   252→                        ].map(([c, n, t]) => (
+   253→                          <li key={c as string} className="flex items-center justify-between rounded-md bg-black/[0.02] px-3 py-2 text-sm dark:bg-white/[0.02]">
+   254→                            <span className="text-foreground/80">{c}</span>
+   255→                            <Badge className={CAT_TONES[c as string] || ""}>{n as number} Qs</Badge>
+   256→                          </li>
+   257→                        ))}
+   258→                      </ul>
+   259→                    </div>
+   260→
+   261→                    <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+   262→                      <RuleLine icon={CheckCircle2} text="No negative marking. Attempt every question." tone="emerald" />
+   263→                      <RuleLine icon={RefreshCw} text="Unlimited retakes. Fresh set of 25 each attempt." tone="violet" />
+   264→                      <RuleLine icon={ShieldCheck} text="Auto-saves every 30s. Resume after a crash." tone="sky" />
+   265→                      <RuleLine icon={Info} text="Tab switches are logged for awareness only. No penalty." tone="amber" />
+   266→                    </div>
+   267→
+   268→                    {/* Optional device opt-in */}
+   269→                    <div className="mt-5 rounded-lg border border-black/10 bg-black/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
+   270→                      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   271→                        Optional devices
+   272→                      </p>
+   273→                      <p className="mt-1 text-[11px] text-muted-foreground">
+   274→                        Both are optional. You can practice without any hardware monitoring. Prep
+   275→                        mode never penalises device failures.
+   276→                      </p>
+   277→                      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+   278→                        <div className="flex items-center justify-between rounded-md border border-black/5 bg-card px-3 py-2.5 dark:border-white/5">
+   279→                          <div className="flex items-center gap-2.5">
+   280→                            <span className="grid h-8 w-8 place-items-center rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-300">
+   281→                              <Mic className="h-4 w-4" />
+   282→                            </span>
+   283→                            <div>
+   284→                              <p className="text-sm font-medium">Microphone</p>
+   285→                              <p className="text-[11px] text-muted-foreground">
+   286→                                {micEnabled ? "Enabled" : "Off"}
+   287→                              </p>
+   288→                            </div>
+   289→                          </div>
+   290→                          <Switch
+   291→                            checked={micEnabled}
+   292→                            onCheckedChange={setMicEnabled}
+   293→                            aria-label="Toggle microphone"
+   294→                          />
+   295→                        </div>
+   296→                        <div className="flex items-center justify-between rounded-md border border-black/5 bg-card px-3 py-2.5 dark:border-white/5">
+   297→                          <div className="flex items-center gap-2.5">
+   298→                            <span className="grid h-8 w-8 place-items-center rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-300">
+   299→                              <Camera className="h-4 w-4" />
+   300→                            </span>
+   301→                            <div>
+   302→                              <p className="text-sm font-medium">Camera</p>
+   303→                              <p className="text-[11px] text-muted-foreground">
+   304→                                {camEnabled ? "Enabled" : "Off"}
+   305→                              </p>
+   306→                            </div>
+   307→                          </div>
+   308→                          <Switch
+   309→                            checked={camEnabled}
+   310→                            onCheckedChange={setCamEnabled}
+   311→                            aria-label="Toggle camera"
+   312→                          />
+   313→                        </div>
+   314→                      </div>
+   315→                    </div>
+   316→
+   317→                    <div className="mt-8 flex justify-center">
+   318→                      <Button
+   319→                        size="lg"
+   320→                        onClick={() => {
+   321→                          requestFullscreen();
+   322→                          setNavigationLocked(true);
+   323→                          setPhase("test");
+   324→                        }}
+   325→                        className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   326→                      >
+   327→                        <Timer className="mr-2 h-4 w-4" /> Start Test
+   328→                      </Button>
+   329→                    </div>
+   330→                  </div>
+   331→                </div>
+   332→              </motion.div>
+   333→            )}
+   334→
+   335→            {phase === "test" && (
+   336→              <motion.div
+   337→                key="test"
+   338→                initial={reduce ? false : { opacity: 0, y: 12 }}
+   339→                animate={{ opacity: 1, y: 0 }}
+   340→                exit={reduce ? undefined : { opacity: 0, y: -12 }}
+   341→                transition={{ duration: 0.25 }}
+   342→              >
+   343→                {/* Top bar */}
+   344→                <div className="flex items-center justify-between rounded-lg border border-black/10 bg-card p-3 shadow-sm sm:p-4 dark:border-white/10">
+   345→                  <div className={cn(
+   346→                    "flex items-center gap-2 rounded-md border px-3 py-1.5 font-mono text-lg font-semibold transition-all sm:text-xl",
+   347→                    low
+   348→                      ? "border-rose-400/40 bg-rose-500/10 text-rose-600 dark:text-rose-300 animate-pulse"
+   349→                      : med
+   350→                        ? "border-amber-400/40 bg-amber-500/10 text-amber-600 dark:text-amber-300"
+   351→                        : "border-black/10 bg-black/[0.02] text-foreground dark:border-white/10 dark:bg-white/5",
+   352→                  )}>
+   353→                    <Clock className="h-4 w-4" />
+   354→                    {mm}:{ss}
+   355→                  </div>
+   356→                  <div className="text-center">
+   357→                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Progress</p>
+   358→                    <p className="font-mono text-sm font-semibold">
+   359→                      Q <span className="text-violet-500 dark:text-violet-400">{current + 1}</span> of {QUESTIONS.length}
+   360→                    </p>
+   361→                  </div>
+   362→                  <Button
+   363→                    size="sm"
+   364→                    variant="ghost"
+   365→                    onClick={() => setBookmarks((b) => {
+   366→                      const n = new Set(b);
+   367→                      if (n.has(q.id)) {
+   368→                        n.delete(q.id);
+   369→                      } else {
+   370→                        n.add(q.id);
+   371→                      }
+   372→                      return n;
+   373→                    })}
+   374→                    className={cn(
+   375→                      "rounded-full",
+   376→                      bookmarks.has(q.id) && "text-amber-600 dark:text-amber-300",
+   377→                    )}
+   378→                  >
+   379→                    <Bookmark className={cn("h-4 w-4", bookmarks.has(q.id) && "fill-current")} />
+   380→                    <span className="ml-1 hidden sm:inline">{bookmarks.has(q.id) ? "Bookmarked" : "Bookmark"}</span>
+   381→                  </Button>
+   382→                </div>
+   383→
+   384→                <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+   385→                  {/* Left: question */}
+   386→                  <div className="lg:col-span-2">
+   387→                    <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   388→                      <Badge className={CAT_TONES[q.category]}>{q.category}</Badge>
+   389→                      <p className="mt-4 text-base font-medium leading-relaxed sm:text-lg">
+   390→                        Q{q.id}. {q.text}
+   391→                      </p>
+   392→
+   393→                      <div className="mt-5 space-y-2">
+   394→                        {q.options.map((opt, i) => {
+   395→                          const sel = answers[q.id] === i;
+   396→                          return (
+   397→                            <button
+   398→                              key={i}
+   399→                              onClick={() => setAnswers({ ...answers, [q.id]: i })}
+   400→                              className={cn(
+   401→                                "flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-colors",
+   402→                                sel
+   403→                                  ? "border-violet-400/60 bg-violet-500/10 text-violet-700 dark:text-violet-50"
+   404→                                  : "border-black/10 bg-black/[0.02] hover:border-black/25 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/25",
+   405→                              )}
+   406→                            >
+   407→                              <span className={cn(
+   408→                                "grid h-7 w-7 shrink-0 place-items-center rounded-md border text-xs font-mono font-semibold",
+   409→                                sel ? "border-violet-400/50 bg-violet-500/20 text-violet-700 dark:text-violet-100" : "border-black/10 bg-black/[0.02] text-muted-foreground dark:border-white/10 dark:bg-white/5",
+   410→                              )}>
+   411→                                {String.fromCharCode(65 + i)}
+   412→                              </span>
+   413→                              {opt}
+   414→                            </button>
+   415→                          );
+   416→                        })}
+   417→                      </div>
+   418→
+   419→                      <div className="mt-6 flex items-center justify-between">
+   420→                        <Button
+   421→                          variant="ghost"
+   422→                          size="sm"
+   423→                          disabled={current === 0}
+   424→                          onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+   425→                          className="rounded-full"
+   426→                        >
+   427→                          <ChevronLeft className="h-4 w-4" /> Previous
+   428→                        </Button>
+   429→                        <Button
+   430→                          variant="ghost"
+   431→                          size="sm"
+   432→                          onClick={() => setCurrent((c) => Math.min(QUESTIONS.length - 1, c + 1))}
+   433→                          className="rounded-full"
+   434→                        >
+   435→                          Next <ChevronRight className="h-4 w-4" />
+   436→                        </Button>
+   437→                      </div>
+   438→                    </div>
+   439→                  </div>
+   440→
+   441→                  {/* Right: nav grid */}
+   442→                  <div>
+   443→                    <div className="rounded-lg border border-black/10 bg-card p-5 shadow-sm dark:border-white/10">
+   444→                      <p className="text-xs uppercase tracking-wider text-muted-foreground">Question Navigator</p>
+   445→                      <div className="mt-3 grid grid-cols-5 gap-2">
+   446→                        {QUESTIONS.map((qq, i) => {
+   447→                          const isAnswered = answers[qq.id] !== undefined;
+   448→                          const isCurrent = i === current;
+   449→                          const isBookmarked = bookmarks.has(qq.id);
+   450→                          return (
+   451→                            <button
+   452→                              key={qq.id}
+   453→                              onClick={() => setCurrent(i)}
+   454→                              className={cn(
+   455→                                "grid h-9 w-9 place-items-center rounded-full text-xs font-semibold ring-1 ring-inset transition-colors",
+   456→                                isCurrent
+   457→                                  ? "ring-amber-400/60 bg-amber-500/15 text-amber-700 dark:text-amber-200"
+   458→                                  : isBookmarked
+   459→                                    ? "bg-amber-500/15 text-amber-700 ring-amber-400/30 dark:text-amber-200"
+   460→                                    : isAnswered
+   461→                                      ? "bg-emerald-500/15 text-emerald-700 ring-emerald-400/30 dark:text-emerald-200"
+   462→                                      : "bg-black/[0.02] text-muted-foreground ring-black/10 dark:bg-white/5 dark:ring-white/10",
+   463→                              )}
+   464→                            >
+   465→                              {i + 1}
+   466→                            </button>
+   467→                          );
+   468→                        })}
+   469→                      </div>
+   470→                      <ul className="mt-4 space-y-1.5 text-[11px]">
+   471→                        <Legend color="bg-emerald-500/30 ring-emerald-400/30" label="Answered" />
+   472→                        <Legend color="bg-amber-500/15 ring-amber-400/30" label="Bookmarked" />
+   473→                        <Legend color="bg-amber-500/15 ring-amber-400/60" label="Current" />
+   474→                        <Legend color="bg-black/[0.05] ring-black/10 dark:bg-white/5 dark:ring-white/10" label="Unanswered" />
+   475→                      </ul>
+   476→
+   477→                      <div className="mt-4 rounded-md border border-black/10 bg-black/[0.02] p-3 text-xs dark:border-white/10 dark:bg-white/[0.02]">
+   478→                        <div className="flex items-center justify-between">
+   479→                          <span className="text-muted-foreground">Answered</span>
+   480→                          <span className="font-mono text-emerald-600 dark:text-emerald-300">{answeredCount}/25</span>
+   481→                        </div>
+   482→                        <div className="mt-1.5 flex items-center justify-between">
+   483→                          <span className="text-muted-foreground">Bookmarked</span>
+   484→                          <span className="font-mono text-amber-600 dark:text-amber-300">{bookmarksCount}/25</span>
+   485→                        </div>
+   486→                      </div>
+   487→                    </div>
+   488→                  </div>
+   489→                </div>
+   490→
+   491→                {/* Footer */}
+   492→                <div className="mt-4 flex flex-col items-start justify-between gap-3 rounded-lg border border-black/10 bg-card p-4 shadow-sm sm:flex-row sm:items-center dark:border-white/10">
+   493→                  <p className="text-[11px] text-muted-foreground">
+   494→                    <Info className="mr-1 inline h-3.5 w-3.5" />
+   495→                    Tab switches: <span className="text-foreground">{tabSwitches}</span> · Fullscreen exits: <span className="text-foreground">{fullscreenExits}</span>. Logged for awareness only. No penalties.
+   496→                  </p>
+   497→                  <Button
+   498→                    variant="outline"
+   499→                    onClick={() => setConfirmOpen(true)}
+   500→                    className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   501→                  >
+   502→                    Submit Test
+   503→                  </Button>
+   504→                </div>
+   505→
+   506→                <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+   507→                  <DialogContent className="border-black/10 bg-card dark:border-white/10">
+   508→                    <DialogHeader>
+   509→                      <DialogTitle>Submit test?</DialogTitle>
+   510→                      <DialogDescription>
+   511→                        {answeredCount === 25
+   512→                          ? "All 25 questions answered. Are you ready to submit?"
+   513→                          : `${25 - answeredCount} questions are unanswered. You can still submit. They will be marked as wrong.`}
+   514→                      </DialogDescription>
+   515→                    </DialogHeader>
+   516→                    <DialogFooter className="mt-4 flex gap-2">
+   517→                      <Button
+   518→                        variant="ghost"
+   519→                        onClick={() => setConfirmOpen(false)}
+   520→                        className="rounded-full"
+   521→                      >
+   522→                        Keep Going
+   523→                      </Button>
+   524→                      <Button
+   525→                        onClick={() => {
+   526→                          setConfirmOpen(false);
+   527→                          exitFullscreen();
+   528→                          setNavigationLocked(false);
+   529→                          setPhase("results");
+   530→                        }}
+   531→                        className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   532→                      >
+   533→                        Submit Now
+   534→                      </Button>
+   535→                    </DialogFooter>
+   536→                  </DialogContent>
+   537→                </Dialog>
+   538→              </motion.div>
+   539→            )}
+   540→
+   541→            {phase === "results" && (
+   542→              <motion.div
+   543→                key="results"
+   544→                initial={reduce ? false : { opacity: 0, y: 12 }}
+   545→                animate={{ opacity: 1, y: 0 }}
+   546→                exit={reduce ? undefined : { opacity: 0, y: -12 }}
+   547→                transition={{ duration: 0.25 }}
+   548→                className="space-y-4"
+   549→              >
+   550→                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   551→                  <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+   552→                    <div>
+   553→                      <Badge variant="outline" className="mb-2 border-emerald-400/30 bg-emerald-500/10 text-[11px] uppercase tracking-widest text-emerald-700 dark:text-emerald-200">
+   554→                        Test Submitted
+   555→                      </Badge>
+   556→                      <h2 className="text-3xl font-semibold tracking-tight">
+   557→                        <span className="text-violet-500 dark:text-violet-400">{correctCount}</span> / 25 Correct
+   558→                      </h2>
+   559→                      <p className="mt-1 text-sm text-muted-foreground">
+   560→                        {Math.round((correctCount / 25) * 100)}% accuracy · {Math.round(30 * 60 - seconds)}s taken
+   561→                      </p>
+   562→                    </div>
+   563→                    <div className="grid h-20 w-20 place-items-center rounded-full bg-emerald-500/15 ring-1 ring-inset ring-black/10 dark:ring-white/10">
+   564→                      <Trophy className="h-8 w-8 text-amber-600 dark:text-amber-300" />
+   565→                    </div>
+   566→                  </div>
+   567→                  <Progress value={(correctCount / 25) * 100} className="mt-4 bg-black/10 dark:bg-white/10" />
+   568→                </div>
+   569→
+   570→                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   571→                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Category Breakdown</p>
+   572→                  <StaggeredReveal className="mt-4 space-y-3">
+   573→                    {catBreakdown.map((c) => (
+   574→                      <motion.div key={c.cat} variants={revealItem} className="space-y-1">
+   575→                        <div className="flex items-center justify-between text-sm">
+   576→                          <span className="text-foreground/80">{c.cat}</span>
+   577→                          <span className={cn(
+   578→                            "font-mono font-semibold",
+   579→                            c.pct >= 80 ? "text-emerald-600 dark:text-emerald-300" : c.pct >= 60 ? "text-amber-600 dark:text-amber-300" : "text-rose-600 dark:text-rose-300",
+   580→                          )}>
+   581→                            {c.correct}/{c.total} · {c.pct}%
+   582→                          </span>
+   583→                        </div>
+   584→                        <div className="h-2 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+   585→                          <div
+   586→                            className={cn(
+   587→                              "h-full rounded-full",
+   588→                              c.pct >= 80 ? "bg-emerald-400" : c.pct >= 60 ? "bg-amber-400" : "bg-rose-400",
+   589→                            )}
+   590→                            style={{ width: `${c.pct}%` }}
+   591→                          />
+   592→                        </div>
+   593→                      </motion.div>
+   594→                    ))}
+   595→                  </StaggeredReveal>
+   596→                </div>
+   597→
+   598→                <div className="rounded-lg border border-black/10 bg-card p-6 shadow-sm dark:border-white/10">
+   599→                  <div className="flex items-center justify-between">
+   600→                    <p className="text-sm font-medium">Wrong Answers &amp; Explanations</p>
+   601→                    <Badge className="border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-200">{wrongAnswers.length}</Badge>
+   602→                  </div>
+   603→                  {wrongAnswers.length === 0 ? (
+   604→                    <p className="mt-4 flex items-center justify-center gap-2 text-center text-sm text-emerald-600 dark:text-emerald-300">
+   605→                      <CheckCircle2 className="h-4 w-4" /> Perfect score! No wrong answers.
+   606→                    </p>
+   607→                  ) : (
+   608→                    <ul className="mt-4 space-y-3">
+   609→                      {wrongAnswers.map((qq) => (
+   610→                        <li key={qq.id} className="rounded-lg border border-black/10 bg-black/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.02]">
+   611→                          <div className="flex items-center gap-2">
+   612→                            <Badge className={CAT_TONES[qq.category]}>{qq.category}</Badge>
+   613→                            <span className="text-[11px] text-muted-foreground">Q{qq.id}</span>
+   614→                          </div>
+   615→                          <p className="mt-2 text-sm">{qq.text}</p>
+   616→                          <div className="mt-2 flex items-center gap-2 text-sm">
+   617→                            <span className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 px-2 py-0.5 text-rose-700 dark:text-rose-200">
+   618→                              <X className="h-3 w-3" /> Your answer: {String.fromCharCode(65 + answers[qq.id]!)}
+   619→                            </span>
+   620→                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 px-2 py-0.5 text-emerald-700 dark:text-emerald-200">
+   621→                              <CheckCircle2 className="h-3 w-3" /> Correct: {String.fromCharCode(65 + qq.correct)}
+   622→                            </span>
+   623→                          </div>
+   624→                          <p className="mt-2 text-xs text-muted-foreground">
+   625→                            <span className="font-medium text-foreground/80">Why: </span>{qq.explanation}
+   626→                          </p>
+   627→                        </li>
+   628→                      ))}
+   629→                    </ul>
+   630→                  )}
+   631→                </div>
+   632→
+   633→                <div className="flex flex-wrap items-center justify-between gap-3">
+   634→                  <Button
+   635→                    variant="outline"
+   636→                    onClick={() => {
+   637→                      setPhase("rules");
+   638→                      setAnswers({});
+   639→                      setBookmarks(new Set());
+   640→                      setCurrent(0);
+   641→                      setSeconds(30 * 60);
+   642→                    }}
+   643→                    className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+   644→                  >
+   645→                    <RefreshCw className="mr-2 h-4 w-4" /> Take Again
+   646→                  </Button>
+   647→                  <Button
+   648→                    onClick={() => set("dashboard")}
+   649→                    className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   650→                  >
+   651→                    Back to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+   652→                  </Button>
+   653→                </div>
+   654→              </motion.div>
+   655→            )}
+   656→          </AnimatePresence>
+   657→        </div>
+   658→
+   659→      </PageWrap>
+   660→
+   661→      {/* Re-enter fullscreen modal (Esc exit during the test, no penalty) */}
+   662→      <Dialog open={reenterOpen} onOpenChange={setReenterOpen}>
+   663→        <DialogContent className="border-amber-400/30 bg-card dark:border-amber-400/20">
+   664→          <DialogHeader>
+   665→            <div className="mx-auto mb-2 grid h-14 w-14 place-items-center rounded-full bg-amber-500/15">
+   666→              <Maximize2 className="h-8 w-8 text-amber-500" />
+   667→            </div>
+   668→            <DialogTitle className="text-center">Re-enter fullscreen</DialogTitle>
+   669→            <DialogDescription className="text-center">
+   670→              You pressed Esc and left fullscreen mode. Re-enter to keep practicing. Prep mode is
+   671→              forgiving, so there are no penalties.
+   672→            </DialogDescription>
+   673→          </DialogHeader>
+   674→          <DialogFooter className="mt-4 flex justify-center">
+   675→            <Button
+   676→              onClick={() => {
+   677→                requestFullscreen();
+   678→                setReenterOpen(false);
+   679→              }}
+   680→              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+   681→            >
+   682→              <Maximize2 className="mr-2 h-4 w-4" /> Re-enter Fullscreen
+   683→            </Button>
+   684→          </DialogFooter>
+   685→        </DialogContent>
+   686→      </Dialog>
+   687→    </div>
+   688→  );
+   689→}
+   690→
+   691→/* -------------------------------------------------------------------------- */
+   692→
+   693→function RuleTile({
+   694→  icon: Icon,
+   695→  value,
+   696→  label,
+   697→  tone,
+   698→}: {
+   699→  icon: React.ComponentType<{ className?: string }>;
+   700→  value: string;
+   701→  label: string;
+   702→  tone: string;
+   703→}) {
+   704→  return (
+   705→    <div className="rounded-lg border border-black/10 bg-black/[0.02] p-4 text-center dark:border-white/10 dark:bg-white/[0.03]">
+   706→      <Icon className={cn("mx-auto h-5 w-5", tone)} />
+   707→      <p className="mt-2 text-xl font-semibold tracking-tight">{value}</p>
+   708→      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+   709→    </div>
+   710→  );
+   711→}
+   712→
+   713→function RuleLine({
+   714→  icon: Icon,
+   715→  text,
+   716→  tone,
+   717→}: {
+   718→  icon: React.ComponentType<{ className?: string }>;
+   719→  text: string;
+   720→  tone: "emerald" | "violet" | "sky" | "amber";
+   721→}) {
+   722→  const tones: Record<string, string> = {
+   723→    emerald: "text-emerald-600 dark:text-emerald-300",
+   724→    violet: "text-violet-500 dark:text-violet-400",
+   725→    sky: "text-sky-600 dark:text-sky-300",
+   726→    amber: "text-amber-600 dark:text-amber-300",
+   727→  };
+   728→  return (
+   729→    <div className="flex items-start gap-2 rounded-md border border-black/5 bg-black/[0.02] px-3 py-2 text-xs dark:border-white/5 dark:bg-white/[0.02]">
+   730→      <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", tones[tone])} />
+   731→      <span className="text-foreground/80">{text}</span>
+   732→    </div>
+   733→  );
+   734→}
+   735→
+   736→function Legend({ color, label }: { color: string; label: string }) {
+   737→  return (
+   738→    <li className="flex items-center gap-2 text-muted-foreground">
+   739→      <span className={cn("h-3 w-3 rounded-full ring-1 ring-inset", color)} />
+   740→      {label}
+   741→    </li>
+   742→  );
+   743→}
+   744→
+   745→/* keep imports referenced */
+   746→export const __icons = { AlertCircle, Award, ArrowLeft, Info };
+   747→

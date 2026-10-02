@@ -1,0 +1,1182 @@
+     1→"use client";
+     2→
+     3→import { useState } from "react";
+     4→import {
+     5→  Brain,
+     6→  Check,
+     7→  CheckCircle2,
+     8→  ChevronLeft,
+     9→  Code2,
+    10→  Database,
+    11→  Download,
+    12→  FileText,
+    13→  FileUp,
+    14→  Pencil,
+    15→  Plus,
+    16→  ShieldQuestion,
+    17→  Terminal,
+    18→  Trash2,
+    19→  Upload,
+    20→  X,
+    21→} from "lucide-react";
+    22→import { PageWrap } from "@/components/shared/primitives";
+    23→import { Button } from "@/components/ui/button";
+    24→import { Input } from "@/components/ui/input";
+    25→import { Label } from "@/components/ui/label";
+    26→import { Textarea } from "@/components/ui/textarea";
+    27→import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+    28→import {
+    29→  Select,
+    30→  SelectContent,
+    31→  SelectItem,
+    32→  SelectTrigger,
+    33→  SelectValue,
+    34→} from "@/components/ui/select";
+    35→import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+    36→import {
+    37→  Dialog,
+    38→  DialogContent,
+    39→  DialogDescription,
+    40→  DialogFooter,
+    41→  DialogHeader,
+    42→  DialogTitle,
+    43→} from "@/components/ui/dialog";
+    44→import {
+    45→  Table,
+    46→  TableBody,
+    47→  TableCell,
+    48→  TableHead,
+    49→  TableHeader,
+    50→  TableRow,
+    51→} from "@/components/ui/table";
+    52→import { useNav } from "@/lib/store";
+    53→import { cn } from "@/lib/utils";
+    54→
+    55→type AptQuestion = {
+    56→  id: string;
+    57→  category: string;
+    58→  subTopic: string;
+    59→  difficulty: "Easy" | "Medium" | "Hard";
+    60→  text: string;
+    61→  options: [string, string, string, string];
+    62→  correct: "A" | "B" | "C" | "D";
+    63→  explanation: string;
+    64→};
+    65→
+    66→type CodingProblem = {
+    67→  id: string;
+    68→  title: string;
+    69→  difficulty: "Easy" | "Medium" | "Hard";
+    70→  type: "DSA" | "SQL";
+    71→  statement: string;
+    72→  signatures: string;
+    73→  visibleTests: number;
+    74→  hiddenTests: number;
+    75→  timeLimit: number;
+    76→  memoryLimit: number;
+    77→  schema?: string;
+    78→};
+    79→
+    80→const APT_QUESTIONS: AptQuestion[] = [
+    81→  {
+    82→    id: "q1",
+    83→    category: "Quant",
+    84→    subTopic: "Time & Work",
+    85→    difficulty: "Medium",
+    86→    text: "If 6 men can complete a task in 12 days, how long will 9 men take?",
+    87→    options: ["8 days", "9 days", "6 days", "18 days"],
+    88→    correct: "A",
+    89→    explanation:
+    90→      "Total man-days = 6 × 12 = 72. With 9 men, time = 72 / 9 = 8 days.",
+    91→  },
+    92→  {
+    93→    id: "q2",
+    94→    category: "Logical",
+    95→    subTopic: "Series",
+    96→    difficulty: "Easy",
+    97→    text: "Find the next term: 2, 6, 12, 20, 30, ?",
+    98→    options: ["40", "42", "44", "46"],
+    99→    correct: "B",
+   100→    explanation:
+   101→      "Differences: 4, 6, 8, 10, 12. Next term = 30 + 12 = 42.",
+   102→  },
+   103→  {
+   104→    id: "q3",
+   105→    category: "Verbal",
+   106→    subTopic: "Synonyms",
+   107→    difficulty: "Easy",
+   108→    text: "Choose the synonym of 'Ephemeral':",
+   109→    options: ["Permanent", "Brief", "Strong", "Heavy"],
+   110→    correct: "B",
+   111→    explanation: "Ephemeral = lasting for a very short time.",
+   112→  },
+   113→  {
+   114→    id: "q4",
+   115→    category: "Analytical",
+   116→    subTopic: "Puzzles",
+   117→    difficulty: "Hard",
+   118→    text: "5 friends sit in a row. A is left of B but right of C. D is left of C. E is between A and B. Who is in the middle?",
+   119→    options: ["A", "B", "C", "E"],
+   120→    correct: "A",
+   121→    explanation:
+   122→      "Order: D - C - A - E - B. The middle position (3rd) is A.",
+   123→  },
+   124→  {
+   125→    id: "q5",
+   126→    category: "DI",
+   127→    subTopic: "Bar charts",
+   128→    difficulty: "Medium",
+   129→    text: "If a bar chart shows Q1=40, Q2=60, Q3=80. What is the % growth from Q1 to Q3?",
+   130→    options: ["50%", "75%", "100%", "120%"],
+   131→    correct: "C",
+   132→    explanation: "Growth = (80-40)/40 × 100 = 100%.",
+   133→  },
+   134→];
+   135→
+   136→const CODING_PROBLEMS: CodingProblem[] = [
+   137→  {
+   138→    id: "c1",
+   139→    title: "Two Sum (Sorted)",
+   140→    difficulty: "Easy",
+   141→    type: "DSA",
+   142→    statement:
+   143→      "Given a sorted array of integers and a target, return the 1-based indices of the two numbers that add to target.",
+   144→    signatures: "function twoSum(arr: number[], target: number): number[]",
+   145→    visibleTests: 3,
+   146→    hiddenTests: 7,
+   147→    timeLimit: 1000,
+   148→    memoryLimit: 256,
+   149→  },
+   150→  {
+   151→    id: "c2",
+   152→    title: "LRU Cache Implementation",
+   153→    difficulty: "Hard",
+   154→    type: "DSA",
+   155→    statement:
+   156→      "Design a data structure that supports get/put in O(1) with LRU eviction at capacity.",
+   157→    signatures: "class LRUCache { constructor(capacity: number) {} }",
+   158→    visibleTests: 3,
+   159→    hiddenTests: 7,
+   160→    timeLimit: 1500,
+   161→    memoryLimit: 256,
+   162→  },
+   163→  {
+   164→    id: "c3",
+   165→    title: "Top 3 Products by Revenue",
+   166→    difficulty: "Medium",
+   167→    type: "SQL",
+   168→    statement:
+   169→      "Given `orders(order_id, product_id, qty, price, created_at)`, return the top 3 products by total revenue in the last 30 days.",
+   170→    signatures: "SELECT product_id, SUM(qty*price) AS revenue ...",
+   171→    visibleTests: 3,
+   172→    hiddenTests: 7,
+   173→    timeLimit: 2000,
+   174→    memoryLimit: 512,
+   175→    schema: "CREATE TABLE orders (\n  order_id INT PRIMARY KEY,\n  product_id INT,\n  qty INT,\n  price DECIMAL(10,2),\n  created_at TIMESTAMP\n);",
+   176→  },
+   177→];
+   178→
+   179→export function QuestionManager() {
+   180→  const { set } = useNav();
+   181→  const [tab, setTab] = useState<"aptitude" | "coding">("aptitude");
+   182→
+   183→  return (
+   184→    <div className="min-h-screen bg-background text-foreground">
+   185→      <PageWrap className="pt-8">
+   186→        <button
+   187→          onClick={() => set("admin-dashboard")}
+   188→          className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+   189→        >
+   190→          <ChevronLeft className="h-3.5 w-3.5" />
+   191→          Back to dashboard
+   192→        </button>
+   193→
+   194→        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+   195→          <div>
+   196→            <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   197→              Campaign · backend-sde-1
+   198→            </p>
+   199→            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+   200→              Question Set Manager
+   201→            </h2>
+   202→            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+   203→              Aptitude MCQs and coding problems. Add one-by-one or bulk-upload
+   204→              via CSV. Questions are scoped to this campaign only.
+   205→            </p>
+   206→          </div>
+   207→          <span className="inline-flex items-center gap-1.5 rounded-full border border-black/15 bg-muted/30 px-3 py-1 text-xs font-medium text-muted-foreground dark:border-white/15">
+   208→            {APT_QUESTIONS.length + CODING_PROBLEMS.length} questions
+   209→          </span>
+   210→        </div>
+   211→
+   212→        <Tabs
+   213→          value={tab}
+   214→          onValueChange={(v) => setTab(v as typeof tab)}
+   215→          className="mt-6"
+   216→        >
+   217→          <TabsList className="h-auto bg-muted/40 p-1">
+   218→            <TabsTrigger
+   219→              value="aptitude"
+   220→              className="data-[state=active]:bg-violet-500 data-[state=active]:text-white px-4 py-1.5 text-sm"
+   221→            >
+   222→              <Brain className="mr-1.5 h-3.5 w-3.5" />
+   223→              Aptitude Questions
+   224→            </TabsTrigger>
+   225→            <TabsTrigger
+   226→              value="coding"
+   227→              className="data-[state=active]:bg-violet-500 data-[state=active]:text-white px-4 py-1.5 text-sm"
+   228→            >
+   229→              <Code2 className="mr-1.5 h-3.5 w-3.5" />
+   230→              Coding Problems
+   231→            </TabsTrigger>
+   232→          </TabsList>
+   233→
+   234→          {/* TAB 1. Aptitude */}
+   235→          <TabsContent value="aptitude" className="mt-5">
+   236→            <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
+   237→              <AptitudeForm />
+   238→              <AptitudeList />
+   239→            </div>
+   240→          </TabsContent>
+   241→
+   242→          {/* TAB 2. Coding */}
+   243→          <TabsContent value="coding" className="mt-5">
+   244→            <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
+   245→              <CodingForm />
+   246→              <CodingList />
+   247→            </div>
+   248→          </TabsContent>
+   249→        </Tabs>
+   250→
+   251→      </PageWrap>
+   252→    </div>
+   253→  );
+   254→}
+   255→
+   256→/* ---------- Aptitude form ---------- */
+   257→
+   258→function AptitudeForm() {
+   259→  const [cat, setCat] = useState<string>("");
+   260→  const [diff, setDiff] = useState<string>("");
+   261→  const [sub, setSub] = useState("");
+   262→  const [text, setText] = useState("");
+   263→  const [opts, setOpts] = useState(["", "", "", ""]);
+   264→  const [correct, setCorrect] = useState<"A" | "B" | "C" | "D">("A");
+   265→  const [explanation, setExplanation] = useState("");
+   266→  const [bulkOpen, setBulkOpen] = useState(false);
+   267→
+   268→  const valid =
+   269→    cat && diff && sub.trim() && text.trim() && opts.every((o) => o.trim());
+   270→
+   271→  return (
+   272→    <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   273→      <div className="flex items-center gap-2">
+   274→        <ShieldQuestion className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+   275→        <h3 className="text-sm font-medium">Add a question</h3>
+   276→      </div>
+   277→
+   278→      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+   279→        <div className="space-y-1.5">
+   280→          <Label className="text-xs text-muted-foreground">Category</Label>
+   281→          <Select value={cat} onValueChange={setCat}>
+   282→            <SelectTrigger className="w-full">
+   283→              <SelectValue placeholder="Select category" />
+   284→            </SelectTrigger>
+   285→            <SelectContent>
+   286→              <SelectItem value="Quant">Quant</SelectItem>
+   287→              <SelectItem value="Logical">Logical</SelectItem>
+   288→              <SelectItem value="Verbal">Verbal</SelectItem>
+   289→              <SelectItem value="Analytical">Analytical</SelectItem>
+   290→              <SelectItem value="DI">DI</SelectItem>
+   291→            </SelectContent>
+   292→          </Select>
+   293→        </div>
+   294→        <div className="space-y-1.5">
+   295→          <Label className="text-xs text-muted-foreground">Difficulty</Label>
+   296→          <Select value={diff} onValueChange={setDiff}>
+   297→            <SelectTrigger className="w-full">
+   298→              <SelectValue placeholder="Select difficulty" />
+   299→            </SelectTrigger>
+   300→            <SelectContent>
+   301→              <SelectItem value="Easy">Easy</SelectItem>
+   302→              <SelectItem value="Medium">Medium</SelectItem>
+   303→              <SelectItem value="Hard">Hard</SelectItem>
+   304→            </SelectContent>
+   305→          </Select>
+   306→        </div>
+   307→      </div>
+   308→
+   309→      <div className="mt-4 space-y-1.5">
+   310→        <Label className="text-xs text-muted-foreground">Sub-topic</Label>
+   311→        <Input
+   312→          value={sub}
+   313→          onChange={(e) => setSub(e.target.value)}
+   314→          placeholder="e.g. Time & Work"
+   315→          className="h-10"
+   316→        />
+   317→      </div>
+   318→
+   319→      <div className="mt-4 space-y-1.5">
+   320→        <Label className="text-xs text-muted-foreground">
+   321→          Question text
+   322→        </Label>
+   323→        <Textarea
+   324→          value={text}
+   325→          onChange={(e) => setText(e.target.value)}
+   326→          rows={3}
+   327→          placeholder="Type the question..."
+   328→        />
+   329→      </div>
+   330→
+   331→      <div className="mt-4 space-y-2">
+   332→        <p className="text-xs uppercase tracking-wider text-muted-foreground">
+   333→          Options · Select correct
+   334→        </p>
+   335→        <RadioGroup
+   336→          value={correct}
+   337→          onValueChange={(v) => setCorrect(v as typeof correct)}
+   338→          className="gap-2"
+   339→        >
+   340→          {opts.map((o, i) => {
+   341→            const letter = ["A", "B", "C", "D"][i] as "A" | "B" | "C" | "D";
+   342→            return (
+   343→              <div
+   344→                key={letter}
+   345→                className={cn(
+   346→                  "flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors",
+   347→                  correct === letter
+   348→                    ? "border-violet-400/40 bg-violet-500/10"
+   349→                    : "border-black/10 bg-muted/30 dark:border-white/10",
+   350→                )}
+   351→              >
+   352→                <RadioGroupItem value={letter} id={`opt-${letter}`} />
+   353→                <Label
+   354→                  htmlFor={`opt-${letter}`}
+   355→                  className="w-6 text-center font-semibold text-violet-700 dark:text-violet-300"
+   356→                >
+   357→                  {letter}
+   358→                </Label>
+   359→                <Input
+   360→                  value={o}
+   361→                  onChange={(e) => {
+   362→                    const next = [...opts];
+   363→                    next[i] = e.target.value;
+   364→                    setOpts(next as typeof opts);
+   365→                  }}
+   366→                  className="h-9 flex-1 border-0 bg-transparent px-1 focus-visible:ring-0"
+   367→                  placeholder={`Option ${letter}`}
+   368→                />
+   369→              </div>
+   370→            );
+   371→          })}
+   372→        </RadioGroup>
+   373→      </div>
+   374→
+   375→      <div className="mt-4 space-y-1.5">
+   376→        <Label className="text-xs text-muted-foreground">Explanation</Label>
+   377→        <Textarea
+   378→          value={explanation}
+   379→          onChange={(e) => setExplanation(e.target.value)}
+   380→          rows={2}
+   381→          placeholder="Shown to candidate after submission"
+   382→        />
+   383→      </div>
+   384→
+   385→      <div className="mt-5 flex flex-wrap gap-2">
+   386→        <Button
+   387→          disabled={!valid}
+   388→          className="h-10 rounded-full bg-violet-500 px-5 text-white hover:bg-violet-600 disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-600"
+   389→        >
+   390→          <Plus className="mr-1.5 h-4 w-4" />
+   391→          Add Question
+   392→        </Button>
+   393→        <Button
+   394→          variant="outline"
+   395→          onClick={() => setBulkOpen(true)}
+   396→          className="h-10 rounded-full"
+   397→        >
+   398→          <Upload className="mr-1.5 h-4 w-4" />
+   399→          Bulk Upload CSV
+   400→        </Button>
+   401→        <Button
+   402→          variant="ghost"
+   403→          onClick={() => downloadCsvTemplate("aptitude")}
+   404→          className="h-10 rounded-full text-muted-foreground"
+   405→        >
+   406→          <FileText className="mr-1.5 h-4 w-4" />
+   407→          Download template
+   408→        </Button>
+   409→      </div>
+   410→
+   411→      <BulkUploadDialog
+   412→        open={bulkOpen}
+   413→        onOpenChange={setBulkOpen}
+   414→        kind="aptitude"
+   415→      />
+   416→    </div>
+   417→  );
+   418→}
+   419→
+   420→function AptitudeList() {
+   421→  return (
+   422→    <div className="overflow-hidden rounded-lg border border-black/10 bg-background shadow-sm dark:border-white/10">
+   423→      <div className="flex items-center justify-between border-b border-black/5 px-5 py-3 dark:border-white/5">
+   424→        <div>
+   425→          <p className="text-sm font-medium">Added questions</p>
+   426→          <p className="text-xs text-muted-foreground">
+   427→            {APT_QUESTIONS.length} questions in this campaign
+   428→          </p>
+   429→        </div>
+   430→        <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-700 dark:text-violet-300">
+   431→          {APT_QUESTIONS.length} total
+   432→        </span>
+   433→      </div>
+   434→      <div className="max-h-[680px] overflow-y-auto scrollbar-custom">
+   435→        {APT_QUESTIONS.map((q) => (
+   436→          <div
+   437→            key={q.id}
+   438→            className="border-b border-black/5 px-5 py-4 transition-colors hover:bg-muted/30 dark:border-white/5"
+   439→          >
+   440→            <div className="flex items-start justify-between gap-3">
+   441→              <div className="flex flex-wrap items-center gap-2">
+   442→                <Tag tag={q.category} tone="violet" />
+   443→                <Tag tag={q.subTopic} tone="slate" />
+   444→                <Tag tag={q.difficulty} tone={difficultyTone(q.difficulty)} />
+   445→              </div>
+   446→              <div className="flex items-center gap-1">
+   447→                <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-violet-700 dark:hover:text-violet-300">
+   448→                  <Pencil className="h-3.5 w-3.5" />
+   449→                </button>
+   450→                <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-rose-600 dark:hover:text-rose-300">
+   451→                  <Trash2 className="h-3.5 w-3.5" />
+   452→                </button>
+   453→              </div>
+   454→            </div>
+   455→            <p className="mt-2 text-sm font-medium text-foreground/90">
+   456→              {q.text}
+   457→            </p>
+   458→            <div className="mt-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+   459→              {q.options.map((o, i) => {
+   460→                const letter = ["A", "B", "C", "D"][i];
+   461→                const isCorrect = letter === q.correct;
+   462→                return (
+   463→                  <div
+   464→                    key={letter}
+   465→                    className={cn(
+   466→                      "flex items-center gap-2 rounded-md px-2 py-1 text-xs",
+   467→                      isCorrect
+   468→                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+   469→                        : "text-muted-foreground",
+   470→                    )}
+   471→                  >
+   472→                    <span className="font-mono font-semibold">{letter}.</span>
+   473→                    {o}
+   474→                    {isCorrect && (
+   475→                      <span className="ml-auto inline-flex items-center gap-1">
+   476→                        <Check className="h-3 w-3" />
+   477→                        correct
+   478→                      </span>
+   479→                    )}
+   480→                  </div>
+   481→                );
+   482→              })}
+   483→            </div>
+   484→            <p className="mt-2 text-xs text-muted-foreground">
+   485→              <span className="text-violet-700 dark:text-violet-300">Explanation:</span>{" "}
+   486→              {q.explanation}
+   487→            </p>
+   488→          </div>
+   489→        ))}
+   490→      </div>
+   491→    </div>
+   492→  );
+   493→}
+   494→
+   495→/* ---------- Coding form ---------- */
+   496→
+   497→function CodingForm() {
+   498→  const [title, setTitle] = useState("");
+   499→  const [diff, setDiff] = useState("");
+   500→  const [type, setType] = useState<"DSA" | "SQL">("DSA");
+   501→  const [statement, setStatement] = useState("");
+   502→  const [signatures, setSignatures] = useState("");
+   503→  const [visibleTests, setVisibleTests] = useState(3);
+   504→  const [hiddenTests, setHiddenTests] = useState(7);
+   505→  const [timeLimit, setTimeLimit] = useState(1000);
+   506→  const [memoryLimit, setMemoryLimit] = useState(256);
+   507→  const [schema, setSchema] = useState("");
+   508→  const [bulkOpen, setBulkOpen] = useState(false);
+   509→
+   510→  const valid =
+   511→    title.trim() && diff && statement.trim() && signatures.trim();
+   512→
+   513→  return (
+   514→    <div className="rounded-lg border border-black/10 bg-background p-6 shadow-sm dark:border-white/10">
+   515→      <div className="flex items-center gap-2">
+   516→        <Terminal className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+   517→        <h3 className="text-sm font-medium">Add a coding problem</h3>
+   518→      </div>
+   519→
+   520→      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+   521→        <div className="space-y-1.5">
+   522→          <Label className="text-xs text-muted-foreground">Title</Label>
+   523→          <Input
+   524→            value={title}
+   525→            onChange={(e) => setTitle(e.target.value)}
+   526→            placeholder="e.g. Two Sum (Sorted)"
+   527→            className="h-10"
+   528→          />
+   529→        </div>
+   530→        <div className="space-y-1.5">
+   531→          <Label className="text-xs text-muted-foreground">Difficulty</Label>
+   532→          <Select value={diff} onValueChange={setDiff}>
+   533→            <SelectTrigger className="w-full">
+   534→              <SelectValue placeholder="Select difficulty" />
+   535→            </SelectTrigger>
+   536→            <SelectContent>
+   537→              <SelectItem value="Easy">Easy</SelectItem>
+   538→              <SelectItem value="Medium">Medium</SelectItem>
+   539→              <SelectItem value="Hard">Hard</SelectItem>
+   540→            </SelectContent>
+   541→          </Select>
+   542→        </div>
+   543→      </div>
+   544→
+   545→      <div className="mt-4 space-y-1.5">
+   546→        <Label className="text-xs text-muted-foreground">Type</Label>
+   547→        <RadioGroup
+   548→          value={type}
+   549→          onValueChange={(v) => setType(v as "DSA" | "SQL")}
+   550→          className="grid grid-cols-2 gap-2"
+   551→        >
+   552→          {(
+   553→            [
+   554→              { v: "DSA", label: "DSA Problem", icon: <Code2 className="h-4 w-4" /> },
+   555→              { v: "SQL", label: "SQL Problem", icon: <Database className="h-4 w-4" /> },
+   556→            ] as const
+   557→          ).map((o) => (
+   558→            <label
+   559→              key={o.v}
+   560→              className={cn(
+   561→                "flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm transition-colors",
+   562→                type === o.v
+   563→                  ? "border-violet-400/40 bg-violet-500/10 text-violet-700 dark:text-violet-200"
+   564→                  : "border-black/10 bg-muted/30 hover:bg-muted/50 dark:border-white/10",
+   565→              )}
+   566→            >
+   567→              <RadioGroupItem value={o.v} />
+   568→              <span className="text-muted-foreground">{o.icon}</span>
+   569→              {o.label}
+   570→            </label>
+   571→          ))}
+   572→        </RadioGroup>
+   573→      </div>
+   574→
+   575→      <div className="mt-4 space-y-1.5">
+   576→        <Label className="text-xs text-muted-foreground">
+   577→          Problem statement (markdown)
+   578→        </Label>
+   579→        <Textarea
+   580→          value={statement}
+   581→          onChange={(e) => setStatement(e.target.value)}
+   582→          rows={5}
+   583→          placeholder="Describe the problem, constraints, examples..."
+   584→          className="font-mono text-sm"
+   585→        />
+   586→      </div>
+   587→
+   588→      <div className="mt-4 space-y-1.5">
+   589→        <Label className="text-xs text-muted-foreground">
+   590→          Function signatures (one per line)
+   591→        </Label>
+   592→        <Textarea
+   593→          value={signatures}
+   594→          onChange={(e) => setSignatures(e.target.value)}
+   595→          rows={3}
+   596→          placeholder="function solve(arr: number[]): number&#10;# python: def solve(arr: list[int]) -> list[int]"
+   597→          className="font-mono text-sm"
+   598→        />
+   599→      </div>
+   600→
+   601→      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+   602→        <div className="space-y-1.5">
+   603→          <Label className="text-xs text-muted-foreground">
+   604→            Visible test cases
+   605→          </Label>
+   606→          <Input
+   607→            type="number"
+   608→            min={1}
+   609→            max={10}
+   610→            value={visibleTests}
+   611→            onChange={(e) => setVisibleTests(Number(e.target.value))}
+   612→            className="h-10"
+   613→          />
+   614→        </div>
+   615→        <div className="space-y-1.5">
+   616→          <Label className="text-xs text-muted-foreground">
+   617→            Hidden test cases
+   618→          </Label>
+   619→          <Input
+   620→            type="number"
+   621→            min={0}
+   622→            max={20}
+   623→            value={hiddenTests}
+   624→            onChange={(e) => setHiddenTests(Number(e.target.value))}
+   625→            className="h-10"
+   626→          />
+   627→        </div>
+   628→        <div className="space-y-1.5">
+   629→          <Label className="text-xs text-muted-foreground">
+   630→            Time limit (ms)
+   631→          </Label>
+   632→          <Input
+   633→            type="number"
+   634→            min={100}
+   635→            value={timeLimit}
+   636→            onChange={(e) => setTimeLimit(Number(e.target.value))}
+   637→            className="h-10"
+   638→          />
+   639→        </div>
+   640→        <div className="space-y-1.5">
+   641→          <Label className="text-xs text-muted-foreground">
+   642→            Memory limit (KB)
+   643→          </Label>
+   644→          <Input
+   645→            type="number"
+   646→            min={64}
+   647→            value={memoryLimit}
+   648→            onChange={(e) => setMemoryLimit(Number(e.target.value))}
+   649→            className="h-10"
+   650→          />
+   651→        </div>
+   652→      </div>
+   653→
+   654→      {/* SQL schema conditional */}
+   655→      {type === "SQL" && (
+   656→        <div className="mt-4 space-y-1.5">
+   657→          <Label className="text-xs text-muted-foreground">
+   658→            Schema setup SQL (DDL + seed)
+   659→          </Label>
+   660→          <Textarea
+   661→            value={schema}
+   662→            onChange={(e) => setSchema(e.target.value)}
+   663→            rows={5}
+   664→            placeholder="CREATE TABLE ..."
+   665→            className="font-mono text-sm"
+   666→          />
+   667→        </div>
+   668→      )}
+   669→
+   670→      <div className="mt-5 flex flex-wrap gap-2">
+   671→        <Button
+   672→          disabled={!valid}
+   673→          className="h-10 rounded-full bg-violet-500 px-5 text-white hover:bg-violet-600 disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-600"
+   674→        >
+   675→          <Plus className="mr-1.5 h-4 w-4" />
+   676→          Add Coding Problem
+   677→        </Button>
+   678→        <Button
+   679→          variant="outline"
+   680→          onClick={() => setBulkOpen(true)}
+   681→          className="h-10 rounded-full"
+   682→        >
+   683→          <Upload className="mr-1.5 h-4 w-4" />
+   684→          Bulk Upload CSV
+   685→        </Button>
+   686→        <Button
+   687→          variant="ghost"
+   688→          onClick={() => downloadCsvTemplate("coding")}
+   689→          className="h-10 rounded-full text-muted-foreground"
+   690→        >
+   691→          <FileText className="mr-1.5 h-4 w-4" />
+   692→          Download template
+   693→        </Button>
+   694→      </div>
+   695→
+   696→      <BulkUploadDialog
+   697→        open={bulkOpen}
+   698→        onOpenChange={setBulkOpen}
+   699→        kind="coding"
+   700→      />
+   701→    </div>
+   702→  );
+   703→}
+   704→
+   705→function CodingList() {
+   706→  return (
+   707→    <div className="overflow-hidden rounded-lg border border-black/10 bg-background shadow-sm dark:border-white/10">
+   708→      <div className="flex items-center justify-between border-b border-black/5 px-5 py-3 dark:border-white/5">
+   709→        <div>
+   710→          <p className="text-sm font-medium">Added problems</p>
+   711→          <p className="text-xs text-muted-foreground">
+   712→            {CODING_PROBLEMS.length} problems in this campaign
+   713→          </p>
+   714→        </div>
+   715→        <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-700 dark:text-sky-300">
+   716→          {CODING_PROBLEMS.length} total
+   717→        </span>
+   718→      </div>
+   719→      <Table>
+   720→        <TableHeader>
+   721→          <TableRow className="border-black/10 hover:bg-transparent dark:border-white/10">
+   722→            <TableHead className="pl-5">Title</TableHead>
+   723→            <TableHead className="hidden sm:table-cell">Type</TableHead>
+   724→            <TableHead>Difficulty</TableHead>
+   725→            <TableHead className="hidden md:table-cell">Tests</TableHead>
+   726→            <TableHead className="pr-5 text-right">Actions</TableHead>
+   727→          </TableRow>
+   728→        </TableHeader>
+   729→        <TableBody>
+   730→          {CODING_PROBLEMS.map((p) => (
+   731→            <TableRow
+   732→              key={p.id}
+   733→              className="border-black/5 hover:bg-muted/30 dark:border-white/5"
+   734→            >
+   735→              <TableCell className="pl-5 py-3">
+   736→                <p className="text-sm font-medium">{p.title}</p>
+   737→                <p className="truncate text-xs text-muted-foreground">
+   738→                  {p.statement}
+   739→                </p>
+   740→              </TableCell>
+   741→              <TableCell className="hidden sm:table-cell">
+   742→                <Tag
+   743→                  tag={p.type}
+   744→                  tone={p.type === "SQL" ? "amber" : "violet"}
+   745→                  icon={
+   746→                    p.type === "SQL" ? (
+   747→                      <Database className="h-3 w-3" />
+   748→                    ) : (
+   749→                      <Code2 className="h-3 w-3" />
+   750→                    )
+   751→                  }
+   752→                />
+   753→              </TableCell>
+   754→              <TableCell>
+   755→                <Tag
+   756→                  tag={p.difficulty}
+   757→                  tone={difficultyTone(p.difficulty)}
+   758→                />
+   759→              </TableCell>
+   760→              <TableCell className="hidden text-xs text-muted-foreground md:table-cell">
+   761→                {p.visibleTests} visible · {p.hiddenTests} hidden
+   762→              </TableCell>
+   763→              <TableCell className="pr-5 text-right">
+   764→                <div className="flex items-center justify-end gap-1">
+   765→                  <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-violet-700 dark:hover:text-violet-300">
+   766→                    <Pencil className="h-3.5 w-3.5" />
+   767→                  </button>
+   768→                  <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-rose-600 dark:hover:text-rose-300">
+   769→                    <Trash2 className="h-3.5 w-3.5" />
+   770→                  </button>
+   771→                </div>
+   772→              </TableCell>
+   773→            </TableRow>
+   774→          ))}
+   775→        </TableBody>
+   776→      </Table>
+   777→    </div>
+   778→  );
+   779→}
+   780→
+   781→/* ---------- Bulk upload dialog (shared, two variants) ---------- */
+   782→
+   783→function BulkUploadDialog({
+   784→  open,
+   785→  onOpenChange,
+   786→  kind,
+   787→}: {
+   788→  open: boolean;
+   789→  onOpenChange: (v: boolean) => void;
+   790→  kind: "aptitude" | "coding";
+   791→}) {
+   792→  const [fileName, setFileName] = useState<string | null>(null);
+   793→  const [stage, setStage] = useState<"select" | "preview" | "done">("select");
+   794→  const [parsing, setParsing] = useState(false);
+   795→
+   796→  const isApt = kind === "aptitude";
+   797→
+   798→  const reset = () => {
+   799→    setFileName(null);
+   800→    setStage("select");
+   801→    setParsing(false);
+   802→  };
+   803→
+   804→  const close = () => {
+   805→    onOpenChange(false);
+   806→    setTimeout(reset, 250);
+   807→  };
+   808→
+   809→  const onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+   810→    const f = e.target.files?.[0];
+   811→    if (!f) return;
+   812→    setFileName(f.name);
+   813→    setParsing(true);
+   814→    setTimeout(() => {
+   815→      setParsing(false);
+   816→      setStage("preview");
+   817→    }, 700);
+   818→  };
+   819→
+   820→  const onConfirmImport = () => {
+   821→    setStage("done");
+   822→    setTimeout(close, 1500);
+   823→  };
+   824→
+   825→  // Mock preview rows shown after a "parse"
+   826→  const previewRows = isApt
+   827→    ? [
+   828→        { c1: "Quant", c2: "Time & Work", c3: "Medium", c4: "If 5 men build a wall in 10 days..." },
+   829→        { c1: "Logical", c2: "Series", c3: "Easy", c4: "Find the next: 3, 6, 11, 18..." },
+   830→        { c1: "Verbal", c2: "Synonyms", c3: "Easy", c4: "Synonym of 'Tenacious'" },
+   831→        { c1: "DI", c2: "Pie charts", c3: "Hard", c4: "If pie shows 30/20/50 split..." },
+   832→      ]
+   833→    : [
+   834→        { c1: "DSA", c2: "Easy", c3: "3/7", c4: "Reverse a Linked List" },
+   835→        { c1: "DSA", c2: "Medium", c3: "3/7", c4: "Kth Largest Element" },
+   836→        { c1: "SQL", c2: "Medium", c3: "3/7", c4: "Department Top 3 Salaries" },
+   837→        { c1: "DSA", c2: "Hard", c3: "3/7", c4: "Word Ladder II" },
+   838→      ];
+   839→
+   840→  return (
+   841→    <Dialog open={open} onOpenChange={(o) => !o && close()}>
+   842→      <DialogContent className="max-w-lg border-black/10 bg-card dark:border-white/10">
+   843→        <DialogHeader>
+   844→          <DialogTitle className="flex items-center gap-2">
+   845→            <FileUp className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+   846→            Bulk upload {isApt ? "aptitude questions" : "coding problems"}
+   847→          </DialogTitle>
+   848→          <DialogDescription>
+   849→            Upload a CSV file. We&apos;ll parse it, show a preview, and let you
+   850→            confirm before importing.
+   851→          </DialogDescription>
+   852→        </DialogHeader>
+   853→
+   854→        {/* Stage 1: file picker */}
+   855→        {stage === "select" && (
+   856→          <div className="mt-3 space-y-3">
+   857→            <label
+   858→              htmlFor={`bulk-${kind}`}
+   859→              className={cn(
+   860→                "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-black/15 bg-muted/30 px-4 py-8 text-center transition-colors hover:border-violet-400/60 hover:bg-violet-500/5 dark:border-white/15",
+   861→                fileName && "border-violet-400/60 bg-violet-500/5",
+   862→              )}
+   863→            >
+   864→              <div className="grid h-10 w-10 place-items-center rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-300">
+   865→                {parsing ? (
+   866→                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-violet-400/40 border-t-violet-500" />
+   867→                ) : fileName ? (
+   868→                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+   869→                ) : (
+   870→                  <Upload className="h-5 w-5" />
+   871→                )}
+   872→              </div>
+   873→              <div>
+   874→                <p className="text-sm font-medium">
+   875→                  {parsing
+   876→                    ? "Parsing CSV..."
+   877→                    : fileName
+   878→                      ? fileName
+   879→                      : "Click to choose a CSV file"}
+   880→                </p>
+   881→                <p className="mt-0.5 text-xs text-muted-foreground">
+   882→                  {parsing
+   883→                    ? "Validating column headers..."
+   884→                    : "Max 5MB · UTF-8 encoded · .csv only"}
+   885→                </p>
+   886→              </div>
+   887→              <input
+   888→                id={`bulk-${kind}`}
+   889→                type="file"
+   890→                accept=".csv,text/csv"
+   891→                className="hidden"
+   892→                onChange={onFileSelected}
+   893→                disabled={parsing}
+   894→              />
+   895→            </label>
+   896→
+   897→            <div className="rounded-lg border border-black/5 bg-muted/30 p-3 text-xs text-muted-foreground dark:border-white/5">
+   898→              <p className="font-medium text-foreground/80">Required columns</p>
+   899→              <code className="mt-1.5 block overflow-x-auto whitespace-pre font-mono text-[11px] text-violet-700 dark:text-violet-300">
+   900→                {isApt
+   901→                  ? "category,sub_topic,difficulty,question_text,option_a,option_b,option_c,option_d,correct,explanation"
+   902→                  : "title,difficulty,type,statement,signatures,visible_tests,hidden_tests,time_limit_ms,memory_limit_kb,schema"}
+   903→              </code>
+   904→              <p className="mt-2">
+   905→                Don&apos;t have a CSV yet?{" "}
+   906→                <button
+   907→                  type="button"
+   908→                  onClick={() => downloadCsvTemplate(kind)}
+   909→                  className="font-medium text-violet-700 hover:underline dark:text-violet-300"
+   910→                >
+   911→                  <Download className="mr-1 inline h-3 w-3" />
+   912→                  Download the template
+   913→                </button>{" "}
+   914→                to fill in.
+   915→              </p>
+   916→            </div>
+   917→          </div>
+   918→        )}
+   919→
+   920→        {/* Stage 2: preview */}
+   921→        {stage === "preview" && (
+   922→          <div className="mt-3 space-y-3">
+   923→            <div className="flex items-center justify-between">
+   924→              <div>
+   925→                <p className="text-sm font-medium">Preview</p>
+   926→                <p className="text-xs text-muted-foreground">
+   927→                  Found <span className="font-semibold text-foreground/80">{previewRows.length} valid rows</span> · 0 errors
+   928→                </p>
+   929→              </div>
+   930→              <button
+   931→                onClick={() => setStage("select")}
+   932→                className="inline-flex items-center gap-1 rounded-full border border-black/10 px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted dark:border-white/10"
+   933→              >
+   934→                <X className="h-3 w-3" />
+   935→                Pick another file
+   936→              </button>
+   937→            </div>
+   938→            <div className="max-h-64 overflow-y-auto rounded-lg border border-black/5 dark:border-white/5">
+   939→              <Table>
+   940→                <TableHeader>
+   941→                  <TableRow className="border-black/5 hover:bg-transparent dark:border-white/5">
+   942→                    {isApt ? (
+   943→                      <>
+   944→                        <TableHead className="pl-3 text-xs">Category</TableHead>
+   945→                        <TableHead className="text-xs">Sub-topic</TableHead>
+   946→                        <TableHead className="text-xs">Diff</TableHead>
+   947→                        <TableHead className="pr-3 text-xs">Question</TableHead>
+   948→                      </>
+   949→                    ) : (
+   950→                      <>
+   951→                        <TableHead className="pl-3 text-xs">Type</TableHead>
+   952→                        <TableHead className="text-xs">Diff</TableHead>
+   953→                        <TableHead className="text-xs">Tests</TableHead>
+   954→                        <TableHead className="pr-3 text-xs">Title</TableHead>
+   955→                      </>
+   956→                    )}
+   957→                  </TableRow>
+   958→                </TableHeader>
+   959→                <TableBody>
+   960→                  {previewRows.map((r, i) => (
+   961→                    <TableRow
+   962→                      key={i}
+   963→                      className="border-black/5 dark:border-white/5"
+   964→                    >
+   965→                      {isApt ? (
+   966→                        <>
+   967→                          <TableCell className="pl-3 py-2 text-xs">{r.c1}</TableCell>
+   968→                          <TableCell className="py-2 text-xs">{r.c2}</TableCell>
+   969→                          <TableCell className="py-2 text-xs">{r.c3}</TableCell>
+   970→                          <TableCell className="pr-3 py-2 text-xs text-muted-foreground">
+   971→                            <span className="line-clamp-1">{r.c4}</span>
+   972→                          </TableCell>
+   973→                        </>
+   974→                      ) : (
+   975→                        <>
+   976→                          <TableCell className="pl-3 py-2 text-xs">{r.c1}</TableCell>
+   977→                          <TableCell className="py-2 text-xs">{r.c2}</TableCell>
+   978→                          <TableCell className="py-2 text-xs font-mono">{r.c3}</TableCell>
+   979→                          <TableCell className="pr-3 py-2 text-xs font-medium">
+   980→                            <span className="line-clamp-1">{r.c4}</span>
+   981→                          </TableCell>
+   982→                        </>
+   983→                      )}
+   984→                    </TableRow>
+   985→                  ))}
+   986→                </TableBody>
+   987→              </Table>
+   988→            </div>
+   989→          </div>
+   990→        )}
+   991→
+   992→        {/* Stage 3: done */}
+   993→        {stage === "done" && (
+   994→          <div className="mt-3 flex flex-col items-center justify-center gap-2 py-6 text-center">
+   995→            <div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300">
+   996→              <CheckCircle2 className="h-6 w-6" />
+   997→            </div>
+   998→            <p className="text-sm font-medium">Imported successfully</p>
+   999→            <p className="text-xs text-muted-foreground">
+  1000→              {previewRows.length} {isApt ? "questions" : "problems"} added to
+  1001→              this campaign.
+  1002→            </p>
+  1003→          </div>
+  1004→        )}
+  1005→
+  1006→        <DialogFooter className="mt-4 flex gap-2">
+  1007→          {stage !== "done" && (
+  1008→            <Button
+  1009→              variant="ghost"
+  1010→              onClick={close}
+  1011→              className="text-muted-foreground"
+  1012→              disabled={parsing}
+  1013→            >
+  1014→              Cancel
+  1015→            </Button>
+  1016→          )}
+  1017→          {stage === "preview" && (
+  1018→            <Button
+  1019→              onClick={onConfirmImport}
+  1020→              className="bg-violet-500 text-white hover:bg-violet-600"
+  1021→            >
+  1022→              <Check className="mr-1.5 h-4 w-4" />
+  1023→              Import {previewRows.length} {isApt ? "questions" : "problems"}
+  1024→            </Button>
+  1025→          )}
+  1026→          {stage === "done" && (
+  1027→            <Button onClick={close} className="bg-violet-500 text-white hover:bg-violet-600">
+  1028→              Done
+  1029→            </Button>
+  1030→          )}
+  1031→        </DialogFooter>
+  1032→      </DialogContent>
+  1033→    </Dialog>
+  1034→  );
+  1035→}
+  1036→
+  1037→/* ---------- CSV template downloader ---------- */
+  1038→
+  1039→/**
+  1040→ * Build a CSV template (with header row + 2 example rows) for either
+  1041→ * aptitude or coding, then trigger a browser download. Pure client-side —
+  1042→ * no backend call. The user fills this in and re-uploads via the Bulk
+  1043→ * Upload dialog.
+  1044→ */
+  1045→function downloadCsvTemplate(kind: "aptitude" | "coding") {
+  1046→  if (typeof window === "undefined") return;
+  1047→  const isApt = kind === "aptitude";
+  1048→  const header = isApt
+  1049→    ? [
+  1050→        "category",
+  1051→        "sub_topic",
+  1052→        "difficulty",
+  1053→        "question_text",
+  1054→        "option_a",
+  1055→        "option_b",
+  1056→        "option_c",
+  1057→        "option_d",
+  1058→        "correct",
+  1059→        "explanation",
+  1060→      ].join(",")
+  1061→    : [
+  1062→        "title",
+  1063→        "difficulty",
+  1064→        "type",
+  1065→        "statement",
+  1066→        "signatures",
+  1067→        "visible_tests",
+  1068→        "hidden_tests",
+  1069→        "time_limit_ms",
+  1070→        "memory_limit_kb",
+  1071→        "schema",
+  1072→      ].join(",");
+  1073→
+  1074→  // Example rows. Comma-bearing fields are quoted and inner quotes escaped,
+  1075→  // per RFC 4180.
+  1076→  const esc = (s: string) => `"${s.replace(/"/g, '""')}"`;
+  1077→  const rows = isApt
+  1078→    ? [
+  1079→        [
+  1080→          "Quant",
+  1081→          "Time & Work",
+  1082→          "Medium",
+  1083→          esc("If 6 men can complete a task in 12 days, how long will 9 men take?"),
+  1084→          esc("8 days"),
+  1085→          esc("9 days"),
+  1086→          esc("6 days"),
+  1087→          esc("18 days"),
+  1088→          "A",
+  1089→          esc("Total man-days = 6 × 12 = 72. With 9 men, time = 72 / 9 = 8 days."),
+  1090→        ].join(","),
+  1091→        [
+  1092→          "Logical",
+  1093→          "Series",
+  1094→          "Easy",
+  1095→          esc("Find the next term: 2, 6, 12, 20, 30, ?"),
+  1096→          esc("40"),
+  1097→          esc("42"),
+  1098→          esc("44"),
+  1099→          esc("46"),
+  1100→          "B",
+  1101→          esc("Differences: 4, 6, 8, 10, 12. Next term = 30 + 12 = 42."),
+  1102→        ].join(","),
+  1103→      ]
+  1104→    : [
+  1105→        [
+  1106→          esc("Two Sum (Sorted)"),
+  1107→          "Easy",
+  1108→          "DSA",
+  1109→          esc("Given a sorted array of integers and a target, return the 1-based indices of the two numbers that add to target."),
+  1110→          esc("function twoSum(arr: number[], target: number): number[]"),
+  1111→          "3",
+  1112→          "7",
+  1113→          "1000",
+  1114→          "256",
+  1115→          "",
+  1116→        ].join(","),
+  1117→        [
+  1118→          esc("Top 3 Products by Revenue"),
+  1119→          "Medium",
+  1120→          "SQL",
+  1121→          esc("Given orders(order_id, product_id, qty, price, created_at), return the top 3 products by total revenue in the last 30 days."),
+  1122→          esc("SELECT product_id, SUM(qty*price) AS revenue ..."),
+  1123→          "3",
+  1124→          "7",
+  1125→          "2000",
+  1126→          "512",
+  1127→          esc("CREATE TABLE orders (order_id INT PRIMARY KEY, product_id INT, qty INT, price DECIMAL(10,2), created_at TIMESTAMP);"),
+  1128→        ].join(","),
+  1129→      ];
+  1130→
+  1131→  const csv = [header, ...rows].join("\n");
+  1132→  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  1133→  const url = URL.createObjectURL(blob);
+  1134→  const a = document.createElement("a");
+  1135→  a.href = url;
+  1136→  a.download = isApt
+  1137→    ? "aptitude_questions_template.csv"
+  1138→    : "coding_problems_template.csv";
+  1139→  document.body.appendChild(a);
+  1140→  a.click();
+  1141→  document.body.removeChild(a);
+  1142→  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  1143→}
+  1144→
+  1145→/* ---------- helpers ---------- */
+  1146→
+  1147→function difficultyTone(d: string) {
+  1148→  if (d === "Easy") return "emerald" as const;
+  1149→  if (d === "Medium") return "amber" as const;
+  1150→  return "rose" as const;
+  1151→}
+  1152→
+  1153→function Tag({
+  1154→  tag,
+  1155→  tone,
+  1156→  icon,
+  1157→}: {
+  1158→  tag: string;
+  1159→  tone: "violet" | "emerald" | "amber" | "rose" | "sky" | "slate";
+  1160→  icon?: React.ReactNode;
+  1161→}) {
+  1162→  const tones: Record<string, string> = {
+  1163→    violet: "border-violet-400/30 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+  1164→    emerald: "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  1165→    amber: "border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  1166→    rose: "border-rose-400/30 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  1167→    sky: "border-sky-400/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  1168→    slate: "border-black/15 bg-muted/40 text-muted-foreground dark:border-white/15",
+  1169→  };
+  1170→  return (
+  1171→    <span
+  1172→      className={cn(
+  1173→        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium",
+  1174→        tones[tone],
+  1175→      )}
+  1176→    >
+  1177→      {icon}
+  1178→      {tag}
+  1179→    </span>
+  1180→  );
+  1181→}
+  1182→

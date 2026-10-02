@@ -1,0 +1,1098 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import { useState } from "react";
+     4→     4→import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+     5→     5→import {
+     6→     6→  ArrowRight,
+     7→     7→  BarChart3,
+     8→     8→  Bell,
+     9→     9→  Bot,
+    10→    10→  Building2,
+    11→    11→  Calendar,
+    12→    12→  CheckCircle2,
+    13→    13→  ChevronDown,
+    14→    14→  Clock,
+    15→    15→  FileSearch,
+    16→    16→  FileText,
+    17→    17→  Filter,
+    18→    18→  Gauge,
+    19→    19→  LineChart,
+    20→    20→  Link2,
+    21→    21→  ListChecks,
+    22→    22→  Mail,
+    23→    23→  Mailbox,
+    24→    24→  Megaphone,
+    25→    25→  Quote,
+    26→    26→  ScanFace,
+    27→    27→  Send,
+    28→    28→  Shield,
+    29→    29→  ShieldCheck,
+    30→    30→  Target,
+    31→    31→  TrendingDown,
+    32→    32→  TrendingUp,
+    33→    33→  Users,
+    34→    34→  Video,
+    35→    35→  Zap,
+    36→    36→} from "lucide-react";
+    37→    37→import {
+    38→    38→  GlowCard,
+    39→    39→  Marquee,
+    40→    40→  SectionHeading,
+    41→    41→  StaggeredReveal,
+    42→    42→  revealItem,
+    43→    43→} from "@/components/shared/primitives";
+    44→    44→import { Button } from "@/components/ui/button";
+    45→    45→import { Badge } from "@/components/ui/badge";
+    46→    46→import { useNav } from "@/lib/store";
+    47→    47→import { cn } from "@/lib/utils";
+    48→    48→
+    49→    49→const COMPANY_LOGOS = [
+    50→    50→  "Acme Corp", "TechStart", "InnovateCo", "Razorpay", "Cred", "Zomato",
+    51→    51→  "Postman", "Freshworks", "Atlassian", "Stripe", "Linear", "Notion",
+    52→    52→];
+    53→    53→
+    54→    54→const ROI_STATS = [
+    55→    55→  { value: "87%", label: "Less screening time", sub: "vs. manual resume review", icon: Clock, tone: "violet" },
+    56→    56→  { value: "10×", label: "Faster shortlisting", sub: "500 candidates → top 10 in 1 click", icon: Zap, tone: "amber" },
+    57→    57→  { value: "0", label: "Scheduling conflicts", sub: "AI runs interviews 24/7 async", icon: Calendar, tone: "emerald" },
+    58→    58→  { value: "20%", label: "Higher offer-accept", sub: "better role-fit from AI scoring", icon: TrendingUp, tone: "sky" },
+    59→    59→];
+    60→    60→
+    61→    61→const PAIN_POINTS = [
+    62→    62→  {
+    63→    63→    icon: FileSearch,
+    64→    64→    title: "Drowning in resumes",
+    65→    65→    desc: "Recruiters spend ~23 seconds per resume. 500 applicants = 3 hours of pure screening before a single call.",
+    66→    66→  },
+    67→    67→  {
+    68→    68→    icon: Calendar,
+    69→    69→    title: "Phone-screen scheduling hell",
+    70→    70→    desc: "Timezone back-and-forth, no-shows, reschedules. 30% of screening slots get wasted.",
+    71→    71→  },
+    72→    72→  {
+    73→    73→    icon: Shield,
+    74→    74→    title: "No integrity signal",
+    75→    75→    desc: "Tab-switching, off-screen help, proxy candidates. You hire the resume, not the person.",
+    76→    76→  },
+    77→    77→  {
+    78→    78→    icon: BarChart3,
+    79→    79→    title: "Gut-feel first rounds",
+    80→    80→    desc: "Different interviewers ask different questions. No apples-to-apples comparison across candidates.",
+    81→    81→  },
+    82→    82→];
+    83→    83→
+    84→    84→const FEATURES = [
+    85→    85→  {
+    86→    86→    icon: Link2,
+    87→    87→    title: "One public apply link per campaign",
+    88→    88→    desc: "Share on LinkedIn, Naukri, or email. Resumes flow in automatically. No manual data entry, no spreadsheet tracking.",
+    89→    89→    span: "lg:col-span-2",
+    90→    90→  },
+    91→    91→  {
+    92→    92→    icon: Bot,
+    93→    93→    title: "AI resume ranking",
+    94→    94→    desc: "Gemini scores each resume for job-fit % + ATS score. Candidates land in your leaderboard pre-sorted.",
+    95→    95→    span: "",
+    96→    96→  },
+    97→    97→  {
+    98→    98→    icon: Send,
+    99→    99→    title: "One-click shortlist + invites",
+   100→   100→    desc: "Pick top 10 → system auto-generates Candidate IDs + temp passwords → emails all 10 in 2 seconds.",
+   101→   101→    span: "",
+   102→   102→  },
+   103→   103→  {
+   104→   104→    icon: ShieldCheck,
+   105→   105→    title: "Strict 3-strike proctoring",
+   106→   106→    desc: "Mandatory fullscreen + camera. Tab switches, phones, extra persons detected. Webcam frames stored for review.",
+   107→   107→    span: "lg:col-span-2",
+   108→   108→  },
+   109→   109→  {
+   110→   110→    icon: Video,
+   111→   111→    title: "Live AI interviews",
+   112→   112→    desc: "3D avatar asks dynamic follow-ups. No human interviewer needed for first rounds.",
+   113→   113→    span: "",
+   114→   114→  },
+   115→   115→  {
+   116→   116→    icon: LineChart,
+   117→   117→    title: "Real-time leaderboard",
+   118→   118→    desc: "WebSocket-pushed scores per round. Integrity column flags violations before you waste time on a candidate.",
+   119→   119→    span: "",
+   120→   120→  },
+   121→   121→];
+   122→   122→
+   123→   123→const PIPELINE_STEPS = [
+   124→   124→  { icon: Building2, label: "Register company", note: "1-minute setup" },
+   125→   125→  { icon: Target, label: "Create campaign", note: "Pick role, deadline, rounds, weights" },
+   126→   126→  { icon: Link2, label: "Share apply link", note: "Auto-generated + QR code" },
+   127→   127→  { icon: Bot, label: "Resumes auto-analyzed", note: "Job-fit %, ATS score, skills" },
+   128→   128→  { icon: Send, label: "One-click shortlist", note: "Top N candidates → invite emails sent" },
+   129→   129→  { icon: Video, label: "Candidates take assessments", note: "Aptitude → Coding → Interview (proctored)" },
+   130→   130→  { icon: ListChecks, label: "Final selection", note: "Decision dropdown + CSV/PDF export" },
+   131→   131→];
+   132→   132→
+   133→   133→const COMPARISON = [
+   134→   134→  { label: "Time per 500 applicants (first round)", manual: "~40 hours", automated: "1 hour", winner: "automated" },
+   135→   135→  { label: "Scheduling conflicts", manual: "30% no-show rate", automated: "Zero (async AI)", winner: "automated" },
+   136→   136→  { label: "Interviewer bias", manual: "High. Gut feel", automated: "Standardized AI scoring", winner: "automated" },
+   137→   137→  { label: "Proctoring integrity", manual: "None", automated: "3-strike + webcam frames", winner: "automated" },
+   138→   138→  { label: "Cross-candidate comparison", manual: "Spreadsheet + notes", automated: "Ranked leaderboard + scores", winner: "automated" },
+   139→   139→  { label: "Cost per hire (first round)", manual: "$2,400+ (eng hours)", automated: "$180 (platform fee)", winner: "automated" },
+   140→   140→];
+   141→   141→
+   142→   142→const TESTIMONIALS = [
+   143→   143→  {
+   144→   144→    name: "Vikram Rao",
+   145→   145→    role: "Head of Talent · Acme Corp",
+   146→   146→    quote:
+   147→   147→      "We ran a 500-applicant campus drive in a single afternoon. The AI shortlist was tighter than our senior engineers' manual filter, and we saved 38 engineering hours that week.",
+   148→   148→    metric: "38 eng hours saved",
+   149→   149→  },
+   150→   150→  {
+   151→   151→    name: "Anjali Mehta",
+   152→   152→    role: "Talent Acquisition Lead · TechStart",
+   153→   153→    quote:
+   154→   154→      "The proctoring caught 3 candidates using phones off-screen. That alone paid for the platform. We would have hired one of them otherwise.",
+   155→   155→    metric: "3 integrity flags caught",
+   156→   156→  },
+   157→   157→  {
+   158→   158→    name: "Rohit Sharma",
+   159→   159→    role: "Recruiter · InnovateCo",
+   160→   160→    quote:
+   161→   161→      "One-click shortlist + auto invite emails is the killer feature. I used to spend 2 hours per drive copy-pasting credentials. Now it's one button.",
+   162→   162→    metric: "2 hrs → 1 click",
+   163→   163→  },
+   164→   164→  {
+   165→   165→    name: "Sneha Krishnan",
+   166→   166→    role: "HR Director · Razorpay",
+   167→   167→    quote:
+   168→   168→      "The 17-section report gives us a defensible audit trail for every hire. Legal loves it. Candidates who didn't make it get concrete feedback instead of silence.",
+   169→   169→    metric: "100% auditable",
+   170→   170→  },
+   171→   171→  {
+   172→   172→    name: "Karthik Iyer",
+   173→   173→    role: "Campus Hiring Manager · Cred",
+   174→   174→    quote:
+   175→   175→      "Went from 12% offer-accept to 21% after switching. The AI scores role-fit way better than our 30-min phone screens ever did.",
+   176→   176→    metric: "+9% accept rate",
+   177→   177→  },
+   178→   178→];
+   179→   179→
+   180→   180→const PRICING = [
+   181→   181→  {
+   182→   182→    name: "Starter",
+   183→   183→    monthly: 0,
+   184→   184→    desc: "For a single hiring drive.",
+   185→   185→    features: [
+   186→   186→      "1 active campaign",
+   187→   187→      "Up to 50 candidates",
+   188→   188→      "Public apply link + QR",
+   189→   189→      "AI resume ranking",
+   190→   190→      "1-click shortlist + invites",
+   191→   191→      "Email support",
+   192→   192→    ],
+   193→   193→    cta: "Start Free",
+   194→   194→    popular: false,
+   195→   195→  },
+   196→   196→  {
+   197→   197→    name: "Growth",
+   198→   198→    monthly: 299,
+   199→   199→    desc: "For ongoing hiring at scale.",
+   200→   200→    features: [
+   201→   201→      "Unlimited campaigns",
+   202→   202→      "Up to 500 candidates / mo",
+   203→   203→      "Strict proctoring + webcam frames",
+   204→   204→      "Live AI interviews",
+   205→   205→      "Real-time leaderboard",
+   206→   206→      "CSV / PDF export",
+   207→   207→      "Priority support",
+   208→   208→    ],
+   209→   209→    cta: "Start 14-day Trial",
+   210→   210→    popular: true,
+   211→   211→  },
+   212→   212→  {
+   213→   213→    name: "Enterprise",
+   214→   214→    monthly: null,
+   215→   215→    desc: "For high-volume & campus drives.",
+   216→   216→    features: [
+   217→   217→      "Unlimited candidates",
+   218→   218→      "Bulk resume upload (100s)",
+   219→   219→      "Custom question banks",
+   220→   220→      "Dedicated success manager",
+   221→   221→      "SSO + audit logs API",
+   222→   222→      "On-prem deployment option",
+   223→   223→      "SLA + custom integrations",
+   224→   224→    ],
+   225→   225→    cta: "Book a Demo",
+   226→   226→    popular: false,
+   227→   227→  },
+   228→   228→];
+   229→   229→
+   230→   230→const FAQ = [
+   231→   231→  {
+   232→   232→    q: "How does the AI rank candidates without bias?",
+   233→   233→    a: "Gemini 1.5 Flash evaluates each resume against the job description you provide. Scores are based on skill-match, experience relevance, and project depth. Never name, gender, photo, or college. The 17-section report is fully auditable, so you can defend every hire.",
+   234→   234→  },
+   235→   235→  {
+   236→   236→    q: "What happens if a candidate's internet drops mid-interview?",
+   237→   237→    a: "Answers auto-save to localStorage every 30 seconds. If the browser crashes, the candidate resumes from their last saved answer. The interview recording is uploaded in chunks, so even a hard disconnect preserves what was captured.",
+   238→   238→  },
+   239→   239→  {
+   240→   240→    q: "Can candidates cheat the proctoring?",
+   241→   241→    a: "The 3-strike system is strict: fullscreen + camera are mandatory, COCO-SSD runs object detection throughout, and every flagged frame is stored to Cloudinary for your review. A 20% score penalty applies on the 3rd strike. Serious violations (phone detected, extra person) can auto-disqualify.",
+   242→   242→  },
+   243→   243→  {
+   244→   244→    q: "Do candidates need to install anything?",
+   245→   245→    a: "No. Everything runs in Chrome 120+. We use Web Speech API for TTS, MediaRecorder for capture, face-api.js + MediaPipe in-browser. Zero downloads, zero plugins.",
+   246→   246→  },
+   247→   247→  {
+   248→   248→    q: "Can we use our own question bank?",
+   249→   249→    a: "Yes. Each campaign has its own Question Set Manager. Add aptitude questions one-by-one or bulk-upload CSV. Coding problems support DSA + SQL with per-language function signatures and 10 test cases (3 visible + 7 hidden).",
+   250→   250→  },
+   251→   251→  {
+   252→   252→    q: "How does pricing scale?",
+   253→   253→    a: "Starter is free forever for a single drive. Growth is $299/mo for up to 500 candidates. Enterprise is custom. Talk to us for high-volume campus drives, on-prem, or SSO.",
+   254→   254→  },
+   255→   255→];
+   256→   256→
+   257→   257→export function CompanyLanding() {
+   258→   258→  const { set } = useNav();
+   259→   259→  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+   260→   260→  const [openFaq, setOpenFaq] = useState<number | null>(0);
+   261→   261→
+   262→   262→  return (
+   263→   263→    <div className="min-h-screen bg-background text-foreground">
+   264→   264→      {/* ───────── HERO ───────── */}
+   265→   265→      <section className="relative px-4 pt-20 pb-24 sm:px-6 lg:px-8">
+   266→   266→        <div className="mx-auto max-w-5xl text-center">
+   267→   267→          <motion.div
+   268→   268→            initial={{ opacity: 0, y: 12 }}
+   269→   269→            animate={{ opacity: 1, y: 0 }}
+   270→   270→            transition={{ duration: 0.5 }}
+   271→   271→            className="flex justify-center"
+   272→   272→          >
+   273→   273→            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+   274→   274→              <Building2 className="h-3 w-3" /> For Companies · Hiring Mode
+   275→   275→            </span>
+   276→   276→          </motion.div>
+   277→   277→
+   278→   278→          <motion.h1
+   279→   279→            initial={{ opacity: 0, y: 16 }}
+   280→   280→            animate={{ opacity: 1, y: 0 }}
+   281→   281→            transition={{ duration: 0.6, delay: 0.08 }}
+   282→   282→            className="mt-6 text-4xl font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl"
+   283→   283→          >
+   284→   284→            Run your next campus drive
+   285→   285→            <br className="hidden sm:block" />{" "}
+   286→   286→            <span className="text-violet-500 dark:text-violet-400">in an afternoon.</span>
+   287→   287→          </motion.h1>
+   288→   288→
+   289→   289→          <motion.p
+   290→   290→            initial={{ opacity: 0, y: 16 }}
+   291→   291→            animate={{ opacity: 1, y: 0 }}
+   292→   292→            transition={{ duration: 0.6, delay: 0.16 }}
+   293→   293→            className="mx-auto mt-6 max-w-2xl text-base text-pretty text-muted-foreground sm:text-lg"
+   294→   294→          >
+   295→   295→            One public apply link. AI ranks every resume. One click shortlists
+   296→   296→            the top 10 and sends invite emails. Candidates take proctored
+   297→   297→            aptitude, coding, and AI interview rounds async. You pick from a
+   298→   298→            ranked leaderboard. No scheduling, no phone screens, no gut-feel.
+   299→   299→          </motion.p>
+   300→   300→
+   301→   301→          <motion.div
+   302→   302→            initial={{ opacity: 0, y: 16 }}
+   303→   303→            animate={{ opacity: 1, y: 0 }}
+   304→   304→            transition={{ duration: 0.6, delay: 0.24 }}
+   305→   305→            className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
+   306→   306→          >
+   307→   307→            <Button
+   308→   308→              size="lg"
+   309→   309→              className="h-12 rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
+   310→   310→              onClick={() => set("company-register")}
+   311→   311→            >
+   312→   312→              <Building2 className="mr-2 h-4 w-4" />
+   313→   313→              Start Hiring Free
+   314→   314→              <ArrowRight className="ml-2 h-4 w-4" />
+   315→   315→            </Button>
+   316→   316→            <Button
+   317→   317→              size="lg"
+   318→   318→              variant="outline"
+   319→   319→              className="h-12 rounded-full px-7"
+   320→   320→              onClick={() => {
+   321→   321→                document.getElementById("pipeline")?.scrollIntoView({ behavior: "smooth" });
+   322→   322→              }}
+   323→   323→            >
+   324→   324→              <Video className="mr-2 h-4 w-4" />
+   325→   325→              See How It Works
+   326→   326→            </Button>
+   327→   327→          </motion.div>
+   328→   328→
+   329→   329→          <motion.div
+   330→   330→            initial={{ opacity: 0 }}
+   331→   331→            animate={{ opacity: 1 }}
+   332→   332→            transition={{ duration: 0.6, delay: 0.4 }}
+   333→   333→            className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground"
+   334→   334→          >
+   335→   335→            <span className="inline-flex items-center gap-1.5">
+   336→   336→              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Free for 1 campaign
+   337→   337→            </span>
+   338→   338→            <span className="inline-flex items-center gap-1.5">
+   339→   339→              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> No credit card
+   340→   340→            </span>
+   341→   341→            <span className="inline-flex items-center gap-1.5">
+   342→   342→              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> GDPR-ready
+   343→   343→            </span>
+   344→   344→            <span className="inline-flex items-center gap-1.5">
+   345→   345→              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Audit-trail reports
+   346→   346→            </span>
+   347→   347→          </motion.div>
+   348→   348→        </div>
+   349→   349→
+   350→   350→        {/* ROI dashboard mockup */}
+   351→   351→        <CompanyMockup />
+   352→   352→      </section>
+   353→   353→
+   354→   354→      {/* ───────── ROI STATS ───────── */}
+   355→   355→      <section className="relative px-4 py-16 sm:px-6 lg:px-8 border-y border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.02]">
+   356→   356→        <div className="mx-auto max-w-7xl">
+   357→   357→          <p className="mb-8 text-center text-xs uppercase tracking-widest text-muted-foreground">
+   358→   358→            What companies actually get
+   359→   359→          </p>
+   360→   360→          <StaggeredReveal className="grid grid-cols-2 gap-4 md:grid-cols-4">
+   361→   361→            {ROI_STATS.map((s) => (
+   362→   362→              <motion.div key={s.label} variants={revealItem}>
+   363→   363→                <GlowCard className="h-full p-5 text-center">
+   364→   364→                  <s.icon
+   365→   365→                    className={cn(
+   366→   366→                      "mx-auto h-6 w-6",
+   367→   367→                      s.tone === "violet" && "text-violet-500 dark:text-violet-300",
+   368→   368→                      s.tone === "amber" && "text-amber-500 dark:text-amber-300",
+   369→   369→                      s.tone === "emerald" && "text-emerald-500 dark:text-emerald-300",
+   370→   370→                      s.tone === "sky" && "text-sky-500 dark:text-sky-300",
+   371→   371→                    )}
+   372→   372→                  />
+   373→   373→                  <p className="mt-3 text-3xl font-semibold tracking-tight text-violet-500 dark:text-violet-400">
+   374→   374→                    {s.value}
+   375→   375→                  </p>
+   376→   376→                  <p className="mt-1 text-sm font-medium">{s.label}</p>
+   377→   377→                  <p className="mt-1 text-xs text-muted-foreground">{s.sub}</p>
+   378→   378→                </GlowCard>
+   379→   379→              </motion.div>
+   380→   380→            ))}
+   381→   381→          </StaggeredReveal>
+   382→   382→        </div>
+   383→   383→      </section>
+   384→   384→
+   385→   385→      {/* ───────── PAIN POINTS ───────── */}
+   386→   386→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   387→   387→        <div className="mx-auto max-w-7xl">
+   388→   388→          <SectionHeading
+   389→   389→            eyebrow="The problem"
+   390→   390→            title={<>First-round screening is <span className="text-violet-500 dark:text-violet-400">broken</span></>}
+   391→   391→            description="Recruiters and engineering managers waste dozens of hours per drive on work the AI can do better, faster, and with audit trail."
+   392→   392→          />
+   393→   393→          <div className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+   394→   394→            {PAIN_POINTS.map((p, i) => (
+   395→   395→              <motion.div
+   396→   396→                key={p.title}
+   397→   397→                initial={{ opacity: 0, y: 18 }}
+   398→   398→                whileInView={{ opacity: 1, y: 0 }}
+   399→   399→                viewport={{ once: true }}
+   400→   400→                transition={{ delay: i * 0.08, duration: 0.5 }}
+   401→   401→              >
+   402→   402→                <GlowCard className="h-full p-6">
+   403→   403→                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-rose-500/10 text-rose-500 ring-1 ring-inset ring-rose-400/20 dark:text-rose-300">
+   404→   404→                    <p.icon className="h-5 w-5" />
+   405→   405→                  </div>
+   406→   406→                  <h3 className="mt-5 font-semibold">{p.title}</h3>
+   407→   407→                  <p className="mt-1.5 text-sm text-muted-foreground">{p.desc}</p>
+   408→   408→                </GlowCard>
+   409→   409→              </motion.div>
+   410→   410→            ))}
+   411→   411→          </div>
+   412→   412→        </div>
+   413→   413→      </section>
+   414→   414→
+   415→   415→      {/* ───────── BENTO FEATURES ───────── */}
+   416→   416→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   417→   417→        <div className="mx-auto max-w-7xl">
+   418→   418→          <SectionHeading
+   419→   419→            eyebrow="The platform"
+   420→   420→            title={<>Built for <span className="text-violet-500 dark:text-violet-400">high-volume hiring</span></>}
+   421→   421→            description="Six pillars that take you from a job description to a final shortlist. Without scheduling a single phone screen."
+   422→   422→          />
+   423→   423→          <StaggeredReveal className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+   424→   424→            {FEATURES.map((f) => (
+   425→   425→              <motion.div key={f.title} variants={revealItem} className={cn("relative", f.span)}>
+   426→   426→                <GlowCard className="h-full p-6">
+   427→   427→                  <div className="relative grid h-12 w-12 place-items-center rounded-xl bg-violet-500/10 text-violet-500 ring-1 ring-inset ring-black/10 dark:text-violet-300 dark:ring-white/10">
+   428→   428→                    <f.icon className="h-5 w-5" />
+   429→   429→                  </div>
+   430→   430→                  <h3 className="mt-5 text-lg font-semibold tracking-tight">{f.title}</h3>
+   431→   431→                  <p className="mt-1.5 text-sm text-muted-foreground">{f.desc}</p>
+   432→   432→                </GlowCard>
+   433→   433→              </motion.div>
+   434→   434→            ))}
+   435→   435→          </StaggeredReveal>
+   436→   436→        </div>
+   437→   437→      </section>
+   438→   438→
+   439→   439→      {/* ───────── AUTOMATION PIPELINE ───────── */}
+   440→   440→      <section id="pipeline" className="relative px-4 py-24 sm:px-6 lg:px-8">
+   441→   441→        <div className="mx-auto max-w-7xl">
+   442→   442→          <SectionHeading
+   443→   443→            eyebrow="How it works"
+   444→   444→            title={<>From job description to <span className="text-violet-500 dark:text-violet-400">final shortlist</span> in 7 steps</>}
+   445→   445→            description="One recruiter. One afternoon. Zero engineering interviews scheduled."
+   446→   446→          />
+   447→   447→          <div className="mt-14 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+   448→   448→            {PIPELINE_STEPS.map((s, i) => (
+   449→   449→              <motion.div
+   450→   450→                key={s.label}
+   451→   451→                initial={{ opacity: 0, y: 18 }}
+   452→   452→                whileInView={{ opacity: 1, y: 0 }}
+   453→   453→                viewport={{ once: true }}
+   454→   454→                transition={{ delay: i * 0.06, duration: 0.5 }}
+   455→   455→              >
+   456→   456→                <GlowCard className="h-full p-5">
+   457→   457→                  <div className="flex items-center justify-between">
+   458→   458→                    <span className="font-mono text-[10px] text-muted-foreground">
+   459→   459→                      STEP 0{i + 1}
+   460→   460→                    </span>
+   461→   461→                    <div className="grid h-9 w-9 place-items-center rounded-full bg-violet-500/15 text-violet-500 ring-1 ring-inset ring-black/10 dark:text-violet-300 dark:ring-white/10">
+   462→   462→                      <s.icon className="h-4 w-4" />
+   463→   463→                    </div>
+   464→   464→                  </div>
+   465→   465→                  <h3 className="mt-3 text-sm font-semibold leading-snug">{s.label}</h3>
+   466→   466→                  <p className="mt-1 text-xs text-muted-foreground">{s.note}</p>
+   467→   467→                </GlowCard>
+   468→   468→              </motion.div>
+   469→   469→            ))}
+   470→   470→          </div>
+   471→   471→
+   472→   472→          {/* Highlighted automation callout */}
+   473→   473→          <motion.div
+   474→   474→            initial={{ opacity: 0, y: 24 }}
+   475→   475→            whileInView={{ opacity: 1, y: 0 }}
+   476→   476→            viewport={{ once: true }}
+   477→   477→            transition={{ duration: 0.6 }}
+   478→   478→            className="mt-10"
+   479→   479→          >
+   480→   480→            <GlowCard className="relative overflow-hidden p-8 md:p-10">
+   481→   481→              <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:items-center">
+   482→   482→                <div className="md:col-span-2">
+   483→   483→                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+   484→   484→                    <Zap className="h-3 w-3" /> The killer automation
+   485→   485→                  </span>
+   486→   486→                  <h3 className="mt-4 text-2xl font-semibold tracking-tight md:text-3xl">
+   487→   487→                    Admin shares link →{" "}
+   488→   488→                    <span className="text-violet-500 dark:text-violet-400">candidates auto-appear</span> →{" "}
+   489→   489→                    one click shortlists 10 →{" "}
+   490→   490→                    <span className="text-violet-500 dark:text-violet-400">emails auto-sent.</span>
+   491→   491→                  </h3>
+   492→   492→                  <p className="mt-4 text-sm text-muted-foreground md:text-base">
+   493→   493→                    No CSV exports. No copy-pasting credentials. No scheduling
+   494→   494→                    individual invite emails. The system generates unique
+   495→   495→                    Candidate IDs (e.g. <code className="rounded bg-black/10 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">BACKEN-3FA82C</code>),
+   496→   496→                    temporary passwords, and sends branded invite emails with
+   497→   497→                    the login URL + deadline. All in 2 seconds.
+   498→   498→                  </p>
+   499→   499→                </div>
+   500→   500→                <div className="md:justify-self-end">
+   501→   501→                  <Button
+   502→   502→                    size="lg"
+   503→   503→                    onClick={() => set("candidate-leaderboard")}
+   504→   504→                    className="rounded-full bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
+   505→   505→                  >
+   506→   506→                    See the leaderboard
+   507→   507→                    <ArrowRight className="ml-2 h-4 w-4" />
+   508→   508→                  </Button>
+   509→   509→                </div>
+   510→   510→              </div>
+   511→   511→            </GlowCard>
+   512→   512→          </motion.div>
+   513→   513→        </div>
+   514→   514→      </section>
+   515→   515→
+   516→   516→      {/* ───────── COMPARISON TABLE ───────── */}
+   517→   517→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   518→   518→        <div className="mx-auto max-w-5xl">
+   519→   519→          <SectionHeading
+   520→   520→            eyebrow="Manual vs InterviewAI"
+   521→   521→            title={<>The math is <span className="text-violet-500 dark:text-violet-400">uncomfortable</span></>}
+   522→   522→            description="Run the numbers on your last hiring drive. Then run them with InterviewAI."
+   523→   523→          />
+   524→   524→          <GlowCard className="mt-12 overflow-hidden p-0">
+   525→   525→            <div className="grid grid-cols-3 border-b border-black/10 bg-black/[0.03] text-xs uppercase tracking-wider text-muted-foreground dark:border-white/10 dark:bg-white/[0.03]">
+   526→   526→              <div className="p-4">Metric</div>
+   527→   527→              <div className="p-4 text-rose-500 dark:text-rose-300">Manual process</div>
+   528→   528→              <div className="p-4 text-emerald-500 dark:text-emerald-300">With InterviewAI</div>
+   529→   529→            </div>
+   530→   530→            {COMPARISON.map((row, i) => (
+   531→   531→              <div
+   532→   532→                key={row.label}
+   533→   533→                className={cn(
+   534→   534→                  "grid grid-cols-3 items-start gap-2 p-4 text-sm",
+   535→   535→                  i % 2 === 1 && "bg-black/[0.015] dark:bg-white/[0.015]",
+   536→   536→                )}
+   537→   537→              >
+   538→   538→                <div className="font-medium">{row.label}</div>
+   539→   539→                <div className="flex items-start gap-1.5 text-rose-500/80 dark:text-rose-300/80">
+   540→   540→                  <TrendingDown className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+   541→   541→                  <span>{row.manual}</span>
+   542→   542→                </div>
+   543→   543→                <div className="flex items-start gap-1.5 text-emerald-500 dark:text-emerald-300">
+   544→   544→                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+   545→   545→                  <span className="font-medium">{row.automated}</span>
+   546→   546→                </div>
+   547→   547→              </div>
+   548→   548→            ))}
+   549→   549→          </GlowCard>
+   550→   550→        </div>
+   551→   551→      </section>
+   552→   552→
+   553→   553→      {/* ───────── PROCTORING SPOTLIGHT ───────── */}
+   554→   554→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   555→   555→        <div className="mx-auto max-w-7xl">
+   556→   556→          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
+   557→   557→            <div>
+   558→   558→              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+   559→   559→                <Shield className="h-3 w-3" /> Proctoring &amp; integrity
+   560→   560→              </span>
+   561→   561→              <h2 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
+   562→   562→                Catch the cheaters. <span className="text-violet-500 dark:text-violet-400">Defend every hire.</span>
+   563→   563→              </h2>
+   564→   564→              <p className="mt-4 text-muted-foreground">
+   565→   565→                Every candidate round runs in fullscreen with mandatory camera.
+   566→   566→                Three strikes: tab switch, fullscreen exit, or detected
+   567→   567→                anomaly, and the test auto-submits with a 20% score penalty.
+   568→   568→                Every flagged webcam frame is stored to Cloudinary for your
+   569→   569→                post-hire audit.
+   570→   570→              </p>
+   571→   571→              <ul className="mt-6 space-y-2.5">
+   572→   572→                {[
+   573→   573→                  { icon: ScanFace, label: "COCO-SSD detects phones & extra persons in frame" },
+   574→   574→                  { icon: ShieldCheck, label: "3-strike auto-submit + integrity flag" },
+   575→   575→                  { icon: FileText, label: "Every flag stored with webcam frame for review" },
+   576→   576→                  { icon: Gauge, label: "Integrity column on leaderboard. Clean / Flags / Penalty" },
+   577→   577→                ].map((item) => (
+   578→   578→                  <li key={item.label} className="flex items-start gap-2.5 text-sm">
+   579→   579→                    <item.icon className="mt-0.5 h-4 w-4 shrink-0 text-amber-500 dark:text-amber-300" />
+   580→   580→                    <span className="text-foreground/80">{item.label}</span>
+   581→   581→                  </li>
+   582→   582→                ))}
+   583→   583→              </ul>
+   584→   584→              <Button
+   585→   585→                variant="outline"
+   586→   586→                className="mt-6 rounded-full"
+   587→   587→                onClick={() => set("proctoring-review")}
+   588→   588→              >
+   589→   589→                See the proctoring review screen
+   590→   590→                <ArrowRight className="ml-2 h-4 w-4" />
+   591→   591→              </Button>
+   592→   592→            </div>
+   593→   593→
+   594→   594→            <GlowCard className="p-6">
+   595→   595→              <div className="mb-4 flex items-center justify-between">
+   596→   596→                <div>
+   597→   597→                  <p className="text-xs text-muted-foreground">Candidate: Priya Sharma</p>
+   598→   598→                  <p className="font-mono text-[10px] text-muted-foreground">BACKEN-3FA82C</p>
+   599→   599→                </div>
+   600→   600→                <Badge className="border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-200">
+   601→   601→                  <Shield className="mr-1 h-3 w-3" /> 2 flags
+   602→   602→                </Badge>
+   603→   603→              </div>
+   604→   604→              <div className="space-y-2">
+   605→   605→                {[
+   606→   606→                  { time: "10:23", event: "Tab switch (1/3)", sev: "warn" },
+   607→   607→                  { time: "10:45", event: "Tab switch (2/3)", sev: "warn" },
+   608→   608→                  { time: "11:02", event: "Tab switch (3/3) → Auto-submitted", sev: "danger" },
+   609→   609→                  { time: "14:30", event: "Phone detected in frame", sev: "danger" },
+   610→   610→                ].map((e) => (
+   611→   611→                  <div
+   612→   612→                    key={e.time + e.event}
+   613→   613→                    className={cn(
+   614→   614→                      "flex items-center gap-3 rounded-lg border p-2.5 text-xs",
+   615→   615→                      e.sev === "warn"
+   616→   616→                        ? "border-amber-400/20 bg-amber-500/5"
+   617→   617→                        : "border-rose-400/20 bg-rose-500/5",
+   618→   618→                    )}
+   619→   619→                  >
+   620→   620→                    <span className="font-mono text-muted-foreground">{e.time}</span>
+   621→   621→                    <span
+   622→   622→                      className={cn(
+   623→   623→                        "flex-1",
+   624→   624→                        e.sev === "warn" ? "text-amber-700 dark:text-amber-200" : "text-rose-700 dark:text-rose-200",
+   625→   625→                      )}
+   626→   626→                    >
+   627→   627→                      {e.event}
+   628→   628→                    </span>
+   629→   629→                    <span
+   630→   630→                      className={cn(
+   631→   631→                        "rounded-full px-2 py-0.5 font-mono text-[9px] uppercase",
+   632→   632→                        e.sev === "warn"
+   633→   633→                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-200"
+   634→   634→                          : "bg-rose-500/15 text-rose-700 dark:text-rose-200",
+   635→   635→                      )}
+   636→   636→                    >
+   637→   637→                      {e.sev === "warn" ? "Warning" : "Critical"}
+   638→   638→                    </span>
+   639→   639→                  </div>
+   640→   640→                ))}
+   641→   641→              </div>
+   642→   642→              <div className="mt-4 rounded-lg border border-black/10 bg-black/[0.02] p-3 text-xs dark:border-white/10 dark:bg-white/[0.02]">
+   643→   643→                <div className="flex items-center justify-between">
+   644→   644→                  <span className="text-muted-foreground">Integrity score</span>
+   645→   645→                  <span className="font-mono text-rose-500 dark:text-rose-300">20% penalty applied</span>
+   646→   646→                </div>
+   647→   647→              </div>
+   648→   648→            </GlowCard>
+   649→   649→          </div>
+   650→   650→        </div>
+   651→   651→      </section>
+   652→   652→
+   653→   653→      {/* ───────── LOGO CLOUD ───────── */}
+   654→   654→      <section className="relative py-12 border-y border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.02]">
+   655→   655→        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+   656→   656→          <p className="mb-6 text-center text-xs uppercase tracking-widest text-muted-foreground">
+   657→   657→            Hiring teams who switched to InterviewAI
+   658→   658→          </p>
+   659→   659→          <Marquee>
+   660→   660→            {COMPANY_LOGOS.map((logo) => (
+   661→   661→              <span
+   662→   662→                key={logo}
+   663→   663→                className="text-xl font-semibold tracking-tight text-foreground/40 transition-colors hover:text-foreground/80"
+   664→   664→              >
+   665→   665→                {logo}
+   666→   666→              </span>
+   667→   667→            ))}
+   668→   668→          </Marquee>
+   669→   669→        </div>
+   670→   670→      </section>
+   671→   671→
+   672→   672→      {/* ───────── TESTIMONIALS ───────── */}
+   673→   673→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   674→   674→        <div className="mx-auto max-w-7xl">
+   675→   675→          <SectionHeading
+   676→   676→            eyebrow="From the recruiters using it"
+   677→   677→            title={<>They're not going back to <span className="text-violet-500 dark:text-violet-400">spreadsheets</span></>}
+   678→   678→            description="Real stories from talent teams who ran their last drive on InterviewAI."
+   679→   679→          />
+   680→   680→          <Marquee className="mt-14" pauseOnHover>
+   681→   681→            {TESTIMONIALS.map((t) => (
+   682→   682→              <article key={t.name} className="w-[340px] shrink-0">
+   683→   683→                <GlowCard className="h-full p-6">
+   684→   684→                  <div className="flex items-center justify-between">
+   685→   685→                    <Quote className="h-6 w-6 text-foreground/30" />
+   686→   686→                    <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">
+   687→   687→                      <TrendingUp className="mr-1 h-3 w-3" />
+   688→   688→                      {t.metric}
+   689→   689→                    </Badge>
+   690→   690→                  </div>
+   691→   691→                  <p className="mt-3 text-sm text-pretty text-foreground/90">{t.quote}</p>
+   692→   692→                  <div className="mt-5 flex items-center gap-3">
+   693→   693→                    <div className="grid h-9 w-9 place-items-center rounded-full bg-violet-500 text-xs font-semibold text-white">
+   694→   694→                      {t.name.charAt(0)}
+   695→   695→                    </div>
+   696→   696→                    <div>
+   697→   697→                      <p className="text-xs font-semibold">{t.name}</p>
+   698→   698→                      <p className="text-[11px] text-muted-foreground">{t.role}</p>
+   699→   699→                    </div>
+   700→   700→                  </div>
+   701→   701→                </GlowCard>
+   702→   702→              </article>
+   703→   703→            ))}
+   704→   704→          </Marquee>
+   705→   705→        </div>
+   706→   706→      </section>
+   707→   707→
+   708→   708→      {/* ───────── PRICING ───────── */}
+   709→   709→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   710→   710→        <div className="mx-auto max-w-7xl">
+   711→   711→          <SectionHeading
+   712→   712→            eyebrow="Pricing"
+   713→   713→            title="Pay per drive. Scale when you hire."
+   714→   714→            description="Starter is free forever for a single campaign. Upgrade when you're running multiple drives a month."
+   715→   715→          />
+   716→   716→          <div className="mt-10 flex justify-center">
+   717→   717→            <div className="inline-flex rounded-full border border-black/10 bg-black/[0.03] p-1 dark:border-white/10 dark:bg-white/[0.03]">
+   718→   718→              {(["monthly", "yearly"] as const).map((b) => (
+   719→   719→                <button
+   720→   720→                  key={b}
+   721→   721→                  onClick={() => setBilling(b)}
+   722→   722→                  className={cn(
+   723→   723→                    "relative rounded-full px-4 py-1.5 text-xs font-medium capitalize transition-colors",
+   724→   724→                    billing === b ? "text-white" : "text-muted-foreground hover:text-foreground",
+   725→   725→                  )}
+   726→   726→                >
+   727→   727→                  {b}
+   728→   728→                  {billing === b && (
+   729→   729→                    <motion.span
+   730→   730→                      layoutId="billing-pill-co"
+   731→   731→                      className="absolute inset-0 -z-10 rounded-full bg-violet-500"
+   732→   732→                    />
+   733→   733→                  )}
+   734→   734→                </button>
+   735→   735→              ))}
+   736→   736→            </div>
+   737→   737→          </div>
+   738→   738→
+   739→   739→          <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
+   740→   740→            {PRICING.map((p) => (
+   741→   741→              <div key={p.name} className={cn(p.popular && "md:-mt-3")}>
+   742→   742→                <GlowCard
+   743→   743→                  className={cn(
+   744→   744→                    "relative h-full overflow-hidden p-6",
+   745→   745→                    p.popular && "border-violet-400/40 bg-violet-500/[0.06]",
+   746→   746→                  )}
+   747→   747→                >
+   748→   748→                  {p.popular && (
+   749→   749→                    <Badge className="mb-4 w-fit border-violet-400/30 bg-violet-500/15 text-violet-700 dark:text-violet-200">
+   750→   750→                      Most popular
+   751→   751→                    </Badge>
+   752→   752→                  )}
+   753→   753→                  <h3 className="text-lg font-semibold">{p.name}</h3>
+   754→   754→                  <p className="mt-1 text-sm text-muted-foreground">{p.desc}</p>
+   755→   755→                  <div className="mt-5 flex items-baseline gap-1">
+   756→   756→                    {p.monthly === null ? (
+   757→   757→                      <span className="text-3xl font-semibold tracking-tight">Custom</span>
+   758→   758→                    ) : (
+   759→   759→                      <>
+   760→   760→                        <span className="text-4xl font-semibold tracking-tight">
+   761→   761→                          ${billing === "monthly" ? p.monthly : Math.round(p.monthly * 0.8)}
+   762→   762→                        </span>
+   763→   763→                        <span className="text-sm text-muted-foreground">/mo</span>
+   764→   764→                      </>
+   765→   765→                    )}
+   766→   766→                  </div>
+   767→   767→                  {billing === "yearly" && p.monthly !== null && (
+   768→   768→                    <p className="mt-1 text-[11px] text-emerald-500 dark:text-emerald-300">
+   769→   769→                      Billed annually · 20% off
+   770→   770→                    </p>
+   771→   771→                  )}
+   772→   772→                  <ul className="mt-6 space-y-2.5">
+   773→   773→                    {p.features.map((f) => (
+   774→   774→                      <li key={f} className="flex items-start gap-2 text-sm text-foreground/80">
+   775→   775→                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+   776→   776→                        {f}
+   777→   777→                      </li>
+   778→   778→                    ))}
+   779→   779→                  </ul>
+   780→   780→                  <Button
+   781→   781→                    className={cn(
+   782→   782→                      "mt-7 w-full rounded-full",
+   783→   783→                      p.popular
+   784→   784→                        ? "bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
+   785→   785→                        : "bg-black/10 hover:bg-black/15 dark:bg-white/10 dark:hover:bg-white/15",
+   786→   786→                    )}
+   787→   787→                    onClick={() => set(p.monthly === null ? "company-landing" : "company-register")}
+   788→   788→                  >
+   789→   789→                    {p.cta}
+   790→   790→                  </Button>
+   791→   791→                </GlowCard>
+   792→   792→              </div>
+   793→   793→            ))}
+   794→   794→          </div>
+   795→   795→        </div>
+   796→   796→      </section>
+   797→   797→
+   798→   798→      {/* ───────── FAQ ───────── */}
+   799→   799→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   800→   800→        <div className="mx-auto max-w-3xl">
+   801→   801→          <SectionHeading
+   802→   802→            eyebrow="FAQ"
+   803→   803→            title="What talent teams ask before switching"
+   804→   804→            description="Still have a question? Hit us up. We'll get back within a working day."
+   805→   805→          />
+   806→   806→          <div className="mt-12 space-y-3">
+   807→   807→            {FAQ.map((item, i) => (
+   808→   808→              <GlowCard key={i} className="overflow-hidden p-0">
+   809→   809→                <button
+   810→   810→                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+   811→   811→                  className="flex w-full items-center justify-between gap-4 p-5 text-left"
+   812→   812→                >
+   813→   813→                  <span className="text-sm font-semibold md:text-base">{item.q}</span>
+   814→   814→                  <ChevronDown
+   815→   815→                    className={cn(
+   816→   816→                      "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+   817→   817→                      openFaq === i && "rotate-180",
+   818→   818→                    )}
+   819→   819→                  />
+   820→   820→                </button>
+   821→   821→                <AnimatePresence initial={false}>
+   822→   822→                  {openFaq === i && (
+   823→   823→                    <motion.div
+   824→   824→                      initial={{ height: 0, opacity: 0 }}
+   825→   825→                      animate={{ height: "auto", opacity: 1 }}
+   826→   826→                      exit={{ height: 0, opacity: 0 }}
+   827→   827→                      transition={{ duration: 0.25 }}
+   828→   828→                      className="overflow-hidden"
+   829→   829→                    >
+   830→   830→                      <p className="px-5 pb-5 text-sm text-muted-foreground">{item.a}</p>
+   831→   831→                    </motion.div>
+   832→   832→                  )}
+   833→   833→                </AnimatePresence>
+   834→   834→              </GlowCard>
+   835→   835→            ))}
+   836→   836→          </div>
+   837→   837→        </div>
+   838→   838→      </section>
+   839→   839→
+   840→   840→      {/* ───────── FINAL CTA ───────── */}
+   841→   841→      <section className="relative px-4 py-24 sm:px-6 lg:px-8">
+   842→   842→        <div className="mx-auto max-w-5xl">
+   843→   843→          <GlowCard className="relative overflow-hidden p-10 text-center md:p-16">
+   844→   844→            <Megaphone className="mx-auto h-10 w-10 text-violet-500 dark:text-violet-300" />
+   845→   845→            <h2 className="mt-5 text-3xl font-semibold tracking-tight text-balance md:text-5xl">
+   846→   846→              Your next drive could be{" "}
+   847→   847→              <span className="text-violet-500 dark:text-violet-400">next Tuesday.</span>
+   848→   848→            </h2>
+   849→   849→            <p className="mx-auto mt-4 max-w-xl text-pretty text-muted-foreground">
+   850→   850→              Create a free company account, generate your apply link, and
+   851→   851→              start collecting ranked resumes in under 5 minutes. No credit
+   852→   852→              card, no sales call, no commitment.
+   853→   853→            </p>
+   854→   854→            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+   855→   855→              <Button
+   856→   856→                size="lg"
+   857→   857→                className="h-12 rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
+   858→   858→                onClick={() => set("company-register")}
+   859→   859→              >
+   860→   860→                <Building2 className="mr-2 h-4 w-4" />
+   861→   861→                Create Company Account
+   862→   862→              </Button>
+   863→   863→              <Button
+   864→   864→                size="lg"
+   865→   865→                variant="ghost"
+   866→   866→                className="h-12 rounded-full px-7 text-muted-foreground"
+   867→   867→                onClick={() => set("admin-dashboard")}
+   868→   868→              >
+   869→   869→                <BarChart3 className="mr-2 h-4 w-4" />
+   870→   870→                Tour the admin dashboard
+   871→   871→              </Button>
+   872→   872→            </div>
+   873→   873→          </GlowCard>
+   874→   874→        </div>
+   875→   875→      </section>
+   876→   876→
+   877→   877→      {/* Footer is handled globally by SmartFooter in page.tsx */}
+   878→   878→    </div>
+   879→   879→  );
+   880→   880→}
+   881→   881→
+   882→   882→function FooterCol({
+   883→   883→  title,
+   884→   884→  links,
+   885→   885→  onClick,
+   886→   886→}: {
+   887→   887→  title: string;
+   888→   888→  links: string[];
+   889→   889→  onClick: () => void;
+   890→   890→}) {
+   891→   891→  return (
+   892→   892→    <div>
+   893→   893→      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+   894→   894→        {title}
+   895→   895→      </p>
+   896→   896→      <ul className="mt-3 space-y-2">
+   897→   897→        {links.map((l) => (
+   898→   898→          <li key={l}>
+   899→   899→            <button
+   900→   900→              onClick={onClick}
+   901→   901→              className="text-sm text-foreground/70 transition-colors hover:text-foreground"
+   902→   902→            >
+   903→   903→              {l}
+   904→   904→            </button>
+   905→   905→          </li>
+   906→   906→        ))}
+   907→   907→      </ul>
+   908→   908→    </div>
+   909→   909→  );
+   910→   910→}
+   911→   911→
+   912→   912→/**
+   913→   913→ * A floating animated dashboard mockup showing what the recruiter sees.
+   914→   914→ * Leaderboard with ranked candidates, integrity column, and a
+   915→   915→ * "Shortlist & Send Invites" CTA.
+   916→   916→ */
+   917→   917→function CompanyMockup() {
+   918→   918→  const shouldReduce = useReducedMotion();
+   919→   919→  return (
+   920→   920→    <motion.div
+   921→   921→      initial={{ opacity: 0, y: 40, scale: 0.96 }}
+   922→   922→      animate={{ opacity: 1, y: 0, scale: 1 }}
+   923→   923→      transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+   924→   924→      className="relative mx-auto mt-16 max-w-5xl"
+   925→   925→    >
+   926→   926→      <GlowCard className="relative overflow-hidden p-2 md:p-3">
+   927→   927→        {/* Window chrome */}
+   928→   928→        <div className="flex items-center gap-1.5 border-b border-black/10 px-4 py-2.5 dark:border-white/10">
+   929→   929→          <span className="h-2.5 w-2.5 rounded-full bg-rose-500/70" />
+   930→   930→          <span className="h-2.5 w-2.5 rounded-full bg-amber-500/70" />
+   931→   931→          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/70" />
+   932→   932→          <div className="ml-3 flex-1">
+   933→   933→            <div className="h-5 max-w-xs rounded-md bg-black/5 dark:bg-white/5" />
+   934→   934→          </div>
+   935→   935→          <Badge className="border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">
+   936→   936→            <Bell className="mr-1 h-3 w-3" /> 3 new applicants
+   937→   937→          </Badge>
+   938→   938→        </div>
+   939→   939→
+   940→   940→        {/* Dashboard mockup */}
+   941→   941→        <div className="grid grid-cols-12 gap-3 p-3 md:p-5">
+   942→   942→          {/* Stats row */}
+   943→   943→          <div className="col-span-12 grid grid-cols-2 gap-3 md:grid-cols-4">
+   944→   944→            {[
+   945→   945→              { label: "Total", value: "47", tone: "text-violet-500 dark:text-violet-300", icon: Users },
+   946→   946→              { label: "Shortlisted", value: "10", tone: "text-emerald-500 dark:text-emerald-300", icon: ListChecks },
+   947→   947→              { label: "Invited", value: "10", tone: "text-sky-500 dark:text-sky-300", icon: Mail },
+   948→   948→              { label: "Completed", value: "6", tone: "text-amber-500 dark:text-amber-300", icon: CheckCircle2 },
+   949→   949→            ].map((s) => (
+   950→   950→              <div key={s.label} className="rounded-xl bg-black/[0.02] p-3 dark:bg-white/[0.02]">
+   951→   951→                <div className="flex items-center justify-between text-muted-foreground">
+   952→   952→                  <span className="text-[11px]">{s.label}</span>
+   953→   953→                  <s.icon className={cn("h-3.5 w-3.5", s.tone)} />
+   954→   954→                </div>
+   955→   955→                <p className={cn("mt-1 text-lg font-semibold", s.tone)}>{s.value}</p>
+   956→   956→              </div>
+   957→   957→            ))}
+   958→   958→          </div>
+   959→   959→
+   960→   960→          {/* Leaderboard table preview */}
+   961→   961→          <div className="col-span-12">
+   962→   962→            <div className="rounded-xl bg-black/[0.02] p-3 dark:bg-white/[0.02]">
+   963→   963→              <div className="mb-2 flex items-center justify-between">
+   964→   964→                <p className="text-xs font-semibold">Backend SDE-1 · Candidate leaderboard</p>
+   965→   965→                <div className="flex items-center gap-1.5">
+   966→   966→                  <Filter className="h-3 w-3 text-muted-foreground" />
+   967→   967→                  <span className="text-[10px] text-muted-foreground">Sorted by Job Fit</span>
+   968→   968→                </div>
+   969→   969→              </div>
+   970→   970→              <div className="space-y-1.5">
+   971→   971→                {[
+   972→   972→                  { rank: 1, name: "Priya Sharma", src: "Apply Link", fit: 91, ats: 88, integrity: "clean", status: "Invited" },
+   973→   973→                  { rank: 2, name: "Amit Patel", src: "Apply Link", fit: 87, ats: 82, integrity: "clean", status: "Invited" },
+   974→   974→                  { rank: 3, name: "Sneha Iyer", src: "Apply Link", fit: 84, ats: 79, integrity: "clean", status: "Invited" },
+   975→   975→                  { rank: 4, name: "Rahul Kumar", src: "Bulk Upload", fit: 81, ats: 76, integrity: "flags", status: "Invited" },
+   976→   976→                  { rank: 5, name: "Meera Krishnan", src: "Apply Link", fit: 78, ats: 73, integrity: "clean", status: "Invited" },
+   977→   977→                ].map((c) => (
+   978→   978→                  <div
+   979→   979→                    key={c.rank}
+   980→   980→                    className="grid grid-cols-12 items-center gap-2 rounded-md border border-black/5 bg-black/[0.02] px-2.5 py-2 text-[11px] dark:border-white/5 dark:bg-white/[0.02]"
+   981→   981→                  >
+   982→   982→                    <span className="col-span-1 font-mono text-muted-foreground">
+   983→   983→                      #{c.rank}
+   984→   984→                    </span>
+   985→   985→                    <div className="col-span-4 flex items-center gap-2">
+   986→   986→                      <div className="grid h-6 w-6 place-items-center rounded-full bg-violet-500 text-[10px] font-semibold text-white">
+   987→   987→                        {c.name.charAt(0)}
+   988→   988→                      </div>
+   989→   989→                      <span className="truncate font-medium">{c.name}</span>
+   990→   990→                    </div>
+   991→   991→                    <span className="col-span-2 hidden md:block">
+   992→   992→                      <span
+   993→   993→                        className={cn(
+   994→   994→                          "rounded-full px-1.5 py-0.5 text-[9px] font-medium",
+   995→   995→                          c.src === "Apply Link"
+   996→   996→                            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-200"
+   997→   997→                            : "bg-sky-500/15 text-sky-700 dark:text-sky-200",
+   998→   998→                        )}
+   999→   999→                      >
+  1000→  1000→                        {c.src}
+  1001→  1001→                      </span>
+  1002→  1002→                    </span>
+  1003→  1003→                    <div className="col-span-3 flex items-center gap-1.5 md:col-span-2">
+  1004→  1004→                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+  1005→  1005→                        <div
+  1006→  1006→                          className="h-full rounded-full bg-violet-500"
+  1007→  1007→                          style={{ width: `${c.fit}%` }}
+  1008→  1008→                        />
+  1009→  1009→                      </div>
+  1010→  1010→                      <span className="font-mono text-[10px]">{c.fit}%</span>
+  1011→  1011→                    </div>
+  1012→  1012→                    <span className="col-span-2 hidden md:block font-mono text-[10px] text-muted-foreground">
+  1013→  1013→                      ATS {c.ats}
+  1014→  1014→                    </span>
+  1015→  1015→                    <span className="col-span-2 flex items-center justify-end gap-1 md:col-span-1">
+  1016→  1016→                      {c.integrity === "clean" ? (
+  1017→  1017→                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+  1018→  1018→                      ) : (
+  1019→  1019→                        <Shield className="h-3.5 w-3.5 text-amber-500" />
+  1020→  1020→                      )}
+  1021→  1021→                    </span>
+  1022→  1022→                  </div>
+  1023→  1023→                ))}
+  1024→  1024→              </div>
+  1025→  1025→              <div className="mt-3 flex items-center justify-between">
+  1026→  1026→                <span className="text-[10px] text-muted-foreground">
+  1027→  1027→                  + 42 more candidates
+  1028→  1028→                </span>
+  1029→  1029→                <div className="flex items-center gap-1.5 rounded-full bg-violet-500 px-3 py-1.5 text-[10px] font-medium text-white">
+  1030→  1030→                  <Send className="h-3 w-3" />
+  1031→  1031→                  Shortlist &amp; Send Invites · 10
+  1032→  1032→                </div>
+  1033→  1033→              </div>
+  1034→  1034→            </div>
+  1035→  1035→          </div>
+  1036→  1036→        </div>
+  1037→  1037→
+  1038→  1038→        {/* Floating UI elements */}
+  1039→  1039→        <FloatingChip
+  1040→  1040→          className="left-2 top-1/3"
+  1041→  1041→          icon={<Link2 className="h-3 w-3 text-violet-500 dark:text-violet-300" />}
+  1042→  1042→          label="Apply link live · 23 clicks"
+  1043→  1043→        />
+  1044→  1044→        <FloatingChip
+  1045→  1045→          className="right-2 top-1/4"
+  1046→  1046→          icon={<Bot className="h-3 w-3 text-emerald-500 dark:text-emerald-300" />}
+  1047→  1047→          label="47 resumes auto-analyzed"
+  1048→  1048→          delay={0.8}
+  1049→  1049→        />
+  1050→  1050→        <FloatingChip
+  1051→  1051→          className="right-1/4 bottom-2"
+  1052→  1052→          icon={<Mail className="h-3 w-3 text-amber-500 dark:text-amber-300" />}
+  1053→  1053→          label="10 invite emails sent"
+  1054→  1054→          delay={1.4}
+  1055→  1055→        />
+  1056→  1056→      </GlowCard>
+  1057→  1057→    </motion.div>
+  1058→  1058→  );
+  1059→  1059→}
+  1060→  1060→
+  1061→  1061→function FloatingChip({
+  1062→  1062→  className,
+  1063→  1063→  icon,
+  1064→  1064→  label,
+  1065→  1065→  delay = 0,
+  1066→  1066→}: {
+  1067→  1067→  className?: string;
+  1068→  1068→  icon: React.ReactNode;
+  1069→  1069→  label: string;
+  1070→  1070→  delay?: number;
+  1071→  1071→}) {
+  1072→  1072→  const shouldReduce = useReducedMotion();
+  1073→  1073→  return (
+  1074→  1074→    <motion.div
+  1075→  1075→      initial={{ opacity: 0, scale: 0.6 }}
+  1076→  1076→      animate={{
+  1077→  1077→        opacity: 1,
+  1078→  1078→        scale: 1,
+  1079→  1079→        y: shouldReduce ? 0 : [0, -8, 0],
+  1080→  1080→      }}
+  1081→  1081→      transition={{
+  1082→  1082→        opacity: { delay: delay + 1, duration: 0.4 },
+  1083→  1083→        scale: { delay: delay + 1, duration: 0.4 },
+  1084→  1084→        y: shouldReduce
+  1085→  1085→          ? undefined
+  1086→  1086→          : { repeat: Infinity, duration: 4, ease: "easeInOut", delay: delay + 1 },
+  1087→  1087→      }}
+  1088→  1088→      className={cn(
+  1089→  1089→        "absolute hidden md:flex items-center gap-1.5 rounded-full border border-black/10 bg-card/90 px-2.5 py-1.5 text-[11px] backdrop-blur-xl shadow-sm dark:border-white/15",
+  1090→  1090→        className,
+  1091→  1091→      )}
+  1092→  1092→    >
+  1093→  1093→      {icon}
+  1094→  1094→      {label}
+  1095→  1095→    </motion.div>
+  1096→  1096→  );
+  1097→  1097→}
+  1098→  1098→

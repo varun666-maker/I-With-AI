@@ -1,0 +1,1335 @@
+# Complete Screen-by-Screen Workflow Explained
+
+---
+
+# ═════════════════════════════════════════
+# SECTION 1: PREP MODE (Students / Job Seekers)
+# ═════════════════════════════════════════
+
+---
+
+## Screen 1: Landing Page `/`
+
+**What is this?**
+The homepage. The very first thing anyone sees when they visit your website. No login needed.
+
+**What does the user see?**
+
+At the top — a fixed navigation bar with your logo "InterviewAI" on the left, and two buttons on the right: "Start Preparing Free" and "For Companies".
+
+Then a big hero section that takes up most of the screen. It has a headline like "Master Every Interview with AI", a subtitle explaining what the platform does, and the same two buttons but bigger. Below those buttons, a small line saying "Trusted by 5,000+ students" with a row of tiny avatar circles.
+
+Below the hero, there's a 3D animated AI avatar that gently bobs and breathes. Under it, small waveform bars animate. A label says "This AI interviewer will ask you questions." This gives visitors a preview of what the interview experience looks like.
+
+Next is a feature grid — 6 cards in a row (3 per row on desktop, 2 on tablet, 1 on mobile). Each card has an icon, a title, and a one-line description:
+1. AI Resume Analyzer
+2. Aptitude Practice (1,500+ questions)
+3. Coding Arena (VS Code editor + AI review)
+4. AI Interview (body language feedback)
+5. Detailed Reports (17-section PDF)
+6. Track Progress (trends over time)
+
+Below that, a "How It Works" section with 4 steps shown horizontally with arrows connecting them: Upload Resume → Practice Tests → AI Interview → Get Report.
+
+Then 3 testimonial cards with student quotes.
+
+Then a final call-to-action section with a gradient background saying "Ready to ace your next interview?" with a big button.
+
+At the very bottom, a footer with links organized in 4 columns.
+
+**What happens when user clicks?**
+- "Start Preparing Free" → goes to `/auth` (registration page)
+- "For Companies" → goes to `/company/register` (company registration)
+
+---
+
+## Screen 2: Auth Page `/auth`
+
+**What is this?**
+The registration AND login page. Everything happens on one screen — no navigating between separate pages for sign up vs login vs OTP vs profile setup. Instead, the content switches in-place.
+
+**What does the user see?**
+
+On desktop, the screen is split in half. The left side has a gradient background with the platform tagline and a small 3D avatar. The right side has the form. On mobile, only the form shows (full screen).
+
+At the top of the form, there are two tabs: "Sign Up" and "Login". Clicking between them switches the content below.
+
+### Sign Up Flow (3 steps, all on same screen):
+
+**Step 1 — Create Account:**
+The user sees 3 input fields: Name, Email, Password (with hint "Min 8 characters"). Below that, a horizontal line with "OR" in the middle, then a "Continue with Google" button. At the bottom, a big "Create Account" button.
+
+The user fills in their details and clicks Create Account. The button shows a spinner. The backend sends an OTP to their email.
+
+**Step 2 — OTP Verification:**
+The form content changes. Now the user sees: "We sent a 6-digit code to your@email.com". Below that, 6 individual small input boxes, each accepting one digit. When you type a digit, focus automatically jumps to the next box. When you press backspace on an empty box, focus goes to the previous one.
+
+Below the boxes, a countdown timer shows "Resend in 4:32". When it reaches 0, it becomes a "Resend OTP" button. There's a "Verify" button at the bottom (disabled until all 6 digits are filled).
+
+If the user enters the wrong code, a red error message appears: "Invalid code. 2 attempts remaining." After 3 wrong attempts, they must request a new OTP.
+
+**Step 3 — Profile Setup:**
+After OTP is verified, the form content changes again. Now the user fills out their profile:
+- Job Role: a dropdown with options like Frontend Developer, Backend Developer, etc.
+- Skills: a tag input where they type and get autocomplete suggestions. Clicking a suggestion adds it as a pill/tag. They can remove tags by clicking the × on each pill.
+- Education: a repeatable group — each row has Degree (dropdown), Institution (text), Year (text). There's an "+ Add" button to add more rows and a "×" button on each row to remove it.
+- LinkedIn URL: optional text input
+- GitHub URL: optional text input
+- "Complete Setup" button at the bottom
+
+After clicking Complete Setup, the account is created with role = "student", and the user is redirected to `/dashboard`.
+
+### Login Tab:
+If the user clicks the "Login" tab instead, they see: Email input, Password input, a "Forgot Password?" link, an "OR" divider, "Continue with Google" button, and a "Login" button.
+
+**Forgot Password flow:** Clicking "Forgot Password?" reveals an email input and "Send Reset Link" button inline. The user enters their email, clicks Send, and sees "Reset link sent to your email." They click the link in their email, which takes them to a page where they set a new password, then come back to login.
+
+---
+
+## Screen 3: Student Dashboard `/dashboard`
+
+**What is this?**
+The student's home base after logging in. Every time they finish an activity, they come back here. It shows a summary of everything at a glance.
+
+**What does the user see?**
+
+At the top: "Welcome back, Priya! 👋" with their name. On the right side, a "Download Report" button. This button is HIDDEN by default. It only appears (with a fade-in + pulse animation) when a WebSocket message arrives saying "REPORT_READY" — which happens about 60 seconds after an interview ends.
+
+**Top section (2 columns on desktop, stacked on mobile):**
+
+Left — Score Gauge: A big circular progress ring showing the overall interview score from the last session (e.g., 78%). Below it, "Last: Jan 15" showing when the last interview was.
+
+Right — Score Trend Line: A line chart showing the scores of the last 10 interview sessions plotted over time. So the student can see if they're improving.
+
+**Middle section (3 columns desktop, stacked mobile):**
+
+Column 1 — Skill Radar Chart: A 6-axis radar chart showing scores across 6 dimensions: Technical, Communication, Behavioral, Body Language, Confidence, Problem Solving. The shape of the radar shows where they're strong and where they're weak.
+
+Column 2 — Resume Score Card: Shows "Resume ATS Score" as a big number (e.g., 87) with a progress bar below it. A "View Full Analysis →" link goes to `/resume`.
+
+Column 3 — Aptitude Quick Stats: 5 small horizontal bars showing scores per category: Quant, Logical, Verbal, Analytical, DI. Each bar has a label, a filled portion, and a percentage. A "Take Test →" link goes to `/aptitude`.
+
+**Bottom section (2 columns desktop, stacked mobile):**
+
+Left — Recent Interviews: A list of the last 5 interviews, each as a small card showing: date, interview type badge (HR, Technical, etc.), score, and a "Replay →" link. If the student has never done an interview, an empty state shows: "Complete your first interview!" with an icon.
+
+Right — Two things stacked:
+1. Learning Roadmap: A checklist showing 6 weeks. Each week has a status icon: ✅ Complete, 🔄 In Progress, or 🔒 Locked. The week theme is shown next to each.
+2. Coding Heatmap: A GitHub-style grid of small colored squares showing coding activity over the last 12 weeks. Green squares = days with activity.
+
+**Very bottom — Fair Usage Summary:**
+A small collapsible section labeled "Your self-awareness stats". When expanded, it shows: "Tab switches last test: 3 | Fullscreen exits: 1". There's an info icon with a tooltip that says "These are logged for your awareness only. No penalties." This is important — in Prep Mode, proctoring data is purely informational. It never blocks the user or affects their score.
+
+---
+
+## Screen 4: Resume Hub `/resume`
+
+**What is this?**
+Where the student uploads their resume and gets a detailed AI analysis back.
+
+**What does the user see?**
+
+The page has 3 sub-screens that switch in-place based on what's happening:
+
+### Sub-screen 4a — Upload:
+A centered drag-and-drop zone (about 300px tall) where the user can drag a PDF or DOCX file, or click to browse. Max file size is 5MB.
+
+After the user selects a file, the filename and size appear below the dropzone, with an "Analyze Resume" button.
+
+When they click the button, the file uploads. While waiting for the AI analysis (takes about 10-15 seconds), a shimmer skeleton placeholder appears — it has the same shape and layout as the results card, but everything is a pulsing gray animation, so the user knows something is loading and where it will appear.
+
+### Sub-screen 4b — Results:
+After analysis completes, the shimmer disappears and the full results appear:
+
+**Top row — 3 stat cards (side by side on desktop):**
+- ATS Score: 87/100 with a circular gauge or progress bar
+- Overall Resume Score: 82/100 with progress bar
+- Job Fit: 78% with progress bar and a label showing "Backend Developer"
+
+**Skills section (2 columns):**
+- Left: "Skills Found" — tags in green showing Python, FastAPI, React, SQL
+- Right: Two groups of tags — "Missing Skills" in red (Docker, CI/CD, Testing) and "Recommended" in yellow (System Design, Redis)
+
+**Issues section (2 columns):**
+- Left: "Grammar Issues" — a list where each item shows: line number, the issue, and the suggested fix
+- Right: "Formatting Issues" — a simple bulleted list like "No consistent date format", "Missing LinkedIn URL"
+
+**AI Summary:** A card with 2 paragraphs of narrative text like "Priya has a strong foundation in backend development with Python and FastAPI..."
+
+**Bottom:** A few badges — "Experience Level: Junior", "Word Count: 487", "Pages: 1"
+
+**Actions:** "Download Full Report" button and "Upload New Resume" button.
+
+### Sub-screen 4c — Upload History:
+A table (or card list on mobile) showing all past resume uploads with columns: Date, ATS Score, Job Fit %, and a "View" link. Clicking "View" switches to the results sub-screen showing that specific analysis. The user can upload new resumes anytime — all versions are saved.
+
+---
+
+## Screen 5: Aptitude Portal `/aptitude`
+
+**What is this?**
+Where the student takes timed aptitude tests with 25 MCQ questions across 5 categories.
+
+**What does the user see?**
+
+3 sub-screens that switch based on the test phase:
+
+### Sub-screen 5a — Rules Screen:
+A centered card showing the test configuration:
+- "25 Questions" with an icon
+- "30 Minutes" with a clock icon
+- "5 Categories" with a grid icon
+- Category breakdown: Quantitative (5), Logical (5), Verbal (5), Analytical (5), Data Interpretation (5)
+- "No Negative Marking" with a checkmark
+- "Unlimited Retakes" with a refresh icon
+- "Start Test" button (big, centered, primary)
+
+### Sub-screen 5b — Test Screen:
+This is the main test-taking interface.
+
+**Top bar:** A countdown timer on the left (shows minutes:seconds), "Q 12 of 25" in the center showing which question they're on, and a Bookmark button on the right.
+
+**Left side — Question area:**
+A small badge showing the category (e.g., "Quantitative"). Below it, the question text. Then 4 option buttons labeled A, B, C, D. The currently selected option is highlighted with an accent border and background. Below the options, "← Previous" and "Next →" navigation buttons.
+
+**Right side — Navigation Grid:**
+A 5×5 grid of 25 small circles. Each circle represents one question:
+- Green circle = answered
+- Yellow circle = bookmarked
+- Orange ring = current question
+- Gray circle = unanswered
+The user can click any circle to jump directly to that question.
+
+Below the grid, a legend explaining the colors.
+
+**Footer:** On the left, small gray text showing "Tab switches: 2 | Fullscreen exits: 0" — this is informational only, just a counter. On the right, a "Submit Test" button (ghost style, not primary — to prevent accidental clicks).
+
+**Timer behavior:**
+- Normal: black text
+- Under 5 minutes: turns red, bold, with a subtle pulse animation
+- Under 1 minute: red, bold, larger size
+- At 00:00: auto-submits whatever has been answered
+
+**Option selection:** Clicking an option immediately highlights it. No separate "confirm" step needed. If the user clicks a different option, it switches.
+
+**Bookmarking:** Clicking the bookmark icon marks the current question with a yellow circle in the navigation grid.
+
+**Auto-save:** Answers are auto-saved every 30 seconds to localStorage. If the browser crashes, the user can resume from where they left off.
+
+**Tab switch detection:** Every time the user switches tabs or exits fullscreen, a counter increments. In Prep Mode, this counter is shown but it NEVER pauses the test, NEVER warns the user, and NEVER affects their score. It's purely informational.
+
+**Submitting:** When the user clicks "Submit Test", a confirmation modal appears: "Are you sure? X questions are unanswered." If all 25 are answered, it still shows a modal but says "All 25 questions answered. Submit?"
+
+### Sub-screen 5c — Results Screen:
+After submitting, the results appear:
+
+**Top:** A score summary: "18/25 Correct (72%)" with a progress bar.
+
+**Category Breakdown:** 5 horizontal bars, one per category, showing the score. For example:
+- Quantitative: 80% (green bar)
+- Logical: 60% (yellow bar)
+- Verbal: 100% (green bar)
+- Analytical: 80% (green bar)
+- Data Interpretation: 40% (red bar)
+
+**Wrong Answers Section:** For each question the user got wrong, a card shows:
+- The question text (truncated if long)
+- "Your answer: B" in red with an ✕ icon
+- "Correct answer: C" in green with a ✓ icon
+- An explanation of why the correct answer is right
+
+**Action:** "Take Again" button at the bottom. This goes back to the Rules screen with a fresh set of 25 random questions from the public bank. Retakes are unlimited.
+
+---
+
+## Screen 6: Coding Arena `/coding`
+
+**What is this?**
+A coding practice environment with a VS Code-like editor, code execution, and AI code review.
+
+**What does the user see?**
+
+On desktop, the screen is split into two panes side-by-side (50/50), with a draggable divider between them. On mobile, the two panes stack vertically — problem on top (collapsible), editor on bottom.
+
+### Left Pane — Problem Statement:
+Shows the coding problem with:
+- Title (e.g., "# Two Sum") with a difficulty badge (Easy = green, Medium = yellow, Hard = red)
+- The full problem description in formatted text
+- Example inputs and outputs in code blocks
+- Constraints listed
+- If it's a SQL problem, there's also a schema diagram and sample data table
+
+### Right Pane — Code Editor:
+- A language dropdown at the top: Python, Java, C++, JavaScript, SQL, Go, TypeScript
+- The Monaco editor below it — this is the same editor engine that powers VS Code. It has syntax highlighting, autocomplete, bracket matching, etc. The editor theme automatically matches the user's appearance mode (light/dark/midnight).
+- Below the editor, a "Custom Input" text field where the user can type their own test input
+- Two buttons: "▶ Run" (ghost style) and "✓ Submit" (primary style)
+- Below the buttons, the test cases section
+
+**Run button:** Executes the user's code against the 3 visible test cases using the Piston API. Results appear below:
+- ✅ Case 1: Passed (12ms, 14MB)
+- ✅ Case 2: Passed (8ms, 14MB)
+- ❌ Case 3: Failed — Expected [0,1] Got [1,0] (15ms, 14MB)
+
+**Submit button:** Executes the code against ALL 10 test cases (3 visible + 7 hidden). Shows the pass/fail count:
+- ✅ Cases 1-3: Passed
+- ✅ Cases 4-7: Passed (hidden)
+- ❌ Case 8: Failed (hidden)
+- ✅ Cases 9-10: Passed (hidden)
+- "7/10 passed"
+
+**After submit — AI Code Review:**
+A panel slides down below the test cases showing the AI's review of the code:
+- Overall Score: 85/100 with a progress bar
+- Time Complexity: O(n) ✅ Optimal
+- Space Complexity: O(n)
+- Sub-scores: Code Quality 90/100, Readability 85/100, Correctness 70/100
+- Strengths: green bullet list ("Clean variable naming", "Handles edge cases")
+- Suggestions: yellow bullet list ("Consider using a dictionary for O(1) lookup instead of nested loop")
+- "Refactored Snippet" — a collapsible section showing improved code
+
+**Language switching:** When the user switches the language dropdown, a confirmation modal appears: "Switching language will clear your code. Continue?" This prevents accidental code loss.
+
+**Auto-save:** Code is auto-saved to localStorage every 30 seconds. A small "Auto-saved ✓" message briefly appears after each save.
+
+**Proctoring footer:** Same as aptitude — "Tab switches: 1 (logged only)" — informational, never blocks.
+
+---
+
+## Screen 7: AI Interview `/interview`
+
+**What is this?**
+The flagship feature. The student has a live, real-time conversation with an AI interviewer who asks questions, listens to answers, generates follow-ups, and analyzes body language.
+
+**What does the user see?**
+
+4 sub-screens:
+
+### Sub-screen 7a — Setup:
+"Choose Interview Type" heading with 6 cards in a 3×2 grid (2 columns on mobile):
+
+1. HR/Behavioral — 20-30 min, 8-12 questions
+2. Technical — General — 30-45 min, 10-15 questions
+3. Technical — Role-Specific — 30-45 min, 10-15 questions
+4. Managerial — 25-35 min, 8-10 questions
+5. Company-Specific — 25-35 min, 8-12 questions
+6. Full End-to-End — 55-75 min, 25-40 questions
+
+Each card has an icon, title, description, duration, and question count. The user clicks one to select it (it gets highlighted with an accent border).
+
+Below the cards, a "System Check" section:
+- "🎤 Microphone: [Test]" button — clicking it requests mic permission and shows "Working ✅" or "Not detected ❌"
+- "📷 Camera: [Test]" button — clicking it requests camera permission and shows a small webcam preview or an error
+
+"Begin Interview" button (disabled until both mic and camera are confirmed working).
+
+### Sub-screen 7b — Live Interview:
+
+**On desktop, split into two sides:**
+
+**Left side — Avatar and Analysis:**
+- A 3D animated avatar (Three.js) that's about 320×320 pixels. The avatar has:
+  - Idle animation: gentle breathing/bobbing when waiting
+  - Speaking animation: mouth moves (lip-synced) when the AI is asking a question
+  - Thinking animation: slight head tilt with a "..." typing dots overlay when the AI is generating the next question
+- Below the avatar, voice waveform bars — about 20 vertical bars that animate their height based on the audio volume when the user is speaking
+- Below the waveform, real-time analysis indicators:
+  - Emotion: 😐 Neutral (updates every 5 seconds via face-api.js running in the browser)
+  - Eye Contact: 78% (via MediaPipe running in the browser)
+  - Posture: ✅ Good or ⚠️ Check posture (via MediaPipe)
+
+**Right side — Question and Transcript:**
+- "AI Question:" label followed by the current question text in a card
+- A microphone toggle button: "🎤 Speak now..." — the user can click to start/stop recording, or just start talking and it auto-detects
+- Live Transcript: A chat-like display that builds in real-time as the AI speaks and the user answers:
+  - AI messages appear left-aligned in accent color
+  - User messages appear right-aligned in a subtle background
+  - Each message has a small timestamp
+  - The transcript auto-scrolls to the latest message
+- When the AI is generating the next question, typing dots appear: "● ● ● AI is thinking..."
+
+**Top bar:** Countdown timer (red when <5min), "Q 3 of 10" showing progress, and an "End Early" ghost button (confirmation modal: "End interview early? You won't be able to resume.")
+
+**Footer:** Same proctoring info as other screens — "Tab switches: 1 | Fullscreen exits: 0 (logged only)"
+
+**On mobile:** Everything stacks vertically — avatar on top (smaller, 200px), question and transcript below.
+
+**What happens technically during the live interview:**
+1. The AI avatar speaks the first question using Web Speech API text-to-speech. The avatar's mouth moves in sync.
+2. When the avatar finishes speaking, the microphone activates and the user speaks their answer.
+3. The audio is recorded and sent to the server, where Whisper converts it to text. The transcript appears live.
+4. The transcript is sent to Gemini, which generates a dynamic follow-up question based on the user's answer. The avatar speaks this new question.
+5. This loops: Question → User Answer → Follow-up → User Answer → ... until all questions are done.
+6. Simultaneously, face-api.js detects the user's emotion every 5 seconds (runs in browser, free). MediaPipe tracks eye contact percentage, posture, and hand gestures (runs in browser, free). These update the indicators on the left side.
+7. The entire session is recorded via MediaRecorder (video + audio) and uploaded to Cloudinary after the interview ends.
+
+### Sub-screen 7c — Processing:
+After the interview ends, this screen shows:
+
+A large conic spinner (the rainbow spinner animation). Below it, a list of processing steps that update one by one via WebSocket:
+- ✅ Transcribing audio...
+- ✅ Evaluating answers...
+- 🔄 Generating report... (currently in progress)
+- ⬜ Calculating scores...
+
+Below: "This takes approximately 60 seconds"
+
+If it's been more than 5 minutes: "Taking longer than expected. We'll notify you when ready." with an option to go to the dashboard and wait there.
+
+The actual processing happens as a Celery background job on the server. The frontend just shows progress via WebSocket.
+
+### Sub-screen 7d — Done:
+A centered card with:
+- Large ✅ icon with a spring scale-in animation
+- "Interview Complete!"
+- "Your report is being generated and will appear on your dashboard."
+- "Go to Dashboard" button
+
+About 60 seconds later, a WebSocket message "REPORT_READY" arrives, and the "Download Report" button on the dashboard activates.
+
+---
+
+## Screen 8: Report `/report/:id`
+
+**What is this?**
+A full, detailed PDF report viewable in the browser. It has 17 sections covering every aspect of the interview performance.
+
+**What does the user see?**
+
+A long scrollable page with 17 sections, each in its own card with a section number and title. A sticky "📥 Download PDF" button stays visible in the top-right corner while scrolling.
+
+The 17 sections are:
+
+1. **Cover Page** — Platform logo, "Interview Report", candidate name, date, interview type
+2. **Executive Summary** — 3 paragraphs giving a high-level overview of how the candidate performed
+3. **Overall Score Table** — A table with 6 rows, one per dimension (Technical, Communication, Behavioral, Body Language, Confidence, Problem Solving). Each row shows the dimension name, score out of 100, and a progress bar.
+4. **Hiring Recommendation** — A large, prominent badge: "Strongly Recommend" (green), "Recommend" (blue), "Conditionally Recommend" (yellow), or "Not Recommended" (red)
+5. **Resume Analysis** — ATS score, job fit percentage, skills found and missing
+6. **Aptitude Analysis** — Per-category scores, strengths, and weaknesses
+7. **Coding Analysis** — Problems attempted, pass rate, code quality score, AI review summary
+8. **Technical Analysis** — Per-question technical accuracy scores and depth ratings
+9. **HR/Behavioral Analysis** — STAR method usage evaluation, motivation clarity, culture fit indicators
+10. **Communication Analysis** — Clarity score, structure rating, filler word count, pacing analysis
+11. **CV/Emotion Analysis** — Dominant emotions detected, average eye contact percentage, posture consistency
+12. **Emotion Timeline Chart** — A line chart where X-axis is question number and Y-axis shows emotion scores over time, so you can see how emotions changed throughout the interview
+13. **Session Highlights** — 3-5 key moment cards with timestamps, like "Best answer at Q5", "Weakest moment at Q8", "Surprising insight at Q3"
+14. **Top 7 Strengths** — A bulleted list with green checkmarks, like "Strong conceptual understanding of distributed systems", "Excellent eye contact throughout"
+15. **Top 7 Improvements** — A bulleted list with yellow warning icons, like "Reduce filler words (used 'um' 23 times)", "Provide more structured answers using STAR method"
+16. **6-Week Learning Roadmap** — 6 collapsible cards, one per week. Each shows: week theme (e.g., "Week 1: Core Fundamentals"), daily goal, free resource links, and a milestone to achieve
+17. **Final Recommendation** — A closing paragraph with actionable next steps
+
+---
+
+## Screen 9: Interview Replay `/replay/:id`
+
+**What is this?**
+A way to re-watch a past interview with the video recording synced to the transcript and AI annotations.
+
+**What does the user see?**
+
+**Top:** A video player with standard controls (play/pause, seek, volume) and a current time display (e.g., "12:45 / 25:30"). The user can click anywhere on the progress bar to jump to that timestamp.
+
+**Middle:** A scrollable transcript panel where each Q&A pair is listed with:
+- The AI's question with a timestamp (e.g., "0:00")
+- The user's answer with a timestamp (e.g., "0:15")
+- An AI annotation/note next to the answer (e.g., "Good structure, could mention projects")
+
+Clicking any transcript line jumps the video to that timestamp.
+
+**Bottom:** An emotion timeline — a horizontal strip showing emotion icons/indicators for each question: 😐──😐──😊──😐──🤔──😐
+
+If the recording failed to upload (network error during the interview), a message shows: "Recording unavailable — transcript and scores still accessible"
+
+---
+
+## Screen 10: Profile `/profile`
+
+**What is this?**
+Where the student edits their personal information. This data is used by the AI to personalize interview questions.
+
+**What does the user see?**
+
+4 tabs:
+
+1. **Personal Info** — Name, Phone, Date of Birth, City, Avatar upload (image file)
+2. **Education** — A repeatable list where each entry has: Degree (dropdown), Institution (text input), Year (text input). "+ Add Education" button to add more, "×" to remove.
+3. **Skills** — A tag input with autocomplete suggestions. The user types, sees matching suggestions, clicks to add. Existing skills appear as removable pills.
+4. **Job Preferences** — Preferred roles (multi-select), Experience level (dropdown), Expected salary (text), Preferred locations (tag input)
+
+Each tab has a "Save Changes" button. The profile data is sent to the backend and used by Gemini to generate targeted interview questions (e.g., if the user is a Backend Developer, the AI asks backend-specific questions).
+
+---
+
+# ═════════════════════════════════════════
+# SECTION 2: HIRING MODE — COMPANY ADMIN
+# ═════════════════════════════════════════
+
+---
+
+## Screen A1: Company Registration `/company/register`
+
+**What is this?**
+Where a company HR person or recruiter creates their account. One-time setup.
+
+**What does the user see?**
+
+A centered card with:
+- Company Name (required)
+- Admin Name (required)
+- Admin Email (required)
+- Admin Password (required, min 8 characters)
+- Confirm Password (required)
+- "Register" button
+
+On submit, a `company_admin` account is created and a `companies` record is stored. The user is redirected to `/admin`.
+
+---
+
+## Screen A2: Admin Dashboard `/admin`
+
+**What is this?**
+The company admin's home base. Shows all their campaigns at a glance.
+
+**What does the user see?**
+
+**Top:** Company name and admin name.
+
+**Summary cards (4 across on desktop, 2×2 on mobile):**
+- Total Campaigns: 5
+- Active Campaigns: 3
+- Total Candidates: 142
+- Interviews Completed: 89
+
+**Campaign list table:**
+
+| Campaign | Role | Deadline | Candidates | Status |
+|----------|------|----------|------------|--------|
+| Backend SDE-1 | Backend Dev | Jan 30 | 47 | 🟢 Active |
+| Frontend Intern | Frontend Dev | Feb 15 | 23 | 🟢 Active |
+| Data Analyst | Data Science | Dec 31 | 31 | 🔴 Closed |
+
+Each row is clickable and goes to `/admin/campaigns/:id/candidates`.
+
+Top-right: "Create New Campaign" button.
+
+---
+
+## Screen A3: Campaign Creation `/admin/campaigns/new`
+
+**What is this?**
+Where the admin configures a new hiring campaign. This is where the public apply link is generated.
+
+**What does the user see?**
+
+Two phases:
+
+### Phase 1 — Form:
+A card with the following fields:
+
+- **Campaign Name** (text input, required) — e.g., "Campus Drive 2025 - Backend"
+- **Job Role** (text input, required) — e.g., "Backend Developer"
+- **Deadline** (date+time picker, required) — when the campaign closes
+- **Active Rounds** (3 checkboxes) — ☑ Aptitude ☑ Coding ☑ Interview. The admin can check any combination.
+- **Score Weights** (sliders, only shown for checked rounds) — Aptitude: 30%, Coding: 30%, Interview: 40%. The sliders must sum to 100%. If they don't, a warning appears and the submit button is disabled.
+- **Min Aptitude Score to Qualify (%)** (number input, optional) — e.g., 50. Candidates scoring below this can't unlock the Coding round. Hint: "Leave blank for no cutoff."
+- **Min Coding Questions to Attempt** (number input, optional) — e.g., 2. Candidates who attempt fewer can't unlock Interview. Hint: "Leave blank for no cutoff."
+- **Proctoring Strictness** (dropdown: Relaxed / Standard / Strict)
+- **Auto-Disqualify On** (checkboxes) — ☑ 3+ tab switches ☑ Phone detected in frame ☑ Extra person detected in frame
+- "Create Campaign" button
+
+### Phase 2 — Success Screen:
+After the campaign is created, the form is replaced by a success card:
+
+- ✅ animated checkmark
+- "Campaign Created Successfully!"
+- Campaign details: name, role, deadline
+
+**Apply Link Box** (the key automation feature — wrapped in a gradient border):
+- "📋 Your Public Apply Link:" label
+- The full URL in monospace font: `https://yourplatform.com/apply/backend-sde-1-a3f2`
+- A "📋 Copy" button that copies the URL to clipboard
+- A QR code generated from the URL (using qrcode.react)
+- Tip text: "💡 Share this link on LinkedIn, Naukri, or send directly to candidates. Resumes will appear here automatically as they apply."
+
+Two action buttons:
+- "➡️ Add Questions" → goes to the question manager
+- "👥 View Applicants" → goes to the candidate leaderboard
+
+**This is the core of the automation.** The admin doesn't need to manually collect resumes, extract emails, or enter candidate data. They just share this link, and everything flows automatically.
+
+---
+
+## Screen A4: Question Set Manager `/admin/campaigns/:id/questions`
+
+**What is this?**
+Where the admin adds questions that candidates will see. These questions are scoped to THIS campaign only — candidates from other campaigns can never see them.
+
+**What does the user see?**
+
+Two tabs:
+
+### Tab 1 — Aptitude Questions:
+A form to add questions one by one:
+- Category (dropdown: Quant, Logical, Verbal, Analytical, DI)
+- Sub-topic (text)
+- Difficulty (dropdown: Easy, Medium, Hard)
+- Question text (textarea)
+- 4 options with labels (A, B, C, D)
+- Correct answer (radio selection among A/B/C/D)
+- Explanation (textarea)
+- "Add Question" button
+
+OR a "Bulk Upload CSV" button. Before uploading, the admin can download a template CSV, fill it with questions, and upload the completed file.
+
+Below the form, a table showing all added questions with edit and delete buttons.
+
+### Tab 2 — Coding Problems:
+A form:
+- Title (text)
+- Difficulty (dropdown)
+- Type (radio: DSA or SQL)
+- Problem statement (markdown textarea)
+- Function signature per language (multiple text inputs)
+- 3 visible test cases (each with input + expected output)
+- 7 hidden test cases (each with input + expected output)
+- Time limit (number, in milliseconds)
+- Memory limit (number, in KB)
+
+For SQL problems, an additional "Schema Setup SQL" field appears (for DDL + seed data).
+
+Below the form, a table of added problems with edit and delete.
+
+---
+
+## Screen A5: Candidate Leaderboard `/admin/campaigns/:id/candidates`
+
+**What is this?**
+THE MAIN SCREEN for the hiring workflow. This is where all applied candidates appear, ranked by job fit, and where the admin shortlists and sends invitations. This screen handles the entire automation flow.
+
+**What does the user see?**
+
+The screen has 4 possible states depending on what's happened so far:
+
+### State 1 — Empty (no applicants yet):
+The admin just created the campaign and shared the link, but no one has applied yet.
+
+They see:
+- An empty state with a Users icon
+- "No applicants yet"
+- The **Apply Link Box** again (same as the success screen) — URL, copy button, QR code, sharing tips
+- Two buttons: "📁 Upload Resumes Manually" (goes to bulk upload page) and "📝 Add Questions" (goes to question manager)
+
+The admin can either wait for candidates to apply via the public link (automated path), or upload resumes they already have (manual path).
+
+### State 2 — Automated Path (candidates applied via public link):
+Candidates have been applying through the public link. All of them filled in their name and email on the apply form, so all emails are guaranteed to be present.
+
+The screen shows:
+
+**Stats bar:** Total: 23 | Shortlisted: 0 | Invited: 0 | Completed: 0
+
+**Notification:** "🔔 3 new applicants in the last hour"
+
+**Auto-Shortlist Panel** (a prominent card at the top):
+- Method dropdown with options:
+  - Top 5 candidates
+  - Top 10 candidates
+  - Top 20 candidates
+  - Job Fit ≥ 75%
+  - Job Fit ≥ 80%
+  - Job Fit ≥ 90%
+  - All Applicants
+  - Manual Select (use checkboxes in the table)
+- Preview text: "Will shortlist: 10 candidates"
+- Confirmation: "All have emails ✅ — no manual fixes needed"
+- "🚀 Shortlist & Send Invites" button
+
+**Tabs:** All (23) | Apply Link (23) | Bulk Upload (0)
+
+**Table** (full on desktop, card list on mobile):
+
+| ☐ | # | Name | Source | Job Fit | ATS | Email | Status |
+|---|---|------|--------|---------|-----|-------|--------|
+| ☐ | 1 | Priya Sharma | 🟢 Apply Link | 91% | 88 | ✅ priya@gmail.com | Applied |
+| ☐ | 2 | Amit Patel | 🟢 Apply Link | 87% | 82 | ✅ amit@company.com | Applied |
+| ... | | | | | | | |
+
+Each row has a checkbox for manual selection, a rank number, name, source badge (green "Apply Link"), job fit percentage shown as a progress bar, ATS score, email (always ✅ for apply link candidates), and status badge.
+
+**Pagination** at the bottom if there are many candidates.
+
+**When admin clicks "🚀 Shortlist & Send Invites":**
+
+A confirmation modal appears listing all 10 candidates being shortlisted, with their source badges. It explains: "This will: ✓ Shortlist 10 candidates ✓ Generate unique Candidate IDs ✓ Generate temporary passwords ✓ Send invite emails with login credentials". Buttons: "Cancel" and "✓ Confirm & Send 10".
+
+After confirmation (takes 2-3 seconds), a success result shows:
+"✅ Shortlist Complete — 10 Invites Sent"
+With a table showing each candidate's Name, Candidate ID (e.g., BACKEN-3FA82C), and Email Status (all ✅).
+"Remaining 13 candidates will stay as 'Applied'." — the admin can shortlist more later.
+
+The leaderboard table updates: the top 10 candidates now show Status = "Invited" with a green badge, and their candidate IDs are visible.
+
+**This is the fully automated flow.** From "admin shares link" to "candidates receive invite emails" — the admin only clicked one button.
+
+### State 3 — Manual Path (admin uploaded resumes with some missing emails):
+The admin used the bulk upload path, and some resumes didn't have extractable emails.
+
+The screen looks similar to State 2, but with key differences:
+
+- The Auto-Shortlist Panel shows: "⚠️ 2 candidates have missing emails — fix them below before shortlisting, or they'll be skipped"
+- The button says "🚀 Shortlist & Send Invites — 8 eligible" (counting only those with emails)
+- The table shows "Bulk Upload" source badges (blue) for uploaded candidates
+- Rows with missing emails show ⚠️ in the email column with an inline edit field right in the table cell. The admin types the missing email and presses Enter or clicks ✓. The ⚠️ turns to ✅, and the shortlist count updates.
+
+**Tabs:** All (35) | Apply Link (23) | Bulk Upload (12)
+
+### State 4 — Post-Shortlist (invites sent, candidates taking tests):
+After shortlisting and sending invites, candidates start taking the assessment rounds. The leaderboard updates in real-time via WebSocket.
+
+New columns appear in the table:
+
+| Name | Source | Aptitude | Qualification | Coding | Interview | Overall | Integrity | Status |
+|------|--------|----------|---------------|--------|-----------|---------|-----------|--------|
+| Priya Sharma | Apply Link | 74/100 | ✅ | 81/100 | 🔄 Live | -- | ✅ Clean | In Progress |
+| Amit Patel | Bulk Upload | 52/100 | ❌ | 🔒 | 🔒 | -- | ⚠️ 2 flags | In Progress |
+| Rahul Kumar | Apply Link | 88/100 | ✅ | 92/100 | 85/100 | 88 | ✅ Clean | Completed |
+
+- **Qualification column:** ✅ if they met the cutoff, ❌ if they didn't (which means next round stays locked for them)
+- **Integrity column:** ✅ Clean, ⚠️ Flags (clickable → goes to proctoring review), 🚫 Penalty (20% deduction applied)
+- **Overall column:** The weighted score: (aptitude × 0.30) + (coding × 0.30) + (interview × 0.40). If integrity penalty was applied, 20% is deducted.
+
+**Bottom buttons:** "📥 Export CSV" and "📄 Export PDF ZIP"
+
+---
+
+## Screen A5b: Bulk Upload `/admin/campaigns/:id/upload`
+
+**What is this?**
+Where the admin uploads resume files they already have. This is the manual/alternative path to collecting candidates.
+
+**What does the user see?**
+
+3 phases:
+
+### Phase 1 — Upload:
+A "← Back to Candidates" link at the top.
+
+An info card explaining: "Use this if you already have candidate resumes (from a campus drive, agency, or internal database) and don't want them to apply through the public link. The system will try to extract name and email from each resume using AI. You may need to manually fill in missing details. For guaranteed email collection, use the public apply link instead."
+
+A large drag-and-drop zone accepting PDF, DOCX, or ZIP files (max 50MB total, max 100 files).
+
+"Upload & Analyze" button (disabled until files are selected).
+
+### Phase 2 — Processing:
+After clicking upload, each file shows its processing status:
+
+```
+✅ resume_priya.pdf     — Extracting...  (3/12)
+✅ resume_amit.docx     — Analyzing...
+✅ resume_sneha.pdf     — Analyzing...
+⬜ resume_rahul.pdf     — Waiting...
+⬜ resume_meera.pdf     — Waiting...
+...
+```
+
+A progress bar shows "3/12". Estimated time remaining. "Please don't close this page" hint.
+
+If the user navigates away, processing continues on the server (Celery background job). Results will appear in the leaderboard when done.
+
+### Phase 3 — Results:
+After all files are processed:
+
+**Summary:** "✅ 9 resumes — fully extracted (name + email found)" and "⚠️ 3 resumes — need manual input"
+
+**⚠️ Section — Needs Your Input:**
+Each problematic resume shows as a card:
+
+```
+📄 resume_john.pdf
+AI Extracted:
+  Name: "John Doe" ✅
+  Email: ❌ Not found in resume
+  Phone: "+91-9876543210"
+  Job Fit: 87%  |  ATS: 82
+
+  Email Address *: [____________________] [Save]
+                     ^^^^^^^^^^^^^^^^^^^^^^
+                     REQUIRED — admin types email here
+```
+
+For resumes where even the name couldn't be extracted:
+
+```
+📄 resume_001.pdf
+AI Extracted:
+  Name: ❌ Not found
+  Email: ❌ Not found
+  Job Fit: 84%  |  ATS: 79
+
+  Candidate Name *: [____________________]
+  Email Address *: [____________________] [Save]
+```
+
+As the admin fills each field and clicks Save, the card transforms from ⚠️ to ✅.
+
+**✅ Section — Fully Extracted:**
+A collapsible list of all successfully extracted resumes: "Priya Sharma | priya@gmail.com | Fit: 91%"
+
+**Bottom buttons:** "Discard All" and "Add All 12 to Leaderboard" (disabled until all ⚠️ are fixed)
+
+After clicking "Add All 12", all candidates are inserted into the applicant pool and the admin is redirected to the main leaderboard (Screen A5).
+
+---
+
+## Screen A6: Proctoring Review `/admin/campaigns/:id/candidates/:candidateId/proctoring`
+
+**What is this?**
+Detailed view of a specific candidate's proctoring violations. The admin reaches this by clicking a ⚠️ flag icon on the leaderboard.
+
+**What does the user see?**
+
+Candidate name, candidate ID, and all round scores at the top.
+
+A timeline table of all proctoring events:
+
+| Time | Round | Event | Severity | Screenshot |
+|------|-------|-------|----------|------------|
+| 10:23 | Aptitude | Tab switch (1/3) | Warning | [View] |
+| 10:45 | Aptitude | Tab switch (2/3) | Warning | [View] |
+| 11:02 | Aptitude | Tab switch (3/3) | Auto-submitted | [View] |
+| 14:30 | Interview | Phone detected in frame | Critical | [View Frame] |
+
+Clicking "View" or "View Frame" opens the flagged webcam frame as an image (stored in Cloudinary — only captured in Hiring Mode).
+
+Integrity score calculation is visible.
+
+Admin can take actions per event: "Dismiss flag" (the violation was a false positive) or "Confirm violation" (it was real).
+
+---
+
+## Screen A7: Final Selection `/admin/campaigns/:id/selection`
+
+**What is this?**
+Where the admin makes final hiring decisions after all candidates have completed (or failed) their assessments.
+
+**What does the user see?**
+
+The same leaderboard table, but now each candidate has a dropdown for the final decision:
+
+| Name | Overall | Integrity | Decision | Notes |
+|------|---------|-----------|----------|-------|
+| Priya Sharma | 88% | ✅ Clean | [Selected ✅ ▼] | Strong technical skills |
+| Amit Patel | 61% | ⚠️ 20% penalty | [Waitlisted ⏳ ▼] | Borderline, reserve list |
+| Rahul Kumar | 52% | ✅ Clean | [Rejected ❌ ▼] | Below threshold |
+| John Doe | 0% | 🚫 Auto-DQ | [Rejected ❌ ▼] | Disqualified — phone detected |
+
+Decision options: Selected, Rejected, Waitlisted.
+
+An optional "Notes" text field per candidate for the admin to record reasoning.
+
+"Export Results" section:
+- "📥 Export CSV" — downloads a spreadsheet with all candidate data
+- "📄 Export PDF ZIP" — downloads a ZIP file containing individual PDF reports for each candidate
+
+---
+
+# ═════════════════════════════════════════
+# SECTION 3: HIRING MODE — INVITED CANDIDATE
+# ═════════════════════════════════════════
+
+---
+
+## Screen B0: Public Apply Page `/apply/:campaignSlug`
+
+**What is this?**
+Where candidates land when they click the public link shared by the company. This is a PUBLIC page — no login required.
+
+**What does the user see?**
+
+If the campaign deadline has passed: A message saying "Applications for this role are now closed." with a "Go to Home" button. The form is hidden.
+
+If the campaign is not found: "Campaign not found."
+
+If active:
+
+A centered card showing:
+- Company name/logo area
+- "Apply for: Backend Developer"
+- "Deadline: January 30, 2025"
+- Form fields:
+  - Full Name (required)
+  - Email Address (required)
+  - Phone Number (optional)
+  - Resume Upload (required, PDF or DOCX, max 5MB, drag-and-drop)
+- "Submit Application" button
+
+**On submit:** Button shows spinner for 2 seconds. Then the card content is replaced by a success message:
+
+"✅ Application Submitted!"
+"Thank you, Priya!"
+"If shortlisted, you'll receive login credentials at priya@gmail.com before January 30, 2025."
+
+**Behind the scenes (automatic, the candidate doesn't see this):**
+1. Resume is stored in Cloudinary
+2. Gemini analyzes the resume → job fit %, ATS score, skills extracted
+3. Candidate appears in the admin's leaderboard ranked by job fit
+4. An acknowledgement email is sent to the candidate
+5. **Email is guaranteed to be present** because it was a required form field
+
+**If duplicate (same email already applied to this campaign):** A warning banner appears: "You've already applied to this campaign. Check your email for updates." The form becomes read-only.
+
+---
+
+## Screen B1: Invite Email (received by candidate)
+
+**What is this?**
+The email that shortlisted candidates receive. Not a screen in the app, but important for the flow.
+
+**What the email contains:**
+
+Subject: "You've been shortlisted — [Company Name] Interview Invitation"
+
+Body:
+- "Hi [Candidate Name],"
+- "You've been shortlisted for the [Job Role] position at [Company Name]."
+- "Your login credentials:"
+  - Candidate ID: BACKEN-3FA82C
+  - Password: mK9xLpQ2Wr (auto-generated temporary password)
+  - Login URL: https://yourplatform.com/company/login
+- "Deadline: January 30, 2025, 11:59 PM IST"
+- "Please complete all assessment rounds before the deadline."
+
+---
+
+## Screen B2: Candidate Login `/company/login`
+
+**What is this?**
+A separate login page for invited candidates. This is NOT the same as the student login — different URL, different credentials format.
+
+**What does the user see?**
+
+A centered card with:
+- Candidate ID input (e.g., BACKEN-3FA82C)
+- Password input (e.g., mK9xLpQ2Wr)
+- "Login" button
+
+**If the campaign deadline has passed:** "This campaign has expired. Contact the company for details."
+
+**On first login:** The system detects this is the candidate's first time (requirePasswordChange = true). They are IMMEDIATELY redirected to the force password change screen. ALL other routes are blocked — they cannot access any part of the app until they set a new password.
+
+---
+
+## Screen B3: Force Password Change `/c/:slug/change-password`
+
+**What is this?**
+Mandatory password change on first login. The candidate cannot proceed without setting their own password.
+
+**What does the user see?**
+
+A centered card with:
+- 🔒 Lock icon
+- "Set Your New Password"
+- "This is your first login. You must set a new password before proceeding."
+- New Password input
+- Confirm Password input
+- "Min 8 characters" hint
+- "Update Password" button
+
+After setting the password, the candidate is redirected to their campaign dashboard.
+
+---
+
+## Screen B4: Pre-Test Proctoring Check
+
+**What is this?**
+A mandatory system check before the candidate can access any assessment round. Unlike Prep Mode (where proctoring is informational only), here it is ENFORCED. The candidate cannot skip this.
+
+**What does the user see?**
+
+```
+🔍 System Check
+
+✅ Browser: Chrome 120 (supported)
+✅ Microphone: Working
+⬜ Camera: [Request Permission]
+⬜ Fullscreen: [Enter Fullscreen]
+
+All checks must pass to continue.
+
+[Continue to Assessment →]  (disabled until all ✅)
+```
+
+- Camera permission: MANDATORY. Cannot proceed without it.
+- Fullscreen: MANDATORY. The browser must enter fullscreen mode.
+- Microphone: MANDATORY. Must be working.
+
+If any check fails, the candidate cannot access any assessment round.
+
+---
+
+## Screen B5: Candidate Campaign Dashboard `/c/:slug/dashboard`
+
+**What is this?**
+The candidate's home base. A stripped-down view showing ONLY this specific campaign. No personal history, no other campaigns, no cross-campaign data.
+
+**What does the user see?**
+
+Top: "[Company Name] — [Job Role]" with a deadline countdown. The countdown color changes: green if >72 hours, yellow if 24-72 hours, red if <24 hours.
+
+Below, one card per active round, showing the round's status:
+
+**Completed round:**
+```
+Round 1: Aptitude Test
+✅ Completed — Score: 74/100
+Qualification: ✅ Passed
+```
+
+**In-progress round:**
+```
+Round 2: Coding Round
+🔄 In Progress
+[Continue Coding →]  (aurora button)
+```
+
+**Locked round:**
+```
+Round 3: AI Interview
+🔒 Locked
+"Complete Coding first to unlock"
+```
+
+**Key rules about locked rounds:**
+- Rounds unlock **sequentially**: Aptitude → Coding → Interview
+- If the candidate's aptitude score was below the cutoff set by the admin, the Coding round stays permanently locked with a neutral message: "You did not meet the qualifying criteria. This round is closed." The cutoff score is NEVER revealed to the candidate.
+- If the candidate didn't attempt enough coding problems, Interview stays locked with the same neutral message.
+- Once a round is submitted, it's permanently locked — no re-entry.
+
+Bottom: "Violations: 0 | Integrity: ✅ Clean" (only shows if violations > 0)
+
+---
+
+## Screen B6: Candidate Aptitude Round `/c/:slug/aptitude`
+
+**What is this?**
+The aptitude test for hiring mode. Uses the SAME component as Prep Mode's aptitude, but with strict proctoring enabled.
+
+**What's different from Prep Mode?**
+
+| Aspect | Prep Mode | Hiring Mode |
+|--------|-----------|-------------|
+| Questions from | Public bank (1,500+) | This campaign's curated questions ONLY |
+| Fullscreen | Optional | MANDATORY — exiting triggers a warning |
+| Camera | Not monitored | MANDATORY — COCO-SSD object detection running |
+| Tab switch | Counter shown, nothing else | **3-strike system**: Warning 1 → Warning 2 → 3rd violation = AUTO-SUBMIT + integrity flag |
+| Fullscreen exit | Counter shown, nothing else | Same 3-strike system |
+| Phone detected | Not checked | Warning + webcam frame stored to Cloudinary |
+| Extra person detected | Not checked | Warning + webcam frame stored |
+| Retakes | Unlimited | **ZERO — one attempt only** |
+| Auto-save | Every 30 seconds | Every 30 seconds (crash recovery) |
+
+**3-Strike Warning System:**
+
+When the candidate switches tabs for the first time:
+```
+⚠️ WARNING 1 of 3
+Tab switch detected.
+Further violations may result in auto-submission.
+[I Understand]
+```
+
+Second time:
+```
+⚠️ WARNING 2 of 3
+Tab switch detected again.
+One more violation and your test will be auto-submitted.
+[I Understand]
+```
+
+Third time:
+```
+🚫 TEST AUTO-SUBMITTED
+3 proctoring violations detected.
+Your answers have been submitted.
+This has been flagged for review.
+[Go to Dashboard]
+```
+
+On the 3rd strike, the test is auto-submitted with whatever answers the candidate had at that point. An `integrity_flag` is set on their record, and a 20% penalty will be applied to their final score.
+
+The proctoring warning modals are full-screen overlays with z-index 700 — the candidate cannot interact with the test until they dismiss the warning.
+
+**Once submitted:** The round is permanently locked. The candidate cannot re-enter or retake.
+
+---
+
+## Screen B7: Candidate Coding Round `/c/:slug/coding`
+
+**What is this?**
+The coding test for hiring mode. Same Monaco editor UI as Prep Mode, same strict proctoring as the aptitude round above.
+
+**Differences from Prep Mode:**
+- Problems come from this campaign's curated set ONLY (the ones the admin added)
+- One submission per problem — NO retries
+- Same 3-strike proctoring system
+- Fullscreen and camera mandatory
+- After all problems are done (or time runs out), the round is permanently locked
+
+---
+
+## Screen B8: Candidate AI Interview `/c/:slug/interview`
+
+**What is this?**
+The AI interview for hiring mode. Same live interview UI as Prep Mode, but with strict proctoring.
+
+**Differences from Prep Mode:**
+- Interview type is FIXED by the company admin — the candidate doesn't get to choose
+- Same strict proctoring continues (fullscreen + camera mandatory, 3-strike system)
+- Flagged webcam frames are stored in Cloudinary and visible to the admin in the proctoring review screen
+- Serious or repeated violations can disqualify the candidate entirely (if the admin enabled that rule in campaign creation)
+
+---
+
+## Screen B9: Candidate Results `/c/:slug/results`
+
+**What is this?**
+What the candidate sees after completing all active rounds. This is a READ-ONLY summary. No retakes, no personal dashboard access, no PDF download.
+
+**What does the user see?**
+
+```
+✅ Assessment Complete
+
+Your responses have been submitted to Acme Corp.
+
+Your Results:
+  Aptitude:    74/100
+  Coding:      81/100
+  Interview:   85/100  (or "--/100" if still processing)
+
+─────────────────────────────────
+Overall Score:  [HIDDEN — shared with company only]
+Your Rank:      [HIDDEN]
+Other candidates: [HIDDEN]
+─────────────────────────────────
+
+Thank you for your time. Results will be
+shared with Acme Corp directly.
+
+[Logout]
+```
+
+The candidate sees their individual round scores but NOT the overall weighted score, NOT their rank, and NOT other candidates' data. The overall score and rank are for the admin only.
+
+If the candidate had an integrity flag (auto-submitted due to violations), a 20% deduction was already applied to their final score on the backend. The candidate doesn't see the penalty — they just see their round scores as-is.
+
+---
+
+# ═════════════════════════════════════════
+# SECTION 4: SUPER ADMIN
+# ═════════════════════════════════════════
+
+> The super admin is the platform owner. Created once at deployment via a script. Cannot self-register. Has access to EVERYTHING across all companies.
+
+---
+
+## Screen S1: Super Admin Dashboard `/superadmin`
+
+**What does the user see?**
+
+8 stat cards in a 4×2 grid (2 columns on mobile, 4 on desktop):
+- Students: 12,450
+- Companies: 23
+- Campaigns: 47
+- Interviews: 8,320
+- Resumes Analyzed: 18,200
+- Gemini Calls: 45,000
+- DB Health: ✅ Good (or ❌ Down)
+- Redis Health: ✅ Good (or ❌ Down)
+
+Below, navigation cards linking to each super admin section.
+
+---
+
+## Screen S2: Company Management `/superadmin/companies`
+
+**What does the user see?**
+
+A table of all registered companies:
+
+| Company | Admin Email | Campaigns | Candidates | Status | Actions |
+|---------|-------------|-----------|------------|--------|---------|
+| Acme Corp | vikram@acme.com | 5 | 142 | 🟢 Active | [Suspend] [View] |
+| TechStart | hr@techstart.io | 2 | 38 | 🟢 Active | [Suspend] [View] |
+| OldCorp | old@oldcorp.com | 1 | 12 | 🔴 Suspended | [Reactivate] [View] |
+
+- **Suspend:** Disables the company admin's login. All campaign apply links return "company suspended". Requires confirmation modal.
+- **Reactivate:** Restores access.
+- **View:** Goes to that company's admin panel (read-only or full access, configurable).
+
+---
+
+## Screen S3: User Management `/superadmin/users`
+
+**What does the user see?**
+
+A search bar at the top (debounced — waits 300ms after the user stops typing before searching).
+
+A table of all users across all roles:
+
+| Email | Name | Role | Company | Created | Actions |
+|-------|------|------|---------|---------|---------|
+| priya@gmail.com | Priya Sharma | candidate | Acme Corp | Jan 15 | [View] [Reset PW] [Delete] |
+| vikram@acme.com | Vikram Rao | company_admin | Acme Corp | Dec 1 | [View] [Reset PW] [Suspend] |
+| rahul@student.com | Rahul Kumar | student | — | Nov 20 | [View] [Reset PW] [Delete] |
+
+Actions:
+- **View:** See full user profile and all activity history
+- **Reset Password:** Generate a new temporary password and email it to the user
+- **Delete:** Opens a danger confirmation modal: "This will permanently delete all user data across all databases (PostgreSQL, MongoDB, Cloudinary, Redis). This action cannot be undone. Continue?" On confirm, triggers a Celery GDPR deletion job.
+- **Suspend** (company_admin only): Blocks their login
+
+---
+
+## Screen S4: AI Usage Monitor `/superadmin/ai-usage`
+
+**What does the user see?**
+
+Stats cards:
+- Requests today: 342 / 15,000 daily limit (2.3%)
+- Token usage: 1.2M / 1M daily limit ⚠️ (120% — over limit!)
+- Average response time: 2.3s
+- Rate limit hits: 5 today
+
+A stacked progress bar showing usage by module:
+- Resume Analysis: 45%
+- Interview Q&A: 30%
+- Code Review: 12%
+- Post-Interview Report: 8%
+- Question Seeding: 5%
+
+Recent rate limit events as a list with timestamps:
+- "14:23:05 — Resume analysis retry #2 (4s wait)"
+- "14:25:12 — Interview question retry #1 (4s wait)"
+
+---
+
+## Screen S5: Question Bank Management `/superadmin/questions`
+
+**What does the user see?**
+
+**Aptitude section:** 5 rows showing each category and its count:
+- Quantitative: 512 questions ✅
+- Logical Reasoning: 408 questions ✅
+- Verbal Ability: 305 questions ✅
+- Analytical Reasoning: 298 questions ✅
+- Data Interpretation: 247 questions ✅
+- Total: 1,770 questions
+
+**Coding section:**
+- DSA: 210 problems ✅
+- SQL: 105 problems ✅
+- Total: 315 problems
+
+**Quality metrics:**
+- Average times used per question: 12.3
+- Never used: 234 questions
+- Over-used (>50 times): 45 questions
+
+**"🔄 Reseed All Questions"** danger button at the bottom. Confirmation modal: "This will regenerate ALL questions via Gemini and replace existing ones. Takes approximately 30 minutes. Continue?" On confirm, triggers a Celery job that calls Gemini to generate new questions (respecting the 15 RPM rate limit with 4-second sleep between calls).
+
+---
+
+## Screen S6: System Configuration `/superadmin/system`
+
+**What does the user see?**
+
+A form-like layout with toggle switches and input fields for platform-wide settings:
+
+| Setting | Current Value | Control |
+|---------|---------------|---------|
+| Maintenance Mode | OFF | [Toggle] |
+| Default Proctoring Strictness | Standard | [Dropdown] |
+| Email Provider | Resend | [Dropdown] |
+| Resend API Key | rsk_****...**** | [Update button] |
+| From Email | noreply@yourplatform.com | [Input] |
+| Gemini API Key | AIza****...**** | [Update button] |
+| Feature: Resume Analyzer | ON | [Toggle] |
+| Feature: Aptitude Test | ON | [Toggle] |
+| Feature: Coding Arena | ON | [Toggle] |
+| Feature: AI Interview | ON | [Toggle] |
+| Feature: Hiring Mode | ON | [Toggle] |
+
+When Maintenance Mode is ON, all non-super-admin users see a "Platform is under maintenance" page. The super admin can still access everything.
+
+API keys are shown masked (e.g., rsk_****...****) with an "Update" button that reveals an input field to enter a new key.
+
+---
+
+## Screen S7: Audit Logs `/superadmin/audit`
+
+**What does the user see?**
+
+**Filter bar at the top:**
+- User search (text input)
+- Role dropdown (student, candidate, company_admin, super_admin)
+- Action type dropdown (CAMPAIGN_CREATED, BULK_SHORTLIST, COMPANY_SUSPENDED, etc.)
+- Date range picker
+
+**Table:**
+
+| Timestamp | User | Role | Action | Details |
+|-----------|------|------|--------|---------|
+| Jan 16 14:23 | vikram@acme.com | company_admin | CAMPAIGN_CREATED | "Campus Drive 2025" |
+| Jan 16 14:30 | vikram@acme.com | company_admin | BULK_SHORTLIST | "10 candidates shortlisted" |
+| Jan 16 15:00 | admin@platform.com | super_admin | COMPANY_SUSPENDED | "OldCorp" |
+| Jan 16 15:05 | admin@platform.com | super_admin | QUESTION_RESEED | "All questions regenerated" |
+
+"Export CSV" button at the bottom.
+
+Every admin action across the platform is logged here for accountability.
+
+---
+
+## Screen S8: Database Health `/superadmin/db-health`
+
+**What does the user see?**
+
+Status cards for each infrastructure component:
+- PostgreSQL (Supabase): ✅ Connected (12ms)
+- MongoDB Atlas: ✅ Connected (8ms)
+- Redis (Upstash): ✅ Connected (3ms)
+- Cloudinary: ✅ Connected
+- Piston API (Code Execution): ✅ Running
+- Celery Workers: ✅ 2 active
+
+If any component is down, it shows ❌ with an error message.
+
+Table sizes:
+- users: 12,500 rows (45 MB)
+- aptitude_questions: 1,770 rows (12 MB)
+- interview_sessions: 8,320 rows (120 MB)
+- applicant_pool: 2,100 rows (8 MB)
+
+"Run Full Health Check" button — triggers the backend health check script and refreshes all statuses.
+
+---
+
+# ═════════════════════════════════════════
+# COMPLETE FLOW SUMMARY
+# ═════════════════════════════════════════
+
+## Prep Mode Flow (Student):
+Landing Page → Register (3 steps) → Dashboard → (Resume | Aptitude | Coding | Interview) → Report → Replay → repeat forever, unlimited retakes, proctoring informational only
+
+## Hiring Mode Flow (Company Admin):
+Register → Admin Dashboard → Create Campaign → **Public link auto-generated** → Add Questions → Wait for applicants (or bulk upload) → Auto-Shortlist & Send Invites (one click) → Monitor live scores → Final Selection → Export
+
+## Hiring Mode Flow (Candidate):
+Click apply link → Fill form + upload resume → Wait for invite email → Login → Force password change → Pre-test proctoring check → Campaign Dashboard → Aptitude (strict) → Coding (strict) → Interview (strict) → Results (read-only, no retakes)
+
+## Hiring Mode Flow (Apply Page → Invite):
+Candidate applies → Resume auto-analyzed → Appears in admin leaderboard → Admin clicks "Auto-Shortlist Top 10" → System generates IDs + passwords + sends emails → Candidate receives email → continues to candidate flow above
+
+## Super Admin Flow:
+Script-created login → Dashboard → (Companies | Users | AI Usage | Questions | System | Audit | DB Health)
