@@ -1329,3 +1329,55 @@ Stage Summary:
 - The Coding Arena list view is bypassed (but still reachable via the
   dashboard "Coding Arena" quick-launch card if the user wants to browse).
 - "Back to Dashboard" is preserved as a secondary outline button.
+
+---
+Task ID: PREP-CODING-CONTINUE-INTERVIEW · Agent: main
+Task: Add navigation from the prep Coding Arena editor (fullscreen problem +
+code editor) to the AI Interview. User asked "where is nav to go to ai
+interview in main problems+code editor" — there was no path from the coding
+editor to the AI interview.
+
+File modified (1):
+- `src/components/screens/prep/coding.tsx`
+
+Changes:
+1. Added `Mic` icon to the lucide-react import block (for the AI interview
+   CTA).
+2. Added `const set = useNav((s) => s.set);` to `CodingEditorView` (was
+   missing — only `setCodingView` was pulled).
+3. Added `continueToInterview()` handler:
+   - Closes the success modal (`setSuccessOpen(false)`).
+   - Exits fullscreen (`exitFullscreen()`).
+   - Unlocks navigation (`setNavigationLocked(false)`).
+   - Navigates to the AI Interview screen (`set("interview")`).
+4. Updated the "Accepted" success modal footer to add a third button:
+   - BEFORE: [Back to Problems] [Next Question (violet, primary)]
+   - AFTER:  [Back to Problems] [Next Question (outline)] [Continue to AI
+             Interview (violet, primary, with Mic icon)]
+   - "Next Question" is now an outline secondary button.
+   - "Continue to AI Interview" is the new primary CTA (violet), mirroring
+     the "Continue to Coding" pattern on the aptitude result screen.
+
+Behavior:
+- When the candidate solves a coding problem and the "Accepted" success
+  modal appears, they now have 3 options:
+  1. Back to Problems — return to the Coding Arena list view
+  2. Next Question — pick another random unsolved problem (stays in editor)
+  3. Continue to AI Interview — exit the coding editor and jump to the AI
+     Interview studio setup screen
+- The "Continue to AI Interview" button properly exits fullscreen and
+  unlocks navigation before navigating, so the AI Interview screen starts
+  in a clean state (its own setup phase will request fullscreen again
+  when the candidate clicks "Begin Interview").
+
+Verification:
+- `bun run lint` → 0 errors, 0 warnings.
+- Dev server returns HTTP 200 on `/` after the edit; module compiles
+  cleanly via Turbopack.
+
+Stage Summary:
+- Prep mode flow is now complete: Aptitude → (result) Continue to Coding
+  → (editor) solve → (success modal) Continue to AI Interview → (studio)
+  live → processing → done → report.
+- The candidate can naturally progress through all 3 prep rounds without
+  going back to the dashboard.

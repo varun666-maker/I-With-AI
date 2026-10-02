@@ -15,6 +15,7 @@ import {
   Download,
   Info,
   Maximize2,
+  Mic,
   Play,
   Terminal,
   X,
@@ -188,6 +189,7 @@ function ProblemListView() {
 /* -------------------------------------------------------------------------- */
 
 function CodingEditorView() {
+  const set = useNav((s) => s.set);
   const setCodingView = useNav((s) => s.setCodingView);
   const currentProblemId = useNav((s) => s.currentProblemId);
   const solvedProblems = useNav((s) => s.solvedProblems);
@@ -340,6 +342,17 @@ function CodingEditorView() {
     const next = pickRandomUnsolved(solved, problem.id);
     setCurrentProblem(String(next.id));
     setSuccessOpen(false);
+  };
+
+  // "Continue to AI Interview" — exits the fullscreen coding editor and
+  // navigates to the AI Interview studio. Mirrors the "Continue to Coding"
+  // CTA on the aptitude result screen. Offered in the success modal after
+  // the candidate solves a problem.
+  const continueToInterview = () => {
+    setSuccessOpen(false);
+    exitFullscreen();
+    setNavigationLocked(false);
+    set("interview");
   };
 
   const reenterFullscreen = () => {
@@ -661,10 +674,18 @@ function CodingEditorView() {
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Problems
             </Button>
             <Button
+              variant="outline"
               onClick={handleNext}
-              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+              className="rounded-full border-black/10 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
             >
               Next Question <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button
+              onClick={continueToInterview}
+              className="rounded-full bg-violet-500 text-white hover:bg-violet-600"
+            >
+              <Mic className="mr-2 h-4 w-4" /> Continue to AI Interview
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </DialogFooter>
         </DialogContent>
