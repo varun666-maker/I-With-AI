@@ -124,6 +124,14 @@ export function TopNav() {
   const [query, setQuery] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);    // notifications dropdown
 
+  // Visibility logic for the right-side CTAs:
+  // - Landing page → show "Start Free" (entry-point CTA, no bell)
+  // - Auth/Sign-in/Sign-up → show NEITHER (clean auth screen)
+  // - All other main screens → show notification bell (no "Start Free")
+  // - Fullscreen/proctored test mode → show NEITHER (handled by locked return)
+  const showStartFree = current === "landing";
+  const showNotifications = current !== "landing" && current !== "auth";
+
   // F-04: Screen Navigator demo tool is hidden unless ?demo=1 is in the URL.
   // This prevents recruiters/candidates from wandering into every screen in
   // a shared deployment. Deep links to views still resolve (route guard
@@ -274,83 +282,98 @@ export function TopNav() {
               </Button>
             )}
 
-            {/* Notifications bell — replaces the old "Start Free" CTA.
-                The Start Free CTA still lives on the landing page hero. */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setNotifOpen((v) => !v)}
-                className="relative grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                aria-label="Notifications"
+            {/* Right-side CTA — context-dependent:
+                - Landing → "Start Free" (entry point to auth)
+                - Auth    → neither (clean sign-in/sign-up screen)
+                - All other main screens → notification bell
+                - Proctored tests → neither (handled by the locked return above) */}
+            {showStartFree && (
+              <Button
+                size="sm"
+                className="rounded-full bg-violet-500 px-4 text-white hover:bg-violet-600"
+                onClick={() => go("auth")}
               >
-                <Bell className="h-4 w-4" />
-                {/* Unread badge */}
-                <span className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
-                  3
-                </span>
-              </button>
+                Start Free
+              </Button>
+            )}
 
-              <AnimatePresence>
-                {notifOpen && (
-                  <>
-                    {/* Scrim to close on outside click */}
-                    <div
-                      className="fixed inset-0 z-[55]"
-                      onClick={() => setNotifOpen(false)}
-                    />
-                    <motion.div
-                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 top-10 z-[56] w-80 overflow-hidden rounded-lg border border-black/10 bg-card shadow-lg dark:border-white/10"
-                    >
-                      <div className="flex items-center justify-between border-b border-black/5 px-4 py-3 dark:border-white/5">
-                        <p className="text-sm font-medium">Notifications</p>
-                        <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-medium text-rose-600 dark:text-rose-300">
-                          3 new
-                        </span>
-                      </div>
-                      <ul className="max-h-80 overflow-y-auto">
-                        {NOTIFICATIONS.map((n, i) => (
-                          <li
-                            key={i}
-                            className={cn(
-                              "border-b border-black/5 px-4 py-3 transition-colors last:border-0 hover:bg-muted/30 dark:border-white/5",
-                              n.unread && "bg-violet-500/[0.04]",
-                            )}
-                          >
-                            <div className="flex items-start gap-2.5">
-                              <span className={cn(
-                                "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-                                n.unread ? "bg-violet-500" : "bg-transparent",
-                              )} />
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs font-medium text-foreground/90">
-                                  {n.title}
-                                </p>
-                                <p className="mt-0.5 text-[11px] text-muted-foreground">
-                                  {n.desc}
-                                </p>
-                                <p className="mt-1 text-[10px] text-muted-foreground/70">
-                                  {n.time}
-                                </p>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                      <button
+            {showNotifications && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setNotifOpen((v) => !v)}
+                  className="relative grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  aria-label="Notifications"
+                >
+                  <Bell className="h-4 w-4" />
+                  {/* Unread badge */}
+                  <span className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+                    3
+                  </span>
+                </button>
+
+                <AnimatePresence>
+                  {notifOpen && (
+                    <>
+                      {/* Scrim to close on outside click */}
+                      <div
+                        className="fixed inset-0 z-[55]"
                         onClick={() => setNotifOpen(false)}
-                        className="w-full border-t border-black/5 py-2.5 text-center text-xs font-medium text-violet-600 hover:bg-muted/30 dark:border-white/5 dark:text-violet-300"
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 top-10 z-[56] w-80 overflow-hidden rounded-lg border border-black/10 bg-card shadow-lg dark:border-white/10"
                       >
-                        Mark all as read
-                      </button>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
+                        <div className="flex items-center justify-between border-b border-black/5 px-4 py-3 dark:border-white/5">
+                          <p className="text-sm font-medium">Notifications</p>
+                          <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-medium text-rose-600 dark:text-rose-300">
+                            3 new
+                          </span>
+                        </div>
+                        <ul className="max-h-80 overflow-y-auto">
+                          {NOTIFICATIONS.map((n, i) => (
+                            <li
+                              key={i}
+                              className={cn(
+                                "border-b border-black/5 px-4 py-3 transition-colors last:border-0 hover:bg-muted/30 dark:border-white/5",
+                                n.unread && "bg-violet-500/[0.04]",
+                              )}
+                            >
+                              <div className="flex items-start gap-2.5">
+                                <span className={cn(
+                                  "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
+                                  n.unread ? "bg-violet-500" : "bg-transparent",
+                                )} />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-medium text-foreground/90">
+                                    {n.title}
+                                  </p>
+                                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                    {n.desc}
+                                  </p>
+                                  <p className="mt-1 text-[10px] text-muted-foreground/70">
+                                    {n.time}
+                                  </p>
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                        <button
+                          onClick={() => setNotifOpen(false)}
+                          className="w-full border-t border-black/5 py-2.5 text-center text-xs font-medium text-violet-600 hover:bg-muted/30 dark:border-white/5 dark:text-violet-300"
+                        >
+                          Mark all as read
+                        </button>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
         </div>
       </header>
