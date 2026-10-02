@@ -137,74 +137,85 @@ export function LandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      {/* ───────── HERO: asymmetric split, single CTA ───────── */}
-      <section className="mx-auto w-full max-w-6xl px-4 pt-16 pb-12 sm:px-6 md:pt-24 md:pb-20 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-12">
-          {/* Left: text (7 cols) */}
-          <div className="md:col-span-7">
-            <motion.h1
-              initial={reduce ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="text-4xl font-bold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
-            >
-              Practice interviews
-              <br />
-              with an AI that
-              <br />
-              <span className="text-violet-500 dark:text-violet-400">listens back.</span>
-            </motion.h1>
+      {/* ───────── HERO: text-left, full-bleed illustration background-right ───────── */}
+      <section className="relative w-full min-h-[600px] overflow-hidden md:min-h-[560px]">
+        {/* Background illustration — positioned to the right, bleeding to the edge.
+            On mobile it sits behind the text with a gradient overlay for readability. */}
+        <div className="absolute inset-0 z-0">
+          {/* Left-side gradient that fades from the page background into the illustration,
+              so the text on the left stays readable. */}
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent md:via-background/40 md:to-background/0" />
+          <img
+            src="/hero-bg/landing-hero.png"
+            alt=""
+            aria-hidden="true"
+            className="h-full w-full object-cover object-center md:object-right"
+          />
+        </div>
 
-            <motion.p
-              initial={reduce ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-6 max-w-md text-base text-muted-foreground md:text-lg"
-            >
-              Upload your resume, take a timed aptitude test, write code in a
-              real editor, then talk to an AI interviewer. Get a 17-section
-              report with specific fixes.
-            </motion.p>
-
-            <motion.div
-              initial={reduce ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-8 flex flex-wrap items-center gap-3"
-            >
-              <Button
-                size="lg"
-                onClick={() => set("auth")}
-                className="h-12 rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
+        {/* Content layer */}
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pt-16 pb-12 sm:px-6 md:pt-24 md:pb-20 lg:px-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-12">
+            {/* Left: text (7 cols) */}
+            <div className="md:col-span-7 lg:col-span-6">
+              <motion.h1
+                initial={reduce ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className="text-4xl font-bold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
               >
-                Start free
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </motion.div>
-          </div>
+                Practice interviews
+                <br />
+                with an AI that
+                <br />
+                <span className="text-violet-500 dark:text-violet-400">listens back.</span>
+              </motion.h1>
 
-          {/* Right: real image (5 cols) */}
-          <div className="md:col-span-5">
-            <motion.div
-              initial={reduce ? false : { opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="relative"
-            >
-              <img
-                src="https://picsum.photos/seed/person-practicing-interview-laptop/640/720"
-                alt="A person practicing an interview on their laptop"
-                className="w-full rounded-lg border border-black/10 object-cover dark:border-white/10"
-                style={{ aspectRatio: "4/5" }}
-              />
-              {/* Inline stat card overlapping the image */}
-              <div className="absolute -bottom-4 -left-4 rounded-lg border border-black/10 bg-background p-4 shadow-sm dark:border-white/10">
+              <motion.p
+                initial={reduce ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                className="mt-6 max-w-md text-base text-muted-foreground md:text-lg"
+              >
+                Upload your resume, take a timed aptitude test, write code in a
+                real editor, then talk to an AI interviewer. Get a 17-section
+                report with specific fixes.
+              </motion.p>
+
+              <motion.div
+                initial={reduce ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="mt-8 flex flex-wrap items-center gap-3"
+              >
+                <Button
+                  size="lg"
+                  onClick={() => set("auth")}
+                  className="h-12 rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-600"
+                >
+                  Start free
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </motion.div>
+            </div>
+
+            {/* Right: spacer column — the illustration is the background, so this
+                column just reserves space on desktop. The score card floats here. */}
+            <div className="relative hidden md:col-span-5 lg:col-span-6 md:block">
+              {/* Floating score card — positioned above the bottom to avoid the
+                  cookie banner. Overlaps the illustration. */}
+              <motion.div
+                initial={reduce ? false : { opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute bottom-20 right-0 rounded-lg border border-black/10 bg-background/95 p-4 shadow-lg backdrop-blur-sm dark:border-white/10"
+              >
                 <p className="font-mono text-2xl font-bold text-violet-500 dark:text-violet-400">
                   78
                 </p>
                 <p className="text-xs text-muted-foreground">last interview score</p>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
         </div>
       </section>
