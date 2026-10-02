@@ -134,8 +134,10 @@ export function AuthScreen() {
                       setStep(1);
                     }}
                     className={cn(
-                      "relative flex-1 rounded-full py-1.5 text-xs font-medium capitalize transition-colors",
-                      tab === t ? "text-white" : "text-muted-foreground hover:text-foreground",
+                      "relative isolate flex-1 rounded-full py-1.5 text-xs font-medium capitalize transition-colors",
+                      tab === t
+                        ? "text-white"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {t === "signup" ? "Sign Up" : "Login"}

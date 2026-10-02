@@ -35,6 +35,7 @@ const QUICK_LINKS: Record<string, { label: string; target: ScreenId }[]> = {
     { label: "Profile", target: "profile" },
   ],
   admin: [
+    { label: "Login", target: "company-login" },
     { label: "Dashboard", target: "admin-dashboard" },
     { label: "Create Campaign", target: "campaign-new" },
     { label: "Questions", target: "question-manager" },
@@ -49,6 +50,7 @@ const QUICK_LINKS: Record<string, { label: string; target: ScreenId }[]> = {
     { label: "System Check", target: "candidate-system-check" },
   ],
   superadmin: [
+    { label: "Login", target: "superadmin-landing" },
     { label: "Dashboard", target: "superadmin-dashboard" },
     { label: "Companies", target: "superadmin-companies" },
     { label: "Users", target: "superadmin-users" },
@@ -233,7 +235,7 @@ export function TopNav() {
               </NavTab>
               <NavTab
                 active={current.startsWith("company-") || current.startsWith("admin-") || ["campaign-new", "question-manager", "candidate-leaderboard", "bulk-upload", "proctoring-review", "final-selection"].includes(current)}
-                onClick={() => go("company-landing")}
+                onClick={() => go("company-login")}
               >
                 For Companies
               </NavTab>
@@ -245,7 +247,7 @@ export function TopNav() {
               </NavTab>
               <NavTab
                 active={current.startsWith("superadmin")}
-                onClick={() => go("superadmin-dashboard")}
+                onClick={() => go("superadmin-landing")}
               >
                 Super Admin
               </NavTab>

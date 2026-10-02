@@ -22,6 +22,7 @@ import { StudentProfile } from "@/components/screens/prep/profile";
 // Company Admin
 import { CompanyLanding } from "@/components/screens/admin/landing";
 import { CompanyRegister } from "@/components/screens/admin/register";
+import { CompanyLogin } from "@/components/screens/admin/login";
 import { AdminDashboard } from "@/components/screens/admin/dashboard";
 import { CampaignCreate } from "@/components/screens/admin/campaign-new";
 import { QuestionManager } from "@/components/screens/admin/questions";
@@ -44,6 +45,7 @@ import { CandidateInterviewTest } from "@/components/screens/candidate/interview
 import { CandidateResults } from "@/components/screens/candidate/results";
 
 // Super Admin
+import { SuperAdminLogin } from "@/components/screens/superadmin/login";
 import { SuperAdminDashboard } from "@/components/screens/superadmin/dashboard";
 import { CompanyManagement } from "@/components/screens/superadmin/companies";
 import { UserManagement } from "@/components/screens/superadmin/users";
@@ -68,6 +70,7 @@ const SCREENS: Record<ScreenId, React.ComponentType> = {
   // Company Admin
   "company-landing": CompanyLanding,
   "company-register": CompanyRegister,
+  "company-login": CompanyLogin,
   "admin-dashboard": AdminDashboard,
   "campaign-new": CampaignCreate,
   "question-manager": QuestionManager,
@@ -88,6 +91,7 @@ const SCREENS: Record<ScreenId, React.ComponentType> = {
   "candidate-interview": CandidateInterviewTest,
   "candidate-results": CandidateResults,
   // Super Admin
+  "superadmin-landing": SuperAdminLogin,
   "superadmin-dashboard": SuperAdminDashboard,
   "superadmin-companies": CompanyManagement,
   "superadmin-users": UserManagement,

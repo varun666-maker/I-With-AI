@@ -300,7 +300,7 @@ export function CompanyRegister() {
                   Already have an account?{" "}
                   <button
                     type="button"
-                    onClick={() => set("landing")}
+                    onClick={() => set("company-login")}
                     className="font-medium text-violet-600 hover:text-violet-700 dark:text-violet-300 dark:hover:text-violet-200"
                   >
                     Sign in

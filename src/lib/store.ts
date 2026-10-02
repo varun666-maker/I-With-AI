@@ -15,6 +15,7 @@ export type ScreenId =
   // Company Admin
   | "company-landing"
   | "company-register"
+  | "company-login"
   | "admin-dashboard"
   | "campaign-new"
   | "question-manager"
@@ -35,6 +36,7 @@ export type ScreenId =
   | "candidate-interview"
   | "candidate-results"
   // Super Admin
+  | "superadmin-landing"
   | "superadmin-dashboard"
   | "superadmin-companies"
   | "superadmin-users"
@@ -65,6 +67,7 @@ export const ALL_SCREENS: ScreenMeta[] = [
   // Company Admin
   { id: "company-landing", label: "Company Landing Page", group: "admin" },
   { id: "company-register", label: "Company Registration", group: "admin" },
+  { id: "company-login", label: "Company Admin Login", group: "admin" },
   { id: "admin-dashboard", label: "Admin Dashboard", group: "admin" },
   { id: "campaign-new", label: "Campaign Creation", group: "admin" },
   { id: "question-manager", label: "Question Set Manager", group: "admin" },
@@ -85,6 +88,7 @@ export const ALL_SCREENS: ScreenMeta[] = [
   { id: "candidate-interview", label: "Candidate AI Interview (Strict)", group: "candidate" },
   { id: "candidate-results", label: "Candidate Results (read-only)", group: "candidate" },
   // Super Admin
+  { id: "superadmin-landing", label: "Super Admin Login", group: "superadmin" },
   { id: "superadmin-dashboard", label: "Super Admin Dashboard", group: "superadmin" },
   { id: "superadmin-companies", label: "Company Management", group: "superadmin" },
   { id: "superadmin-users", label: "User Management", group: "superadmin" },
