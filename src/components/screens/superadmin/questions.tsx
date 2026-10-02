@@ -550,11 +550,16 @@ function BulkCard({
 
       <div className="mt-4 rounded-lg border border-white/5 bg-white/[0.02] p-3 text-[11px] text-muted-foreground">
         <p className="font-medium text-foreground/80">Required columns</p>
-        <code className="mt-1.5 block overflow-x-auto whitespace-pre font-mono text-[10px] text-violet-300">
-          {isApt
-            ? "category,sub_topic,difficulty,question_text,option_a,option_b,option_c,option_d,correct,explanation"
-            : "title,difficulty,type,statement,signatures,visible_tests,hidden_tests,time_limit_ms,memory_limit_kb,schema"}
-        </code>
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {(isApt
+            ? ["category", "sub_topic", "difficulty", "question_text", "option_a", "option_b", "option_c", "option_d", "correct", "explanation"]
+            : ["title", "difficulty", "type", "statement", "signatures", "visible_tests", "hidden_tests", "time_limit_ms", "memory_limit_kb", "schema"]
+          ).map((col) => (
+            <code key={col} className="rounded bg-violet-500/10 px-1.5 py-0.5 font-mono text-[10px] text-violet-300">
+              {col}
+            </code>
+          ))}
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -701,11 +706,16 @@ function BulkUploadDialog({
 
             <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3 text-xs text-muted-foreground">
               <p className="font-medium text-foreground/80">Required columns</p>
-              <code className="mt-1.5 block overflow-x-auto whitespace-pre font-mono text-[11px] text-violet-300">
-                {isApt
-                  ? "category,sub_topic,difficulty,question_text,option_a,option_b,option_c,option_d,correct,explanation"
-                  : "title,difficulty,type,statement,signatures,visible_tests,hidden_tests,time_limit_ms,memory_limit_kb,schema"}
-              </code>
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {(isApt
+                  ? ["category", "sub_topic", "difficulty", "question_text", "option_a", "option_b", "option_c", "option_d", "correct", "explanation"]
+                  : ["title", "difficulty", "type", "statement", "signatures", "visible_tests", "hidden_tests", "time_limit_ms", "memory_limit_kb", "schema"]
+                ).map((col) => (
+                  <code key={col} className="rounded bg-violet-500/10 px-1.5 py-0.5 font-mono text-[10px] text-violet-300">
+                    {col}
+                  </code>
+                ))}
+              </div>
               <p className="mt-2">
                 Need the template?{" "}
                 <button
