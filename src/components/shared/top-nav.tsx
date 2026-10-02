@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  Bell,
   Home,
   LayoutGrid,
   Menu,
@@ -81,11 +82,47 @@ function getSection(id: ScreenId): string {
   return "prep";
 }
 
+/** Mock notifications for the bell dropdown. In production these come from the
+ * WebSocket registry (LEADERBOARD_UPDATE, REPORT_READY, PROCTORING_ALERT). */
+const NOTIFICATIONS = [
+  {
+    title: "New report ready",
+    desc: "Priya Sharma's interview report is now available for download.",
+    time: "2 min ago",
+    unread: true,
+  },
+  {
+    title: "3 new applicants",
+    desc: "Auto-ranked by AI job-fit score on the Backend SDE-1 leaderboard.",
+    time: "18 min ago",
+    unread: true,
+  },
+  {
+    title: "Proctoring flag raised",
+    desc: "Amit Patel · 2 tab switches during the coding round. Review needed.",
+    time: "1 hour ago",
+    unread: true,
+  },
+  {
+    title: "Campaign deadline approaching",
+    desc: "Backend SDE-1 closes in 2 days. 5 candidates still pending.",
+    time: "3 hours ago",
+    unread: false,
+  },
+  {
+    title: "Welcome to InterviewAI",
+    desc: "Your company account is set up. Create your first campaign to begin.",
+    time: "Yesterday",
+    unread: false,
+  },
+];
+
 export function TopNav() {
   const { current, set, navigationLocked } = useNav();
   const [navOpen, setNavOpen] = useState(false);       // hamburger menu
   const [drawerOpen, setDrawerOpen] = useState(false);  // All Screens (dev tool)
   const [query, setQuery] = useState("");
+  const [notifOpen, setNotifOpen] = useState(false);    // notifications dropdown
 
   // F-04: Screen Navigator demo tool is hidden unless ?demo=1 is in the URL.
   // This prevents recruiters/candidates from wandering into every screen in
@@ -237,13 +274,83 @@ export function TopNav() {
               </Button>
             )}
 
-            <Button
-              size="sm"
-              className="hidden rounded-full bg-violet-500 px-4 text-white hover:bg-violet-600 sm:inline-flex"
-              onClick={() => go("auth")}
-            >
-              Start Free
-            </Button>
+            {/* Notifications bell — replaces the old "Start Free" CTA.
+                The Start Free CTA still lives on the landing page hero. */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setNotifOpen((v) => !v)}
+                className="relative grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label="Notifications"
+              >
+                <Bell className="h-4 w-4" />
+                {/* Unread badge */}
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+                  3
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {notifOpen && (
+                  <>
+                    {/* Scrim to close on outside click */}
+                    <div
+                      className="fixed inset-0 z-[55]"
+                      onClick={() => setNotifOpen(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 top-10 z-[56] w-80 overflow-hidden rounded-lg border border-black/10 bg-card shadow-lg dark:border-white/10"
+                    >
+                      <div className="flex items-center justify-between border-b border-black/5 px-4 py-3 dark:border-white/5">
+                        <p className="text-sm font-medium">Notifications</p>
+                        <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-medium text-rose-600 dark:text-rose-300">
+                          3 new
+                        </span>
+                      </div>
+                      <ul className="max-h-80 overflow-y-auto">
+                        {NOTIFICATIONS.map((n, i) => (
+                          <li
+                            key={i}
+                            className={cn(
+                              "border-b border-black/5 px-4 py-3 transition-colors last:border-0 hover:bg-muted/30 dark:border-white/5",
+                              n.unread && "bg-violet-500/[0.04]",
+                            )}
+                          >
+                            <div className="flex items-start gap-2.5">
+                              <span className={cn(
+                                "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
+                                n.unread ? "bg-violet-500" : "bg-transparent",
+                              )} />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-medium text-foreground/90">
+                                  {n.title}
+                                </p>
+                                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                  {n.desc}
+                                </p>
+                                <p className="mt-1 text-[10px] text-muted-foreground/70">
+                                  {n.time}
+                                </p>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                      <button
+                        onClick={() => setNotifOpen(false)}
+                        className="w-full border-t border-black/5 py-2.5 text-center text-xs font-medium text-violet-600 hover:bg-muted/30 dark:border-white/5 dark:text-violet-300"
+                      >
+                        Mark all as read
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </header>
