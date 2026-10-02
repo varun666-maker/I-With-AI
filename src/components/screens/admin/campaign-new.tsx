@@ -1170,11 +1170,18 @@ function RoundToggle({
   onToggle: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onToggle}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
       className={cn(
-        "flex items-center gap-3 rounded-lg border p-3 text-left transition-colors",
+        "flex cursor-pointer items-center gap-3 rounded-lg border p-3 text-left transition-colors",
         checked
           ? "border-violet-400/40 bg-violet-500/10"
           : "border-black/10 bg-background hover:bg-muted/30 dark:border-white/10",
@@ -1194,8 +1201,18 @@ function RoundToggle({
         <p className="text-sm font-medium">{label}</p>
         <p className="text-xs text-muted-foreground">{desc}</p>
       </div>
-      <Checkbox checked={checked} />
-    </button>
+      {/* Visual checkmark indicator instead of Checkbox (avoids button-in-button hydration error) */}
+      <span
+        className={cn(
+          "grid h-5 w-5 shrink-0 place-items-center rounded-[4px] border-2 transition-colors",
+          checked
+            ? "border-violet-500 bg-violet-500 text-white"
+            : "border-black/20 dark:border-white/20",
+        )}
+      >
+        {checked && <Check className="h-3 w-3" strokeWidth={3} />}
+      </span>
+    </div>
   );
 }
 
@@ -1246,11 +1263,18 @@ function DQToggle({
   tone?: "default" | "rose";
 }) {
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onToggle}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
       className={cn(
-        "flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors",
+        "flex w-full cursor-pointer items-start gap-3 rounded-lg border p-3 text-left transition-colors",
         tone === "rose"
           ? "border-rose-400/20 bg-rose-500/[0.04] hover:bg-rose-500/10"
           : "border-black/5 bg-muted/30 hover:bg-muted/50 dark:border-white/5",
@@ -1258,7 +1282,19 @@ function DQToggle({
         checked && tone !== "rose" && "border-violet-400/40 bg-violet-500/10",
       )}
     >
-      <Checkbox checked={checked} className="mt-0.5" />
+      {/* Visual checkmark instead of Checkbox (avoids button-in-button) */}
+      <span
+        className={cn(
+          "mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-[4px] border-2 transition-colors",
+          checked
+            ? tone === "rose"
+              ? "border-rose-500 bg-rose-500 text-white"
+              : "border-violet-500 bg-violet-500 text-white"
+            : "border-black/20 dark:border-white/20",
+        )}
+      >
+        {checked && <Check className="h-3 w-3" strokeWidth={3} />}
+      </span>
       <div className="flex-1">
         <div className="flex items-center gap-1.5">
           <span className="text-muted-foreground">{icon}</span>
@@ -1272,7 +1308,7 @@ function DQToggle({
       {checked && tone !== "rose" && (
         <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-300" />
       )}
-    </button>
+    </div>
   );
 }
 
