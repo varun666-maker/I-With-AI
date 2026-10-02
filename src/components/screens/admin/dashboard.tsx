@@ -354,7 +354,7 @@ export function AdminDashboard() {
                       <TableCell className="hidden text-sm text-muted-foreground sm:table-cell">
                         <span className="inline-flex items-center gap-1.5">
                           <CalendarClock className="h-3.5 w-3.5" />
-                          {c.deadline}
+                          {c.deadline} <span className="text-[10px]">IST</span>
                         </span>
                       </TableCell>
                       <TableCell className="hidden text-sm md:table-cell">

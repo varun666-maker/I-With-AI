@@ -1,0 +1,914 @@
+{
+  "package": "AI Interview Assistant — PRD v2.2 Review Findings",
+  "generated": "2026-10-03",
+  "sources": [
+    "PRD_v2.2_DualPlatform.md",
+    "Pasted Content_1790940208643.txt (screen-by-screen workflow)",
+    "Deployed app https://g1wua7arpqv0-d.space-z.ai (38 screens audited 2026-10-02)"
+  ],
+  "partA_prd_vs_workflow_mismatches": [
+    {
+      "id": "A-01",
+      "group": "Global architecture & routing",
+      "prd_section": "§3B.2 URL table",
+      "workflow": "One /auth page handles Sign Up and Login as in-place tabs; the 3-step signup (account, OTP, profile setup) never leaves the screen.",
+      "prd": "§3B.2 lists /register and /login as separate routes; §12.5 also lists /auth. Internally inconsistent.",
+      "severity": "MEDIUM",
+      "fix": "Make /auth the canonical auth route with Sign Up / Login tabs; keep /login and /register as redirect aliases and fix the §3B.2 table."
+    },
+    {
+      "id": "A-02",
+      "group": "Global architecture & routing",
+      "prd_section": "§3B.2 URL table",
+      "workflow": "Full route list includes /apply/:campaignSlug, /admin/campaigns/new, /admin/campaigns/:id/questions, /admin/campaigns/:id/upload, /admin/campaigns/:id/selection, proctoring review route, /c/:slug/change-password, /c/:slug/results, /report/:id, /replay/:id, /profile and 8 /superadmin sub-routes.",
+      "prd": "13 of these 20+ routes are missing from the URL table; only a partial list exists.",
+      "severity": "HIGH",
+      "fix": "Rebuild the §3B.2 route table to the full ~28-route map, grouped by role (Public / Student / Company Admin / Candidate / Super Admin)."
+    },
+    {
+      "id": "A-03",
+      "group": "Global architecture & routing",
+      "prd_section": "§3B.1 modes table; §6.3 step 5; §14.1",
+      "workflow": "Hiring Mode uses a 3-strike system: Warning 1, then Warning 2, then the 3rd violation auto-submits the test.",
+      "prd": "Three places say auto-submit happens after 2+ violations, which contradicts the PRD's own Module 10.4 state machine.",
+      "severity": "HIGH",
+      "fix": "Rewrite every occurrence to the 3-strike rule (warning 1, final warning, auto-submit on 3rd) so §3B.1, §6.3 and §14.1 match Module 10.4."
+    },
+    {
+      "id": "A-04",
+      "group": "Global architecture & routing",
+      "prd_section": "§5.1 stack table (File Storage row)",
+      "workflow": "All files (resumes, recordings, reports, proctoring frames) go to Cloudinary; the workflow's DB-health screen also lists Cloudinary as a component.",
+      "prd": "The stack table says Local filesystem / Supabase Storage while every other section says Cloudinary.",
+      "severity": "LOW",
+      "fix": "Align the stack table to Cloudinary free tier (drop the Supabase Storage mention)."
+    },
+    {
+      "id": "A-05",
+      "group": "Global architecture & routing",
+      "prd_section": "§3B.3 + Module 1",
+      "workflow": "There is no company-admin login screen anywhere in the workflow, yet admins must log in after registering; the deployed app even shows an Already have an account? Sign in link.",
+      "prd": "PRD has /company/login for candidates only and /auth described as student login; the company_admin login path is undefined in both documents.",
+      "severity": "CRITICAL",
+      "fix": "Define the admin login path: /auth Login tab accepts company_admin credentials with role-based redirect to /admin (or add an Admin tab to /company/login). Add forgot-password for admins."
+    },
+    {
+      "id": "A-06",
+      "group": "Global architecture & routing",
+      "prd_section": "§12.5 screen list",
+      "workflow": "Landing: How It Works has 4 steps; final CTA is a gradient Ready-to-ace section plus a 4-column footer; no pricing anywhere.",
+      "prd": "Screen list says 3-step flow and a pricing CTA, which contradicts §15 (fully free, no payments).",
+      "severity": "MEDIUM",
+      "fix": "Fix to 4 steps; replace pricing CTA with the free-forever CTA; add the footer spec."
+    },
+    {
+      "id": "A-07",
+      "group": "Prep Mode screens",
+      "prd_section": "Module 8 widgets table",
+      "workflow": "Download Report button is hidden until a REPORT_READY WebSocket event arrives (~60 s), then fades in with a pulse animation.",
+      "prd": "Widget table says the button shows as disabled/loading spinner while processing.",
+      "severity": "LOW",
+      "fix": "Adopt hidden-then-appears behaviour; optionally keep a subtle skeleton card so users know a report is coming."
+    },
+    {
+      "id": "A-08",
+      "group": "Prep Mode screens",
+      "prd_section": "Module 8 widgets table",
+      "workflow": "Aptitude Quick Stats is 5 small horizontal bars, one per category, plus a Take Test link to /aptitude.",
+      "prd": "Widget table says bar chart of category scores across last 5 tests.",
+      "severity": "LOW",
+      "fix": "Change to per-category horizontal bars (current best-score or latest per category, to be confirmed)."
+    },
+    {
+      "id": "A-09",
+      "group": "Prep Mode screens",
+      "prd_section": "Module 4.1 config table",
+      "workflow": "Prep rules screen advertises No Negative Marking and Unlimited Retakes; there is no passing score in Prep Mode.",
+      "prd": "Config table keeps a 70% passing score, negative marking default and Unlimited retakes for all users.",
+      "severity": "MEDIUM",
+      "fix": "Split the config table by mode: Prep = no passing score, no negative marking, unlimited retakes; Hiring = admin-set cutoff, zero retakes."
+    },
+    {
+      "id": "A-10",
+      "group": "Prep Mode screens",
+      "prd_section": "Module 4.4 state machine",
+      "workflow": "The test is never paused: Prep Mode is informational only and Hiring Mode auto-submits on the 3rd strike.",
+      "prd": "The UI state machine includes an optional PAUSED state.",
+      "severity": "MEDIUM",
+      "fix": "Remove the PAUSED state; auto-save every 30 s covers crash recovery."
+    },
+    {
+      "id": "A-11",
+      "group": "Prep Mode screens",
+      "prd_section": "Module 10.2 applies-to column",
+      "workflow": "Prep aptitude and coding show only tab-switch / fullscreen-exit counters; the AI interview REQUIRES camera + mic at setup because CV analysis is a core feature.",
+      "prd": "Optional webcam self-check is listed as applying to Aptitude, Coding AND Interview.",
+      "severity": "HIGH",
+      "fix": "Rescope: camera is required for the AI interview (both modes); Prep aptitude/coding use no camera at all; Module 10.2 self-check row applies to aptitude/coding only."
+    },
+    {
+      "id": "A-12",
+      "group": "Prep Mode screens",
+      "prd_section": "Module 4/5/6 proctoring notes",
+      "workflow": "Prep footer counters cover tab switches and fullscreen exits only; dashboard self-awareness stats show the same two numbers.",
+      "prd": "Integrity-score formula (§10.6) subtracts no-face / multi-face / device events, implying webcam events exist in Prep Mode.",
+      "severity": "MEDIUM",
+      "fix": "State that webcam-based events exist only in Hiring Mode; Prep integrity display = tab + fullscreen counts only."
+    },
+    {
+      "id": "A-13",
+      "group": "Report & analysis",
+      "prd_section": "Module 9.1 sections 2 and 3",
+      "workflow": "Executive Summary is 3 paragraphs; the Overall Score Table has exactly 6 rows (Technical, Communication, Behavioral, Body Language, Confidence, Problem Solving).",
+      "prd": "Section 2 says 2-paragraph summary; section 3 lists 9 rows (Resume, Aptitude, Coding, Technical, HR, Communication, Body Language, Confidence, Overall).",
+      "severity": "HIGH",
+      "fix": "Adopt 3 paragraphs and the 6-dimension table (matches the radar chart, the deployed report screen and the scoring dimensions in Module 7.2)."
+    },
+    {
+      "id": "A-14",
+      "group": "Report & analysis",
+      "prd_section": "Module 7.4 + report section 4",
+      "workflow": "Four recommendation badges: Strongly Recommend (green), Recommend (blue), Conditionally Recommend (yellow), Not Recommended (red).",
+      "prd": "Five bands with Light Green and Orange variants.",
+      "severity": "MEDIUM",
+      "fix": "Consolidate to the 4 badges; map ranges 90+/80-89/70-79/below 70 and fix badge colours."
+    },
+    {
+      "id": "A-15",
+      "group": "Report & analysis",
+      "prd_section": "Module 9.1 section 12",
+      "workflow": "Emotion Timeline Chart: X-axis is the question number, Y-axis the emotion score per question.",
+      "prd": "Section 12 says emotion per 5-second interval.",
+      "severity": "LOW",
+      "fix": "Adopt the question-based timeline (also matches the replay screen's per-question emotion strip)."
+    },
+    {
+      "id": "A-16",
+      "group": "Report & analysis",
+      "prd_section": "Module 9.1 section 16",
+      "workflow": "Roadmap = 6 collapsible cards, each with week theme, daily goal, free resource links and a milestone.",
+      "prd": "Section 16 says only a 6-week week-by-week study plan.",
+      "severity": "LOW",
+      "fix": "Enrich the section spec with the four per-card elements."
+    },
+    {
+      "id": "A-17",
+      "group": "Report & analysis",
+      "prd_section": "Module 9 mode-difference note",
+      "workflow": "Candidates get NO PDF: /c/:slug/results is read-only (round scores only, overall and rank hidden); PDF reports reach the company only via Export PDF ZIP on the leaderboard/selection screens.",
+      "prd": "Note says Hiring Mode candidates get a shorter Campaign Report (sections 1-9, 17 + proctoring summary).",
+      "severity": "HIGH",
+      "fix": "Reframe the Campaign Report as a company-side export artefact; the candidate-facing surface is the read-only results screen only."
+    },
+    {
+      "id": "A-18",
+      "group": "Proctoring",
+      "prd_section": "Module 10.3/10.4",
+      "workflow": "Warning modal copy is explicit (WARNING 1 of 3 / WARNING 2 of 3 / TEST AUTO-SUBMITTED), overlays are full-screen at z-index 700; on the 3rd strike the test auto-submits, integrity_flag is set and 20% is deducted.",
+      "prd": "Same mechanics but different modal copy; §3B.1/§6.3 phrasing says 2+ violations (see A-03).",
+      "severity": "LOW",
+      "fix": "Adopt the workflow's exact modal texts in Module 10.4 for implementation fidelity."
+    },
+    {
+      "id": "A-19",
+      "group": "Proctoring",
+      "prd_section": "§11.4 campaign schema",
+      "workflow": "Campaign form has Proctoring Strictness (Relaxed / Standard / Strict) as a first-class dropdown; deployed app defines Relaxed = warnings only, Standard = auto-submit on 3rd strike, Strict = auto-disqualify on 2nd strike.",
+      "prd": "No strictness concept exists; only auto_disqualify_events.",
+      "severity": "HIGH",
+      "fix": "Add proctoring_strictness ENUM to the campaign schema and define the three levels' enforcement behaviour."
+    },
+    {
+      "id": "A-20",
+      "group": "Proctoring",
+      "prd_section": "§11.4 + Module 10.3",
+      "workflow": "Auto-Disqualify checkboxes: 3+ tab switches, phone detected in frame, extra person detected in frame (deployed app adds copy/paste, right-click, DevTools open).",
+      "prd": "auto_disqualify_events lists only multi_face and device_detected examples.",
+      "severity": "MEDIUM",
+      "fix": "Expand the enum (tab_switch_3plus, device_detected, multi_face, copy_paste, devtools) and clarify how 3+ tab switches differs from the standard 3-strike auto-submit."
+    },
+    {
+      "id": "A-21",
+      "group": "Hiring Mode — admin",
+      "prd_section": "§11.2/§11.3/§17.1",
+      "workflow": "Campaign creation is a 2-phase screen (form then success) that generates a public apply link with copy button and QR code, and offers Add Questions / View Applicants actions.",
+      "prd": "Apply-link generation, QR code, copy-to-clipboard and the success screen are absent; flow table orders bulk upload before question curation.",
+      "severity": "HIGH",
+      "fix": "Add the full Campaign Creation screen spec (A3) including the Apply Link Box, and reorder the flow: create campaign, add questions, share link, wait or bulk upload, shortlist."
+    },
+    {
+      "id": "A-22",
+      "group": "Hiring Mode — admin",
+      "prd_section": "§11.4 campaign schema",
+      "workflow": "Qualification cutoffs: Min Aptitude Score to Qualify (%) and Min Coding Questions to Attempt; rounds unlock sequentially and below-cutoff candidates see a neutral message; cutoff values are never revealed to candidates.",
+      "prd": "No cutoff fields, no sequential unlocking, no qualification gating anywhere.",
+      "severity": "CRITICAL",
+      "fix": "Add min_aptitude_cutoff and min_coding_solved_cutoff columns, the sequential unlock rule, the neutral-lock message and the never-reveal rule to §11.4 and the campaign dashboard note."
+    },
+    {
+      "id": "A-23",
+      "group": "Hiring Mode — admin",
+      "prd_section": "§11.3 shortlisting engine",
+      "workflow": "Auto-Shortlist Panel: method dropdown (Top 5/10/20, Job Fit >= 75/80/90%, All, Manual Select), live preview count, email-status confirmation, one-click Shortlist & Send Invites with a confirmation modal and a success table of Candidate IDs.",
+      "prd": "Only a bulk shortlist threshold rule exists; no Top-N methods, no preview, no invite-email confirmation flow.",
+      "severity": "HIGH",
+      "fix": "Rewrite §11.3 around the Auto-Shortlist Panel and the one-click invite flow, including per-candidate email send status."
+    },
+    {
+      "id": "A-24",
+      "group": "Hiring Mode — admin",
+      "prd_section": "§11.3 + DB schema",
+      "workflow": "Candidate statuses flow Applied -> Invited -> In Progress -> Completed (plus Locked / Auto-DQ); rows carry source badges (Apply Link green / Bulk Upload blue); emails can be fixed inline when missing.",
+      "prd": "PRD uses shortlist_status (shortlisted / rejected / pending / disqualified) - a different vocabulary that collides with the workflow's.",
+      "severity": "HIGH",
+      "fix": "Rename to application_status ENUM(applied, invited, in_progress, completed, disqualified) and keep the final decision (selected/rejected/waitlisted) in selection_decisions only."
+    },
+    {
+      "id": "A-25",
+      "group": "Hiring Mode — admin",
+      "prd_section": "§11.5 DB tables",
+      "workflow": "The workflow's DB-health screen references an applicant_pool table (2,100 rows); all applicants - applied or uploaded - live there before shortlisting.",
+      "prd": "No applicant_pool table exists; candidate_credentials is the only pre-test entity.",
+      "severity": "HIGH",
+      "fix": "Add applicant_pool (id, campaign_id, name, email, phone, resume_url, ats_score, job_fit, skills, source ENUM(apply_link, bulk_upload), email_missing flag, application_status)."
+    },
+    {
+      "id": "A-26",
+      "group": "Hiring Mode — admin",
+      "prd_section": "§11.3 bulk ingestion",
+      "workflow": "Bulk Upload is a full 3-phase screen: PDF/DOCX/ZIP up to 50 MB / 100 files, per-file processing status, Celery continues server-side if the admin navigates away, results split into fully-extracted vs needs-input cards with required inline email/name fix, Discard All / Add All to Leaderboard gating.",
+      "prd": "Bulk ingestion is one line in §11.3 with no screen, no limits and no manual-fix flow.",
+      "severity": "HIGH",
+      "fix": "Add the A5b Bulk Upload screen spec with the missing-email remediation flow."
+    },
+    {
+      "id": "A-27",
+      "group": "Hiring Mode — admin",
+      "prd_section": "Module 9 + §11.5",
+      "workflow": "Candidate ID format like BACKEN-3FA82C (role prefix + hex suffix); invite email template fixed (subject, credentials, login URL, deadline in IST).",
+      "prd": "ID format undefined; invite email content not specified.",
+      "severity": "LOW",
+      "fix": "Specify the ID format rule and add the invite-email template to Module 11."
+    },
+    {
+      "id": "A-28",
+      "group": "Hiring Mode — admin",
+      "prd_section": "§17.1 + §3B.2",
+      "workflow": "Dedicated Proctoring Review screen per candidate (timeline table, Cloudinary frame viewer, integrity calculation visible, per-event Dismiss / Confirm actions) and a Final Selection screen (decision dropdown, notes, exports).",
+      "prd": "§17.1 mentions the monitor concept, but neither screen has a spec or route; selection screen absent.",
+      "severity": "MEDIUM",
+      "fix": "Add screen specs and routes for A6 (proctoring review) and A7 (final selection)."
+    },
+    {
+      "id": "A-29",
+      "group": "Hiring Mode — candidate",
+      "prd_section": "Module 1 + §6.3",
+      "workflow": "First login forces a password change (requirePasswordChange = true) at /c/:slug/change-password; ALL other routes are blocked until the password is set.",
+      "prd": "Force password change flow does not exist in the PRD.",
+      "severity": "HIGH",
+      "fix": "Add the B3 screen spec, the requirePasswordChange flag on candidate_credentials/users, a POST /candidate/change-password endpoint and a route-guard rule."
+    },
+    {
+      "id": "A-30",
+      "group": "Hiring Mode — candidate",
+      "prd_section": "§6.3 step 4 + Module 8 note",
+      "workflow": "Campaign dashboard shows deadline countdown with colour thresholds (green > 72 h, yellow 24-72 h, red < 24 h), per-round cards (completed with score + qualification, in-progress, locked), violations summary only when violations > 0.",
+      "prd": "Stripped dashboard is described but without countdown colours, card states or the violations footer.",
+      "severity": "MEDIUM",
+      "fix": "Enrich the campaign-dashboard spec with these states."
+    },
+    {
+      "id": "A-31",
+      "group": "Hiring Mode — candidate",
+      "prd_section": "Module 5",
+      "workflow": "Candidate coding round: ONE submission per problem, no retries; after all problems the round is permanently locked.",
+      "prd": "Not stated; Module 5 only defines Prep-mode submission behaviour.",
+      "severity": "MEDIUM",
+      "fix": "Add a Hiring Mode row to Module 5.1: single submission, permanent lock, and decide whether the live AI code review is shown to candidates (workflow is silent - see Decision D6)."
+    },
+    {
+      "id": "A-32",
+      "group": "Hiring Mode — candidate",
+      "prd_section": "§3B.2 + Module 8",
+      "workflow": "A read-only /c/:slug/results screen shows per-round scores (with -- while processing), hides overall / rank / other candidates, shows no PDF, and has a Logout button.",
+      "prd": "Route missing; §6.3 step 9 vaguely says results shared with company.",
+      "severity": "HIGH",
+      "fix": "Add the B9 screen spec and route, and restate §6.3 step 9 precisely."
+    },
+    {
+      "id": "A-33",
+      "group": "Super Admin",
+      "prd_section": "No equivalent section",
+      "workflow": "Eight fully-specified Super Admin screens: S1 dashboard (8 stat cards), S2 company management (suspend/reactivate/view), S3 user management (debounced search, reset password, GDPR Celery delete, suspend), S4 AI usage monitor, S5 question bank management (counts, quality metrics, Reseed job ~30 min at 15 RPM), S6 system configuration (maintenance mode, feature toggles, email provider, masked keys), S7 audit logs (filters, action types, export), S8 database health (6 components, table sizes).",
+      "prd": "§3B.3 defines the super_admin role and /superadmin route, but there is no screen specification; §17.1 mixes some functions into a generic Admin Panel without role separation.",
+      "severity": "HIGH",
+      "fix": "Add a dedicated Super Admin module (new Module 12 or expanded §17) with S1-S8 specs, plus audit_logs and system_config tables."
+    },
+    {
+      "id": "A-34",
+      "group": "Super Admin",
+      "prd_section": "Appendix B env vars",
+      "workflow": "Email provider is Resend (RESEND_API_KEY, masked in System Configuration).",
+      "prd": "Appendix B lists only SMTP (Gmail app password).",
+      "severity": "LOW",
+      "fix": "Add RESEND_API_KEY and FROM_EMAIL to Appendix B; keep SMTP as the fallback option."
+    },
+    {
+      "id": "A-35",
+      "group": "Data model & APIs",
+      "prd_section": "Part 4 API reference",
+      "workflow": "Working flows require: public POST /apply/:slug (+ GET campaign summary), acknowledgement + invite emails, PATCH applicant email fix, campaign apply-link in create response, bulk CSV question upload with template download, leaderboard real-time updates, candidate results + change-password endpoints, CSV / PDF-ZIP exports, and the full super-admin API set.",
+      "prd": "None of these endpoints exist in Part 4.",
+      "severity": "HIGH",
+      "fix": "Extend the API reference with ~18 new endpoints (detailed in Part E of this report)."
+    },
+    {
+      "id": "A-36",
+      "group": "Data model & APIs",
+      "prd_section": "Module 7 + WebSocket notes",
+      "workflow": "WebSocket event REPORT_READY unlocks the dashboard button; leaderboard updates in real time; processing steps stream via WebSocket.",
+      "prd": "WebSocket events are mentioned generically; no event names defined.",
+      "severity": "LOW",
+      "fix": "Add a WebSocket event registry (REPORT_READY, PROCESSING_STEP, LEADERBOARD_UPDATE, PROCTORING_ALERT) to Module 7."
+    },
+    {
+      "id": "A-37",
+      "group": "Data model & APIs",
+      "prd_section": "§14.1 MVP table",
+      "workflow": "Hiring Mode with campaign-curated question packs is core to the workflow and is tested in the MVP launch checklist.",
+      "prd": "The MVP table lists Company-specific question packs as excluded from MVP, contradicting Module 11 [REQUIRED].",
+      "severity": "MEDIUM",
+      "fix": "Fix the Aptitude Test row: company-specific packs are IN scope via Hiring Mode; move only multi-round scheduling / ATS integration to Phase 2."
+    },
+    {
+      "id": "A-38",
+      "group": "Data model & APIs",
+      "prd_section": "§12.5 screen list",
+      "workflow": "All 38 deployed screens exist and match the workflow's screen inventory (Prep 10, Hiring Admin 9, Candidate 11, Super Admin 8).",
+      "prd": "§12.5 is missing 12 views (apply page, bulk upload, question manager, proctoring review, selection, change password, campaign results, 8 super-admin sub-screens).",
+      "severity": "MEDIUM",
+      "fix": "Refresh §12.5 to the full 38-screen table with the deployed View IDs."
+    },
+    {
+      "id": "A-39",
+      "group": "Data model & APIs",
+      "prd_section": "§12.5 implementation note",
+      "workflow": "The deployed app is a 38-screen single-page shell with a Screen Navigator (matches the MVP note).",
+      "prd": "Note says routes will map to Next.js App Router when the backend is wired in, while the stack table says React SPA + FastAPI.",
+      "severity": "LOW",
+      "fix": "Clarify in one sentence: MVP = view-switch shell; production = React Router routes over the FastAPI backend (drop the Next.js reference or mark it as prototype tooling)."
+    }
+  ],
+  "partB_workflow_internal_defects": [
+    {
+      "id": "B-01",
+      "title": "Company-admin login dead-end",
+      "description": "The workflow defines /company/register for admins but no login path for them anywhere (B2 /company/login is candidate-only). After logout, an admin has no way back in.",
+      "severity": "CRITICAL",
+      "fix": "Pick one: (a) /auth Login accepts company_admin credentials and redirects by role, or (b) give /company/login two tabs (Candidate / Admin). Also add forgot-password for admins."
+    },
+    {
+      "id": "B-02",
+      "title": "Campaign form lacks Interview Type",
+      "description": "The A3 campaign form has no interview-type picker, yet B8 says the interview type is fixed by the admin and the deployed app offers 6 hiring-specific types (Full, Role-Specific, Technical, Behavioral, System Design, Quick Screen).",
+      "severity": "HIGH",
+      "fix": "Add an Interview Type selector to the campaign form (visible when the Interview round is checked) and document the 6 hiring types - see Decision D3."
+    },
+    {
+      "id": "B-03",
+      "title": "Hiring round sizes unspecified",
+      "description": "Nothing defines how many questions/problems a campaign test serves or its duration. The deployed app fixes Aptitude = 25 MCQs / 30 min and Coding = 3 problems / 60 min; behaviour when an admin curates fewer items is undefined.",
+      "severity": "MEDIUM",
+      "fix": "Add per-round config to the campaign schema (question_count, duration_minutes, problem_count) with the deployed defaults, and define the fallback when the curated bank is smaller."
+    },
+    {
+      "id": "B-04",
+      "title": "Min coding cutoff wording is ambiguous",
+      "description": "A3 says Min Coding Questions to Attempt while the deployed app says Min Coding Questions to Solve Correctly - attempts alone do not qualify. Attempt and solve-correctly are different metrics.",
+      "severity": "MEDIUM",
+      "fix": "Standardise on problems solved correctly (the app's semantics) or state explicitly that any submitted attempt counts - see Decision D4."
+    },
+    {
+      "id": "B-05",
+      "title": "3+ tab switches checkbox overlaps the 3-strike rule",
+      "description": "In the Auto-Disqualify list, 3+ tab switches is redundant with the standard 3-strike auto-submit that already applies to every campaign. Unclear whether it means instant disqualification (score 0) or just the standard auto-submit.",
+      "severity": "MEDIUM",
+      "fix": "Redefine the checkbox as: when checked, the 3rd-strike auto-submit ALSO disqualifies (overall = 0) instead of applying the standard 20% penalty."
+    },
+    {
+      "id": "B-06",
+      "title": "No campaign edit flow",
+      "description": "Campaigns cannot be edited after creation in the workflow (deadline extension, weight fixes, question additions), yet real drives always need this. The deployed app says You can edit any of these settings after creation.",
+      "severity": "MEDIUM",
+      "fix": "Add an Edit Campaign flow with guard rails: deadline can extend but never shorten below the current time; weights editable only while no candidate has started."
+    },
+    {
+      "id": "B-07",
+      "title": "No resend / revoke invite actions",
+      "description": "If an invite email fails or a candidate loses the password, the leaderboard offers no resend-credentials or revoke-access action (PRD §17.1 has a credential manager, the workflow screen does not).",
+      "severity": "MEDIUM",
+      "fix": "Add per-row actions: Resend Invite, Reset Password, Revoke Access (with confirmation)."
+    },
+    {
+      "id": "B-08",
+      "title": "Bulk-upload email guarantee",
+      "description": "The manual path can still end with un-fixable resumes (admin gives up); there is no alternative candidate CSV upload (name + email + resume link) that guarantees emails.",
+      "severity": "LOW",
+      "fix": "Optional: accept a candidates.csv alongside resumes in the bulk upload screen."
+    },
+    {
+      "id": "B-09",
+      "title": "OTP resend countdown starts at 4:32",
+      "description": "A non-round countdown implies a randomised or already-elapsed timer. Resend windows should be deterministic.",
+      "severity": "LOW",
+      "fix": "Use a fixed 5:00 cooldown; keep the 10-minute OTP expiry from the PRD."
+    },
+    {
+      "id": "B-10",
+      "title": "Landing copy drift",
+      "description": "Workflow: Master Every Interview with AI hero, Trusted by 5,000+ students with avatars, 3 testimonials. Deployed app: Practice interviews with an AI that listens back, 4 stat chips, 6 testimonials.",
+      "severity": "LOW",
+      "fix": "Pick one source of truth for landing copy and align the other (see Part D, D-11 context)."
+    },
+    {
+      "id": "B-11",
+      "title": "No integrity-policy acknowledgment before strict rounds",
+      "description": "Candidates jump from the system check straight into a proctored test; there is no I-understand-the-rules screen, which invites disputes after auto-submit.",
+      "severity": "MEDIUM",
+      "fix": "Add a one-tap rules acknowledgment (3-strike policy, one attempt, camera monitored) before the first round; it also strengthens the ethical stance of stealth anti-AI capture."
+    },
+    {
+      "id": "B-12",
+      "title": "Speech auto-detect is under-specified",
+      "description": "The interview says the user can just start talking and it auto-detects - no mechanism named.",
+      "severity": "LOW",
+      "fix": "Specify voice-activity detection with automatic answer segmentation plus a manual toggle fallback (deployed UI already shows a mic toggle)."
+    },
+    {
+      "id": "B-13",
+      "title": "Processing screen is WebSocket-only",
+      "description": "Progress relies entirely on WebSocket; no reconnect strategy or REST fallback is defined, and the > 5-minute message has no recovery path beyond go-to-dashboard.",
+      "severity": "MEDIUM",
+      "fix": "Add: exponential-backoff reconnect, GET /interview/analysis/{id} polling fallback, and a dashboard pending-report card."
+    },
+    {
+      "id": "B-14",
+      "title": "17-section report has no in-page navigation",
+      "description": "A long 17-card scroll with only a sticky Download button; no table of contents for jumping to sections.",
+      "severity": "LOW",
+      "fix": "Add a sticky mini-TOC (section numbers) on desktop; collapse sections 5-15 by default with 2-4 expanded."
+    },
+    {
+      "id": "B-15",
+      "title": "Profile tabs have no unsaved-changes guard",
+      "description": "Four tabs each with Save Changes - switching tabs with dirty state silently discards edits.",
+      "severity": "MEDIUM",
+      "fix": "Add a dirty-state guard (confirm dialog) or per-field autosave with a saved indicator."
+    },
+    {
+      "id": "B-16",
+      "title": "Proctoring modals lack accessibility specs",
+      "description": "z-index 700 full-screen warnings are defined visually but there is no focus-trap, no aria-live announcement for timer/strikes, no keyboard dismissal rules.",
+      "severity": "MEDIUM",
+      "fix": "Add a11y notes to Module 10: focus trap, role=alertdialog, aria-live=assertive on strike/timer changes, Esc does NOT dismiss warnings."
+    },
+    {
+      "id": "B-17",
+      "title": "Temporary password lifetime undefined",
+      "description": "Invite emails carry a temporary password with no expiry; a candidate could log in months later if the campaign never closed (deadline check exists, but is campaign-level only).",
+      "severity": "LOW",
+      "fix": "Expire the temp password 7 days after issue or at the campaign deadline, whichever is first."
+    },
+    {
+      "id": "B-18",
+      "title": "Duplicate candidates across campaigns undefined",
+      "description": "Duplicate detection is per campaign (same email re-apply). Whether one person may be shortlisted in two campaigns of the same company (or two companies) is unspecified.",
+      "severity": "LOW",
+      "fix": "State: email is unique per campaign; cross-campaign applications are allowed and isolated."
+    },
+    {
+      "id": "B-19",
+      "title": "Candidate results page has no live update",
+      "description": "B9 shows --/100 while the interview is processing but no refresh mechanism is defined.",
+      "severity": "LOW",
+      "fix": "Reuse REPORT_READY / LEADERBOARD_UPDATE via a candidate-scoped WebSocket to flip scores in place."
+    },
+    {
+      "id": "B-20",
+      "title": "Interview Live indicator is under-specified",
+      "description": "The admin leaderboard shows a Live badge during the interview, but the refresh mechanism and privacy scope (what the admin may see live) are undefined.",
+      "severity": "LOW",
+      "fix": "Define: status-only events (round started / completed / integrity events), no live transcript or video for admins."
+    }
+  ],
+  "partC_uiux_recommendations": [
+    {
+      "id": "C-01",
+      "area": "Auth",
+      "recommendation": "Add a step indicator (1 of 3 dots) to the in-place signup flow - content swaps without navigation, so users need orientation.",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "C-02",
+      "area": "Dashboard",
+      "recommendation": "While a report is generating, show a disabled ghost card (Report generating... ~60 s) instead of hiding the button entirely - sets expectations and answers where-did-my-report-go.",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "C-03",
+      "area": "Aptitude / Coding (Hiring)",
+      "recommendation": "Make the hiring-mode timer server-authoritative; on crash-resume, re-sync remaining time from the server before restoring localStorage answers (localStorage-only timers are a cheating vector).",
+      "severity": "HIGH"
+    },
+    {
+      "id": "C-04",
+      "area": "Coding Arena",
+      "recommendation": "Keep per-language code buffers so switching languages restores that language's last code instead of clearing it (keep the confirmation modal as a safety net).",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-05",
+      "area": "Coding (Hiring)",
+      "recommendation": "Do not run the live Gemini AI review for candidate submissions in Hiring Mode - it burns quota and leaks feedback that helps gaming; surface the review in the admin PDF report instead.",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "C-06",
+      "area": "Interview setup",
+      "recommendation": "When camera/mic permission fails twice, show a Help panel (browser-specific permission steps) instead of leaving Begin Interview permanently disabled.",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "C-07",
+      "area": "Interview live",
+      "recommendation": "Ask a one-tap reason when ending early (Finished / Too long / Technical issue) - cheap analytics that improve question-length tuning.",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-08",
+      "area": "Processing screen",
+      "recommendation": "Add an Uploading-recording step before Transcribing so the Cloudinary upload (which can fail) is visible; on failure the replay fallback message already exists - good.",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-09",
+      "area": "Report",
+      "recommendation": "Sticky mini-TOC + collapsed sections (see B-14); highlight section numbers in the accent colour when scrolled past.",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "C-10",
+      "area": "Profile",
+      "recommendation": "Unsaved-changes guard per tab (see B-15).",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "C-11",
+      "area": "Company registration",
+      "recommendation": "Verify the admin email (OTP or magic link) before the first campaign can go live - prevents fake companies and typo'd emails that would silently break candidate invites.",
+      "severity": "HIGH"
+    },
+    {
+      "id": "C-12",
+      "area": "Campaign weights",
+      "recommendation": "Show the live sum (deployed app already shows Sigma 100%) plus an Auto-balance button that redistributes to 100.",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-13",
+      "area": "Campaign deadline",
+      "recommendation": "Display the timezone explicitly (11:59 PM IST) in the picker, the dashboard countdown and the invite email - the invite email already says IST, the form does not.",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-14",
+      "area": "Leaderboard invites",
+      "recommendation": "Per-candidate email status after shortlisting with a Retry button for failed sends (the workflow's success table shows all green; reality will have SMTP failures).",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "C-15",
+      "area": "Force password change",
+      "recommendation": "Add a strength meter and show/hide toggles (the auth login already has show/hide - reuse it).",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-16",
+      "area": "Candidate results",
+      "recommendation": "Auto-refresh scores via WebSocket when processing completes (see B-19) instead of requiring a page revisit.",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-17",
+      "area": "Proctoring warnings",
+      "recommendation": "Focus trap + role=alertdialog + aria-live (see B-16); ensure the I Understand button is auto-focused so Enter dismisses.",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "C-18",
+      "area": "Empty states",
+      "recommendation": "Add empty states for aptitude quick stats, coding heatmap and roadmap (only Recent Interviews has one today).",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-19",
+      "area": "Onboarding",
+      "recommendation": "First-login coach marks on the dashboard (4 highlights: report button area, quick actions, radar, self-awareness stats) - dismissible, stored in localStorage.",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-20",
+      "area": "Mobile strict tests",
+      "recommendation": "Suppress pull-to-refresh / overscroll during proctored rounds (accidental refresh could count as an exit event) and hint landscape mode for the coding round.",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-21",
+      "area": "Status colour semantics",
+      "recommendation": "Document the colour system (green > 72 h, yellow 24-72 h, red < 24 h countdown; score badges) once in §12 and reuse everywhere.",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-22",
+      "area": "Free-trial copy conflict",
+      "recommendation": "Company landing says Free for 14 days while the student landing says Free forever and §15 says fully free - align to Free forever (academic project) or update §15 if a trial is intended.",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "C-23",
+      "area": "Screen navigator",
+      "recommendation": "The 38-screen navigator is a demo tool; hide it behind a query flag (e.g. ?demo=1) in any shared deployment so recruiters never see the demo switcher.",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-24",
+      "area": "Cookie banner + support widget",
+      "recommendation": "Both float above content; ensure they never cover the sticky Download-PDF / Submit-Test actions on small screens.",
+      "severity": "LOW"
+    },
+    {
+      "id": "C-25",
+      "area": "Navigation (logged-in)",
+      "recommendation": "Neither document defines the persistent logged-in navigation per role. Add to §3B.2: Student top-nav (Dashboard, Resume, Aptitude, Coding, Interview, Reports, Profile, theme, logout), Admin sidebar (Dashboard, Campaigns, per-campaign children, Settings), Candidate minimal header (campaign name, countdown, logout), Super Admin sidebar (8 sections).",
+      "severity": "HIGH"
+    }
+  ],
+  "partD_deployed_app_observations": [
+    {
+      "id": "D-1",
+      "title": "Screen inventory verified",
+      "detail": "All 38 screens from the workflow exist in the deployed shell, grouped Prep Mode (10), Hiring Admin (9), Candidate (11), Super Admin (8). Coverage is complete; nothing in the workflow is missing from the build."
+    },
+    {
+      "id": "D-2",
+      "title": "Anti-AI / Anti-Parakeet detection (undocumented)",
+      "detail": "Campaign creation exposes a full Anti-AI subsystem: secondary voice detection (whispered prompts), gaze tracking pattern-matched to AI use, screen-share / second-monitor detection, second-device audio fingerprinting, AI-helper browser-extension scan, keystroke dynamics for paste-from-AI, clipboard lock, and AI-response latency analysis. Detections capture a high-res webcam frame + audio and queue silently for human review (candidate sees no warning). Neither the workflow nor the PRD mentions ANY of this - it must be back-filled into Module 10 (plus privacy/GDPR notes and false-positive handling)."
+    },
+    {
+      "id": "D-3",
+      "title": "Hiring-specific interview types (undocumented)",
+      "detail": "The deployed Interview Type selector offers 6 hiring types different from Prep's: Full Interview (30 min / 12 Q), Role Specific (25 / 10), Technical (20 / 8), Behavioral (15 / 6), System Design (30 / 4), Quick Screen (10 / 5). PRD §11.4 says the admin picks from Module 6's 6 Prep types - the app diverges. Decide whether Hiring gets its own type set (recommended: yes, documented as such)."
+    },
+    {
+      "id": "D-4",
+      "title": "Campaign form extras (undocumented)",
+      "detail": "Experience Band dropdown (Fresher / Junior / Mid / Senior), per-round metadata chips (Aptitude 25 MCQs 30 min; Coding 3 problems 60 min; Interview Live AI variable), 13 proctoring rules incl. copy/paste, right-click and DevTools-open triggers, and editable-after-creation messaging."
+    },
+    {
+      "id": "D-5",
+      "title": "Strictness definitions (matches recommendation)",
+      "detail": "Deployed Strictness levels exactly match sensible semantics: Relaxed = warnings only; Standard = auto-submit on 3rd strike; Strict = auto-disqualify on 2nd strike. Use these definitions in the PRD update."
+    },
+    {
+      "id": "D-6",
+      "title": "Report screen follows the WORKFLOW, not the PRD",
+      "detail": "The deployed /report view has all 17 sections with the 6-dimension score table and a 3-paragraph executive summary - confirming mismatches A-13/A-14 and that the PRD is the outdated side."
+    },
+    {
+      "id": "D-7",
+      "title": "Candidate strict aptitude footer",
+      "detail": "Shows Strikes: 0/3, Integrity: Clean, no retakes, and camera + tab focus are monitored - consistent with the 3-strike workflow and further evidence for fixing the PRD's 2+ violations phrasing."
+    },
+    {
+      "id": "D-8",
+      "title": "Interview setup privacy note",
+      "detail": "Step 2 states: video is processed locally for emotion detection, only audio is sent for transcription - a good privacy promise worth adding verbatim to Module 6."
+    },
+    {
+      "id": "D-9",
+      "title": "Auth extras",
+      "detail": "Login tab adds a Remember me checkbox (not in either document) and show/hide password toggles; Forgot Password reveals inline - matches the workflow."
+    },
+    {
+      "id": "D-10",
+      "title": "Per-round candidate result screens",
+      "detail": "The app ships Candidate Aptitude Result and Candidate Coding Result screens (the workflow implies results only at the end, B9). Per-round feedback is better UX; document it and keep B9 as the final summary (see Decision D7)."
+    },
+    {
+      "id": "D-11",
+      "title": "Copy conflicts",
+      "detail": "Company landing says Free for 14 days - contradicts the student landing (Free forever) and PRD §15. Also the candidate ID in the app is BACKEN-14544 (5 hex) vs the workflow's BACKEN-3FA82C (6 hex) - trivial, but standardise."
+    },
+    {
+      "id": "D-12",
+      "title": "39 screenshots captured",
+      "detail": "Every screen was captured to download/app-screenshots/ (01-landing ... 38-super-dbhealth) as visual evidence for this review."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "topic": "Company-admin login path",
+      "options": "Option A: /auth login is role-aware (admin email logs in, redirects to /admin). Option B: /company/login gets Candidate / Admin tabs.",
+      "recommendation": "Recommended: A - fewer screens, one forgot-password flow."
+    },
+    {
+      "id": "D2",
+      "topic": "Min coding cutoff semantics",
+      "options": "Attempt = any submission, vs Solve correctly = passed cases > 0.",
+      "recommendation": "Recommended: Solve correctly (deployed app wording, stronger integrity)."
+    },
+    {
+      "id": "D3",
+      "topic": "Hiring interview types",
+      "options": "Reuse Prep's 6 types vs adopt the deployed app's 6 hiring-specific types (Full / Role-Specific / Technical / Behavioral / System Design / Quick Screen).",
+      "recommendation": "Recommended: adopt the hiring set; keep Prep's set unchanged."
+    },
+    {
+      "id": "D4",
+      "topic": "Auto-DQ: 3+ tab switches",
+      "options": "Standard 3-strike auto-submit + 20% penalty (always on) vs checkbox upgrades 3rd strike to instant disqualification (overall 0).",
+      "recommendation": "Recommended: checkbox = disqualify semantics; rename label to Disqualify on 3rd strike."
+    },
+    {
+      "id": "D5",
+      "topic": "Anti-AI subsystem scope",
+      "options": "Document all 8 deployed rules as P0, document as P1 (phase 2), or trim to a subset (voice + extension scan + latency analysis).",
+      "recommendation": "Recommended: document exactly what is built (P0) with a privacy notice + human-review requirement."
+    },
+    {
+      "id": "D6",
+      "topic": "AI code review in Hiring Mode",
+      "options": "Show live AI review to candidates vs admin-report-only.",
+      "recommendation": "Recommended: admin-report-only (quota + anti-gaming)."
+    },
+    {
+      "id": "D7",
+      "topic": "Per-round candidate results",
+      "options": "Keep the deployed per-round result screens vs strict end-only results (B9).",
+      "recommendation": "Recommended: keep per-round screens; each shows that round's score only, never overall/rank."
+    },
+    {
+      "id": "D8",
+      "topic": "Landing copy source of truth",
+      "options": "Workflow copy vs deployed copy.",
+      "recommendation": "Recommended: deployed copy (it exists and is stronger); update the workflow text accordingly."
+    },
+    {
+      "id": "D9",
+      "topic": "Report-generating state",
+      "options": "Hidden button (workflow) vs ghost skeleton card (C-02).",
+      "recommendation": "Recommended: ghost card + fade-in button on REPORT_READY."
+    },
+    {
+      "id": "D10",
+      "topic": "Free-trial copy",
+      "options": "Free forever everywhere vs genuine 14-day company trial.",
+      "recommendation": "Recommended: Free forever (matches §15 academic scope)."
+    },
+    {
+      "id": "D11",
+      "topic": "Versioning on update",
+      "options": "You chose to keep v2.2 - confirm the PRD is edited in place with no version bump and no changelog entry.",
+      "recommendation": "Recommended: in-place edit, silent merge, keep the v2.2 label."
+    }
+  ],
+  "partE_prd_update_plan": [
+    {
+      "order": "1",
+      "target": "Front matter & §3B",
+      "action": "Rewrite §3B.1 modes table (3-strike, camera scoping, campaign-report note); rebuild §3B.2 as the full 28-route table + add a per-role navigation spec (C-25); add application_status vocabulary to §3B.3.",
+      "source": "ADOPT workflow + deployed app"
+    },
+    {
+      "order": "2",
+      "target": "§5 Stack",
+      "action": "File-storage row -> Cloudinary; add qrcode.react to the component list; add Resend to the email row.",
+      "source": "ADOPT workflow"
+    },
+    {
+      "order": "3",
+      "target": "§6 Journeys",
+      "action": "Student: keep, minor fix (camera required at interview setup). Admin: insert apply-link generation + auto-shortlist one-click flow + selection/exports. Candidate: insert apply page, force password change, cutoffs, read-only results.",
+      "source": "ADOPT workflow"
+    },
+    {
+      "order": "4",
+      "target": "Module 1 Auth",
+      "action": "/auth canonical; admin login decision (D1); requirePasswordChange flag; POST /candidate/change-password; forgot-password for admins.",
+      "source": "ADOPT workflow + D1"
+    },
+    {
+      "order": "5",
+      "target": "Module 2 Profile",
+      "action": "No changes needed (workflow matches).",
+      "source": "KEEP"
+    },
+    {
+      "order": "6",
+      "target": "Module 3 Resume",
+      "action": "No changes to analysis schema; add a note that Hiring Mode analysis targets campaign.job_role and writes into applicant_pool.",
+      "source": "KEEP + small add"
+    },
+    {
+      "order": "7",
+      "target": "Module 4 Aptitude",
+      "action": "Mode-split config table (passing score, retakes, negative marking); remove PAUSED state; add auto-save crash recovery + server-authoritative timer for Hiring; add campaign question-count fallback rule (B-03).",
+      "source": "ADOPT workflow"
+    },
+    {
+      "order": "8",
+      "target": "Module 5 Coding",
+      "action": "Hiring row: single submission, permanent lock, AI review scope per D6; per-language buffers note (C-04).",
+      "source": "ADOPT + D6"
+    },
+    {
+      "order": "9",
+      "target": "Module 6 Interview",
+      "action": "Add Processing/Done sub-screens (7c/7d) spec with >5 min fallback; VAD note; privacy note from deployed app; hiring interview types per D3.",
+      "source": "ADOPT + D3"
+    },
+    {
+      "order": "10",
+      "target": "Module 7 Post-analysis",
+      "action": "WebSocket event registry incl. REPORT_READY; REST polling fallback (B-13).",
+      "source": "ADOPT workflow"
+    },
+    {
+      "order": "11",
+      "target": "Module 8 Dashboard",
+      "action": "Hidden report button + ghost card per D9; aptitude quick-stats bars; campaign-dashboard states (countdown colours, card states, violations footer).",
+      "source": "ADOPT workflow"
+    },
+    {
+      "order": "12",
+      "target": "Module 9 Report",
+      "action": "6-dimension score table; 3-paragraph summary; 4 recommendation badges; question-based emotion timeline; roadmap card contents; Campaign Report reframed as admin export (A-17); sticky mini-TOC note.",
+      "source": "ADOPT workflow"
+    },
+    {
+      "order": "13",
+      "target": "Module 10 Proctoring",
+      "action": "Camera scoping fix (A-11); strictness levels (D-5); expanded auto-DQ enum + D4 semantics; exact modal texts; a11y rules; Anti-AI subsystem per D5; integrity formula split by mode (A-12).",
+      "source": "ADOPT + D4/D5"
+    },
+    {
+      "order": "14",
+      "target": "Module 11 Hiring",
+      "action": "Campaign schema: cutoffs, strictness, per-round config, experience_band, interview_type, edit rules; Apply Link + QR; applicant_pool table; auto-shortlist panel; bulk upload screen; statuses; candidate ID format; invite + acknowledgement email templates.",
+      "source": "ADOPT workflow"
+    },
+    {
+      "order": "15",
+      "target": "NEW Module 12 Super Admin",
+      "action": "S1-S8 screen specs + suspend/reactivate semantics + GDPR delete job + reseed job + maintenance mode + feature toggles + audit log actions + DB health checks.",
+      "source": "ADOPT workflow"
+    },
+    {
+      "order": "16",
+      "target": "Part 4 APIs",
+      "action": "Add ~18 endpoints: public apply (2), candidate change-password + results (2), admin campaign CRUD/edit, apply-link, bulk-upload status, applicant email patch, bulk shortlist action, invite resend, exports (CSV/PDF-ZIP) (2), per-event proctoring dismiss/confirm, super-admin set (7).",
+      "source": "ADOPT workflow"
+    },
+    {
+      "order": "17",
+      "target": "Part 5 DB",
+      "action": "applicant_pool; audit_logs; system_config; campaign columns; candidate_credentials += require_password_change, password_expires_at; application_status rename.",
+      "source": "ADOPT workflow"
+    },
+    {
+      "order": "18",
+      "target": "§12.5 Screen list",
+      "action": "Full 38-screen refresh with deployed View IDs; landing copy fix (4 steps, free CTA, footer).",
+      "source": "ADOPT deployed app"
+    },
+    {
+      "order": "19",
+      "target": "§13 NFR",
+      "action": "Add timer-integrity requirement (server-authoritative in Hiring Mode); add Anti-AI privacy note under security.",
+      "source": "Small add"
+    },
+    {
+      "order": "20",
+      "target": "§14/15 MVP & access",
+      "action": "Fix the company-packs contradiction; add the 6 new screens to the launch checklist; resolve free-trial copy per D10.",
+      "source": "ADOPT + D10"
+    },
+    {
+      "order": "21",
+      "target": "Appendices",
+      "action": "A: new acceptance criteria (apply flow, force password change, cutoffs, anti-AI queue, super-admin ops). B: RESEND_API_KEY, FROM_EMAIL. C: new terms (Apply Link, Auto-Shortlist, applicant_pool, Experience Band, Anti-AI Detection, Proctoring Strictness, 3-Strike System).",
+      "source": "ADOPT workflow"
+    }
+  ]
+}

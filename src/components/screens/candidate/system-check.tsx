@@ -12,6 +12,7 @@ import {
   Mic,
   Monitor,
   ShieldAlert,
+  ShieldCheck,
 } from "lucide-react";
 import {
   GlowCard,
@@ -20,6 +21,7 @@ import {
 } from "@/components/shared/primitives";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -95,6 +97,12 @@ export function PreTestCheck() {
   ];
 
   const allOk = Object.values(checks).every((s) => s === "ok");
+
+  // F-02: Integrity-policy acknowledgment gate. The candidate must check this
+  // box before they can proceed to any proctored round. The acknowledgment
+  // confirms they understand the 3-strike policy, no retakes, and camera/mic
+  // monitoring.
+  const [acknowledged, setAcknowledged] = useState(false);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -179,10 +187,33 @@ export function PreTestCheck() {
                 </p>
               </div>
 
+              {/* F-02: Integrity-policy acknowledgment gate */}
+              <div className="mt-5 rounded-lg border border-violet-400/20 bg-violet-500/5 p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="ack"
+                    checked={acknowledged}
+                    onCheckedChange={(v) => setAcknowledged(!!v)}
+                    className="mt-0.5"
+                  />
+                  <label htmlFor="ack" className="cursor-pointer text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground/80">
+                      I understand the proctoring policy:
+                    </span>
+                    <ul className="mt-1.5 space-y-1">
+                      <li>· 3-strike system: WARNING 1 of 3, WARNING 2 of 3, then TEST AUTO-SUBMITTED.</li>
+                      <li>· One attempt per round. No retakes.</li>
+                      <li>· Camera + microphone are monitored throughout.</li>
+                      <li>· Tab switches and fullscreen exits are tracked.</li>
+                    </ul>
+                  </label>
+                </div>
+              </div>
+
               <Button
-                disabled={!allOk}
+                disabled={!allOk || !acknowledged}
                 onClick={() => set("candidate-aptitude")}
-                className="mt-5 h-11 w-full rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600"
+                className="mt-5 h-11 w-full rounded-full bg-violet-500 px-7 text-white hover:bg-violet-600 disabled:opacity-50"
               >
                 Continue to Assessment
                 <ArrowRight className="ml-2 h-4 w-4" />

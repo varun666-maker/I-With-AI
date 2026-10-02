@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 const CAMPAIGN = {
   company: "Acme Corp",
   role: "Backend Developer",
-  deadline: "January 30, 2025",
+  deadline: "January 30, 2025, 11:59 PM IST",
   slug: "acme-backend-2025",
 };
 

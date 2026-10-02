@@ -228,7 +228,7 @@ export function CandidateDashboard() {
         <StaggeredReveal className="mt-6 space-y-4" delay={0.07}>
           {ROUNDS.map((r) => (
             <motion.div key={r.n} variants={revealItem}>
-              <RoundCard round={r} onContinue={() => set("aptitude")} />
+              <RoundCard round={r} onContinue={() => set("candidate-coding")} />
             </motion.div>
           ))}
         </StaggeredReveal>
@@ -257,7 +257,9 @@ export function CandidateDashboard() {
             <GlowCard className="flex items-start gap-3 p-4">
               <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" />
               <div className="text-xs text-muted-foreground">
-                <p className="font-medium text-foreground/80">Integrity: Clean</p>
+                <p className="font-medium text-foreground/80">
+                  Strikes: 0/3 · Integrity: Clean
+                </p>
                 <p className="mt-1">
                   You currently have{" "}
                   <span className="font-medium text-emerald-700 dark:text-emerald-300">0 violations</span>.

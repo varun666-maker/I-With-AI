@@ -206,7 +206,7 @@ const PRICING = [
       "CSV / PDF export",
       "Priority support",
     ],
-    cta: "Start 14-day Trial",
+    cta: "Start Free",
     popular: true,
   },
   {

@@ -143,6 +143,9 @@ export function CampaignCreate() {
     rightClick: true,
     devtools: true,
   });
+  // D4: Global "Disqualify on 3rd strike" toggle. When checked, the 3rd-strike
+  // auto-submit ALSO disqualifies (overall = 0) instead of submitting with score.
+  const [disqualifyOn3rdStrike, setDisqualifyOn3rdStrike] = useState(false);
   const [antiAi, setAntiAi] = useState({
     voiceDetect: true,
     eyeTracking: true,
@@ -275,7 +278,8 @@ export function CampaignCreate() {
                       </div>
                     </div>
                     <p className="mt-3 text-xs text-muted-foreground">
-                      Candidates can&apos;t submit past this deadline.
+                      Candidates can&apos;t submit past this deadline. All
+                      times are in IST (11:59 PM IST).
                     </p>
                   </div>
 
@@ -370,6 +374,37 @@ export function CampaignCreate() {
                               }
                             />
                           )}
+                        </div>
+                        {/* F-12: Auto-balance button — redistributes weights to exactly 100% */}
+                        <div className="mt-4 flex items-center gap-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const activeRounds = [
+                                rounds.aptitude,
+                                rounds.coding,
+                                rounds.interview,
+                              ].filter(Boolean).length;
+                              if (activeRounds === 0) return;
+                              const each = Math.floor(100 / activeRounds);
+                              const remainder = 100 - each * activeRounds;
+                              const newWeights = {
+                                aptitude: rounds.aptitude ? each : 0,
+                                coding: rounds.coding ? each : 0,
+                                interview: rounds.interview ? each + remainder : 0,
+                              };
+                              setWeights(newWeights);
+                            }}
+                            className="h-8 rounded-full text-xs"
+                          >
+                            Auto-balance
+                          </Button>
+                          <span className="text-xs text-muted-foreground">
+                            Redistribute weights evenly across active rounds to
+                            sum to 100%.
+                          </span>
                         </div>
                         {weightInvalid && (
                           <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-rose-600 dark:text-rose-300">
@@ -516,10 +551,28 @@ export function CampaignCreate() {
                             Standard · Auto-submit on 3rd strike
                           </SelectItem>
                           <SelectItem value="strict">
-                            Strict · Auto-disqualify on 2nd strike
+                            Strict · Auto-submit + disqualify on 3rd strike
                           </SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+
+                    {/* D4: Disqualify on 3rd strike toggle */}
+                    <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-rose-400/20 bg-rose-500/[0.04] p-3">
+                      <div>
+                        <p className="text-sm font-medium text-rose-700 dark:text-rose-200">
+                          Disqualify on 3rd strike
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          When checked, the 3rd-strike auto-submit also
+                          disqualifies (overall = 0) instead of submitting
+                          with score.
+                        </p>
+                      </div>
+                      <Checkbox
+                        checked={disqualifyOn3rdStrike}
+                        onCheckedChange={(v) => setDisqualifyOn3rdStrike(!!v)}
+                      />
                     </div>
 
                     {/* Auto-DQ */}
@@ -824,7 +877,7 @@ export function CampaignCreate() {
                   <Detail label="Job role" value={role} />
                   <Detail
                     label="Deadline"
-                    value={deadline.replace("T", " · ")}
+                    value={`${deadline.replace("T", " · ")} IST`}
                   />
                 </div>
                 <div className="mt-4 grid gap-4 border-t border-black/5 pt-4 sm:grid-cols-3 dark:border-white/5">

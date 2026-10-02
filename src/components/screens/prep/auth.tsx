@@ -173,7 +173,7 @@ export function AuthScreen() {
                     transition={{ duration: 0.25 }}
                     className="mt-6"
                   >
-                    <LoginPanel onLogin={() => set("dashboard")} />
+                    <LoginPanel onLogin={(role) => set(role === "admin" ? "admin-dashboard" : "dashboard")} />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -388,7 +388,8 @@ function SignUpStep1({ onNext }: { onNext: () => void }) {
 
 function SignUpStep2({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
   const [otp, setOtp] = useState("");
-  const [resendIn, setResendIn] = useState(272);
+  // F-27: Fixed 5:00 (300s) OTP resend cooldown per spec. Was 272 (non-round).
+  const [resendIn, setResendIn] = useState(300);
   const [error, setError] = useState<string | null>(null);
   const [attempts, setAttempts] = useState(3);
 
@@ -442,7 +443,7 @@ function SignUpStep2({ onBack, onNext }: { onBack: () => void; onNext: () => voi
           </span>
         ) : (
           <button
-            onClick={() => setResendIn(272)}
+            onClick={() => setResendIn(300)}
             className="text-xs font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
           >
             Resend OTP
@@ -708,7 +709,7 @@ function SignUpStep3({ onBack, onDone }: { onBack: () => void; onDone: () => voi
 
 /* --------------------------- Login + forgot ------------------------------ */
 
-function LoginPanel({ onLogin }: { onLogin: () => void }) {
+function LoginPanel({ onLogin }: { onLogin: (role: "student" | "admin") => void }) {
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [loading, setLoading] = useState(false);
@@ -717,6 +718,9 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
   const [showPwd, setShowPwd] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; pwd?: string }>({});
   const [touched, setTouched] = useState<{ email?: boolean; pwd?: boolean }>({});
+  // F-01: Role toggle — Student vs Company Admin. Determines where the user
+  // lands after login. Admins go to admin-dashboard; students go to dashboard.
+  const [role, setRole] = useState<"student" | "admin">("student");
 
   const validateEmail = (v: string) => {
     if (!v) return "Email is required";
@@ -739,14 +743,37 @@ function LoginPanel({ onLogin }: { onLogin: () => void }) {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      onLogin();
+      onLogin(role);
     }, 900);
   };
 
   return (
     <div>
       <h3 className="text-lg font-semibold">Welcome back</h3>
-      <p className="mt-1 text-sm text-muted-foreground">Log in to continue your prep journey.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {role === "admin"
+          ? "Log in to your company admin dashboard."
+          : "Log in to continue your prep journey."}
+      </p>
+
+      {/* F-01: Role toggle — Student vs Company Admin */}
+      <div className="mt-4 grid grid-cols-2 gap-1.5 rounded-lg border border-black/10 bg-black/[0.02] p-1 dark:border-white/10 dark:bg-white/5">
+        {(["student", "admin"] as const).map((r) => (
+          <button
+            key={r}
+            type="button"
+            onClick={() => setRole(r)}
+            className={cn(
+              "rounded-md py-1.5 text-xs font-medium transition-colors",
+              role === r
+                ? "bg-violet-500 text-white"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {r === "student" ? "Student" : "Company Admin"}
+          </button>
+        ))}
+      </div>
 
       {!forgot ? (
         <>

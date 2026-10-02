@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Home,
@@ -86,6 +86,23 @@ export function TopNav() {
   const [navOpen, setNavOpen] = useState(false);       // hamburger menu
   const [drawerOpen, setDrawerOpen] = useState(false);  // All Screens (dev tool)
   const [query, setQuery] = useState("");
+
+  // F-04: Screen Navigator demo tool is hidden unless ?demo=1 is in the URL.
+  // This prevents recruiters/candidates from wandering into every screen in
+  // a shared deployment. Deep links to views still resolve (route guard
+  // unchanged) — only the navigator UI is hidden.
+  const [demoMode, setDemoMode] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const check = () => setDemoMode(new URLSearchParams(window.location.search).has("demo"));
+    check();
+    window.addEventListener("popstate", check);
+    window.addEventListener("pushstate", check);
+    return () => {
+      window.removeEventListener("popstate", check);
+      window.removeEventListener("pushstate", check);
+    };
+  }, []);
 
   const go = (id: ScreenId) => {
     set(id);
@@ -204,19 +221,21 @@ export function TopNav() {
               <Menu className="h-4 w-4" />
             </button>
 
-            {/* All Screens — dev/preview tool (separate from hamburger) */}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="hidden h-8 gap-1.5 rounded-full px-3 text-muted-foreground lg:inline-flex"
-              onClick={() => setDrawerOpen(true)}
-            >
-              <LayoutGrid className="h-3.5 w-3.5" />
-              <span>Screens</span>
-              <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">
-                {ALL_SCREENS.length}
-              </span>
-            </Button>
+            {/* All Screens — dev/preview tool (F-04: hidden unless ?demo=1) */}
+            {demoMode && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="hidden h-8 gap-1.5 rounded-full px-3 text-muted-foreground lg:inline-flex"
+                onClick={() => setDrawerOpen(true)}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                <span>Screens</span>
+                <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">
+                  {ALL_SCREENS.length}
+                </span>
+              </Button>
+            )}
 
             <Button
               size="sm"

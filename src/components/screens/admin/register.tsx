@@ -123,7 +123,7 @@ export function CompanyRegister() {
                   One-time setup. 2 minutes.
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  No credit card. Free for 14 days.
+                  No credit card. Free forever.
                 </p>
               </div>
             </div>

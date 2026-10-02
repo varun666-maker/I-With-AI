@@ -212,7 +212,14 @@ function CodingEditorView() {
   }, [currentProblemId]);
 
   const [language, setLanguage] = useState<string>("Python");
-  const [code, setCode] = useState<string>(problem.starterCode.Python ?? "");
+  // F-29: Per-language code buffers. Each language has its own buffer so
+  // switching languages preserves the code written in each. Initialized from
+  // the problem's starter code for each language.
+  const [codeByLang, setCodeByLang] = useState<Record<string, string>>(() => ({
+    Python: problem.starterCode.Python ?? "",
+    JavaScript: problem.starterCode.JavaScript ?? "",
+  }));
+  const code = codeByLang[language] ?? "";
   const [customInput, setCustomInput] = useState<string>(
     problem.testCases[0]?.input ?? "",
   );
@@ -232,7 +239,11 @@ function CodingEditorView() {
   useEffect(() => {
     queueMicrotask(() => {
       setLanguage("Python");
-      setCode(problem.starterCode.Python ?? "");
+      // F-29: Reset per-language buffers for the new problem.
+      setCodeByLang({
+        Python: problem.starterCode.Python ?? "",
+        JavaScript: problem.starterCode.JavaScript ?? "",
+      });
       setCustomInput(problem.testCases[0]?.input ?? "");
       setResults(null);
       setSubmitted(false);
@@ -278,7 +289,12 @@ function CodingEditorView() {
   const confirmSwitch = () => {
     if (!confirmLang) return;
     setLanguage(confirmLang);
-    setCode(problem.starterCode[confirmLang] ?? "");
+    // F-29: No longer clears code — each language has its own buffer.
+    // If the target language's buffer is empty, initialize from starter code.
+    setCodeByLang((prev) => {
+      if (prev[confirmLang]) return prev;
+      return { ...prev, [confirmLang]: problem.starterCode[confirmLang] ?? "" };
+    });
     setResults(null);
     setSubmitted(false);
     setConfirmLang(null);
@@ -491,7 +507,7 @@ function CodingEditorView() {
                 </div>
                 <textarea
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
+                  onChange={(e) => setCodeByLang((prev) => ({ ...prev, [language]: e.target.value }))}
                   spellCheck={false}
                   className="flex-1 resize-none bg-transparent p-3 font-mono text-xs leading-6 text-emerald-100 outline-none"
                   style={{ minHeight: 280, tabSize: 4 }}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AlertOctagon, AlertTriangle, ArrowRight, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,23 @@ export function ProctoringWarning({
 }: ProctoringWarningProps) {
   const shouldReduce = useReducedMotion();
   const isTerminal = strikeNumber >= 3;
+
+  // F-03: Focus trap — auto-focus the dismiss button when the modal opens so
+  // keyboard-only users can press Enter to dismiss. Also announce strike
+  // count via aria-live="assertive".
+  const acknowledgeBtnRef = useRef<HTMLButtonElement>(null);
+  const autoSubmitBtnRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(() => {
+      if (isTerminal) {
+        autoSubmitBtnRef.current?.focus();
+      } else {
+        acknowledgeBtnRef.current?.focus();
+      }
+    }, 50);
+    return () => clearTimeout(t);
+  }, [open, isTerminal]);
 
   const tone = isTerminal ? "rose" : "amber";
   const toneClasses = {
@@ -118,11 +136,15 @@ export function ProctoringWarning({
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className={cn("text-xs font-semibold uppercase tracking-widest", toneClasses.accentText)}>
-                  {isTerminal ? "Test auto-submitted" : `Warning ${strikeNumber} of 3`}
+                {/* GR-1: Exact copy — WARNING 1 of 3 / WARNING 2 of 3 / TEST AUTO-SUBMITTED */}
+                <p
+                  className={cn("text-xs font-semibold uppercase tracking-widest", toneClasses.accentText)}
+                  aria-live="assertive"
+                >
+                  {isTerminal ? "TEST AUTO-SUBMITTED" : `WARNING ${strikeNumber} of 3`}
                 </p>
                 <h3 id="proctoring-warning-title" className="mt-1 text-lg font-semibold tracking-tight text-foreground">
-                  {isTerminal ? "Maximum violations reached" : "Proctoring violation"}
+                  {isTerminal ? "Test auto-submitted" : strikeNumber === 2 ? "Final warning" : "Proctoring violation"}
                 </h3>
                 <p id="proctoring-warning-desc" className="mt-2 text-sm text-muted-foreground">
                   {isTerminal ? (
@@ -167,6 +189,7 @@ export function ProctoringWarning({
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
               {isTerminal ? (
                 <Button
+                  ref={autoSubmitBtnRef}
                   className={cn("gap-2", toneClasses.button)}
                   onClick={onAutoSubmit}
                 >
@@ -180,10 +203,11 @@ export function ProctoringWarning({
                     Logged for review.
                   </div>
                   <Button
+                    ref={acknowledgeBtnRef}
                     className={cn("gap-2", toneClasses.button)}
                     onClick={onAcknowledge}
                   >
-                    I understand, continue
+                    I Understand
                   </Button>
                 </>
               )}
