@@ -40,48 +40,42 @@ const FEATURES = [
     icon: FileText,
     title: "Resume analysis",
     body: "Upload a PDF. Get an ATS score, missing skills, and a rewrite plan in 15 seconds. The analyzer reads for the role you specify, not a generic checklist.",
-    image:
-      "https://picsum.photos/seed/resume-paper-desk-pen/640/480",
+    image: "/features/resume.png",
   },
   {
     n: "02",
     icon: ClipboardList,
     title: "Aptitude practice",
     body: "1,500+ timed questions across quantitative, logical, verbal, analytical, and data interpretation. Take a 25-question mock in 30 minutes. Get per-category breakdowns and explanations for every wrong answer.",
-    image:
-      "https://picsum.photos/seed/aptitude-test-notebook-pencil/640/480",
+    image: "/features/aptitude.png",
   },
   {
     n: "03",
     icon: Code2,
     title: "Coding practice",
     body: "A Monaco editor with 7 languages. Run against 10 test cases. Submit and get a complexity analysis, a code-quality score, and a refactored snippet from the AI.",
-    image:
-      "https://picsum.photos/seed/coding-editor-monitor-keyboard/640/480",
+    image: "/features/coding.png",
   },
   {
     n: "04",
     icon: Video,
     title: "Live AI interview",
     body: "A 3D avatar asks a question, you answer out loud. Whisper transcribes in real time. The AI generates a follow-up based on what you said. Body language tracked throughout.",
-    image:
-      "https://picsum.photos/seed/video-interview-webcam-headset/640/480",
+    image: "/features/interview.png",
   },
   {
     n: "05",
     icon: FileBarChart,
     title: "Complete 17-section report",
     body: "Every interview produces a full report: executive summary, overall score across 6 dimensions, hiring recommendation, resume analysis, aptitude analysis, coding analysis, technical and HR evaluation, communication and emotion analysis, emotion timeline chart, session highlights, top 7 strengths, top 7 improvements, a 6-week learning roadmap, and a final recommendation. Download as PDF.",
-    image:
-      "https://picsum.photos/seed/report-document-charts-graph/640/480",
+    image: "/features/report.png",
   },
   {
     n: "06",
     icon: PlayCircle,
     title: "Interview video replay",
     body: "Re-watch any past interview with the video recording synced to the transcript and AI annotations. Click any line in the transcript to jump to that moment. An emotion timeline strip shows how your expressions changed throughout. If the recording failed, the transcript and scores are still accessible.",
-    image:
-      "https://picsum.photos/seed/video-replay-playback-screen/640/480",
+    image: "/features/replay.png",
   },
 ];
 
