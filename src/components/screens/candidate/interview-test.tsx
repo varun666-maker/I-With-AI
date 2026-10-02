@@ -34,7 +34,9 @@ import { ProctoringWarning } from "@/components/shared/proctoring-warning";
 type SubScreen = "confirm" | "live" | "processing" | "done";
 
 const INTERVIEW_TYPE = "Technical - General";
+// F-23: Added "Uploading recording" as the first step (before Transcribing).
 const PROCESSING_STEPS = [
+  { label: "Uploading recording", dur: "8s" },
   { label: "Transcribing audio", dur: "12s" },
   { label: "Evaluating answers", dur: "18s" },
   { label: "Generating report", dur: "20s" },
@@ -54,6 +56,9 @@ export function CandidateInterviewTest() {
 
   const [sub, setSub] = useState<SubScreen>("confirm");
   const [endOpen, setEndOpen] = useState(false);
+  // F-22: Early-end reason picker. When the candidate ends early, they must
+  // pick one of 3 reasons before submitting. Normal completion does NOT prompt.
+  const [endReason, setEndReason] = useState<"finished" | "too-long" | "technical" | null>(null);
   const [autoSubmitted, setAutoSubmitted] = useState(false);
 
   // CRITICAL: proctor is in ref, never in deps.
@@ -115,6 +120,7 @@ export function CandidateInterviewTest() {
 
   const endEarly = () => {
     setEndOpen(false);
+    setEndReason(null);
     exitFullscreen();
     setNavigationLocked(false);
     proctorRef.current.stopMonitoring();
@@ -279,8 +285,8 @@ export function CandidateInterviewTest() {
                 </div>
               </div>
 
-              {/* End-early confirmation */}
-              <Dialog open={endOpen} onOpenChange={setEndOpen}>
+              {/* End-early confirmation + F-22 reason picker */}
+              <Dialog open={endOpen} onOpenChange={(o) => { setEndOpen(o); if (!o) setEndReason(null); }}>
                 <DialogContent className="border-black/10 bg-card dark:border-white/10">
                   <DialogHeader>
                     <DialogTitle>End interview early?</DialogTitle>
@@ -289,13 +295,48 @@ export function CandidateInterviewTest() {
                       will still be processed into a report.
                     </DialogDescription>
                   </DialogHeader>
+                  {/* F-22: 3-option reason picker */}
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Why are you ending early?
+                    </p>
+                    {([
+                      { v: "finished", label: "Finished", desc: "I've said everything I need to." },
+                      { v: "too-long", label: "Too long", desc: "The interview is taking too much time." },
+                      { v: "technical", label: "Technical issue", desc: "Connectivity, audio, or video problem." },
+                    ] as const).map((r) => (
+                      <button
+                        key={r.v}
+                        type="button"
+                        onClick={() => setEndReason(r.v)}
+                        className={cn(
+                          "flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors",
+                          endReason === r.v
+                            ? "border-violet-400/60 bg-violet-500/10"
+                            : "border-black/10 hover:bg-muted/30 dark:border-white/10",
+                        )}
+                      >
+                        <div className={cn(
+                          "mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full border",
+                          endReason === r.v ? "border-violet-500 bg-violet-500" : "border-black/20 dark:border-white/20",
+                        )}>
+                          {endReason === r.v && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{r.label}</p>
+                          <p className="text-xs text-muted-foreground">{r.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                   <DialogFooter className="mt-4 flex gap-2">
-                    <Button variant="ghost" onClick={() => setEndOpen(false)} className="rounded-full">
+                    <Button variant="ghost" onClick={() => { setEndOpen(false); setEndReason(null); }} className="rounded-full">
                       Keep Going
                     </Button>
                     <Button
                       onClick={endEarly}
-                      className="rounded-full bg-rose-500 text-white hover:bg-rose-600"
+                      disabled={!endReason}
+                      className="rounded-full bg-rose-500 text-white hover:bg-rose-600 disabled:opacity-50"
                     >
                       End Interview
                     </Button>

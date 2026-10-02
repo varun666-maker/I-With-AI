@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  Ban,
   Bell,
   Check,
   CheckCircle2,
@@ -9,10 +10,12 @@ import {
   Download,
   FileArchive,
   Filter,
+  KeyRound,
   Lock,
   Mail,
   RefreshCw,
   Rocket,
+  Send,
   ShieldAlert,
   ShieldCheck,
   Upload,
@@ -409,6 +412,7 @@ export function CandidateLeaderboard() {
                   <TableHead className="hidden md:table-cell">Overall</TableHead>
                   <TableHead>Integrity</TableHead>
                   <TableHead className="pr-4">Status</TableHead>
+                  <TableHead className="hidden lg:table-cell pr-4">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -563,6 +567,32 @@ export function CandidateLeaderboard() {
                     </TableCell>
                     <TableCell className="pr-4">
                       <StatusBadge status={c.status} />
+                    </TableCell>
+                    {/* F-14: Per-row invite actions */}
+                    <TableCell className="hidden lg:table-cell pr-4">
+                      <div className="flex items-center gap-1">
+                        <button
+                          title="Resend Invite"
+                          onClick={() => {}}
+                          className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-violet-700 dark:hover:text-violet-300"
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          title="Reset Password"
+                          onClick={() => {}}
+                          className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-sky-700 dark:hover:text-sky-300"
+                        >
+                          <KeyRound className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          title="Revoke Access"
+                          onClick={() => {}}
+                          className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-rose-600 dark:hover:text-rose-300"
+                        >
+                          <Ban className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

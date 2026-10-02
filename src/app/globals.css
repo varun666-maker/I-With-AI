@@ -985,3 +985,42 @@
     page-break-inside: avoid;
   }
 }
+
+/* ─── F-31: Mobile hardening for proctored rounds ────────────────────────── */
+/* Suppress pull-to-refresh and overscroll during proctored tests to prevent
+   accidental refreshes that could count as fullscreen-exit events. Applied
+   globally — the body always has overscroll-behavior: contain. */
+html, body {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* During proctored rounds, the test container gets .proctored-mode which
+   fully disables touch-action scrolling on the body to prevent
+   pull-to-refresh. */
+body.proctored-mode {
+  overflow: hidden;
+  touch-action: none;
+  position: fixed;
+  width: 100%;
+}
+
+/* Landscape hint for coding round on mobile portrait */
+.landscape-hint {
+  display: none;
+}
+@media (max-width: 767px) and (orientation: portrait) {
+  .landscape-hint.visible {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 800;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    font-size: 14px;
+    text-align: center;
+    padding: 2rem;
+  }
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Brain,
@@ -7,6 +8,7 @@ import {
   Code2,
   EyeOff,
   Info,
+  Loader2,
   Lock,
   LogOut,
   ShieldCheck,
@@ -82,6 +84,20 @@ const HIDDEN_ROWS = [
 export function CandidateResults() {
   const { set } = useNav();
 
+  // F-16: Live score flip — start with all rounds in "processing" state
+  // (showing --/100), then flip to real scores after ~3s. Simulates the
+  // REPORT_READY WebSocket event with polling fallback.
+  const [scoresReady, setScoresReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setScoresReady(true), 3000);
+    return () => clearTimeout(t);
+  }, []);
+
+  const displayRounds = ROUNDS.map((r) => ({
+    ...r,
+    processing: !scoresReady,
+  }));
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <section className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl flex-col items-center justify-center px-4 py-12 sm:px-6">
@@ -149,7 +165,7 @@ export function CandidateResults() {
 
               {/* Round scores */}
               <ul className="space-y-3">
-                {ROUNDS.map((r) => (
+                {displayRounds.map((r) => (
                   <li key={r.label}>
                     <RoundScoreRow result={r} />
                   </li>
@@ -274,16 +290,23 @@ function RoundScoreRow({ result }: { result: RoundResult }) {
           toneBg,
         )}
       >
-        <result.icon className="h-5 w-5" />
+        {result.processing ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <result.icon className="h-5 w-5" />
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center justify-between">
           <span className="text-sm font-medium">{result.label}</span>
           <span className={cn("text-sm font-semibold tabular-nums", toneText)}>
-            {result.score}/100
+            {result.processing ? "--/100" : `${result.score}/100`}
           </span>
         </div>
-        <Progress value={result.score} className={cn("h-1.5", toneProgress)} />
+        <Progress
+          value={result.processing ? 0 : result.score}
+          className={cn("h-1.5", toneProgress)}
+        />
       </div>
     </div>
   );

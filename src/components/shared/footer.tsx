@@ -62,12 +62,13 @@ function FullFooter({ className }: { className?: string }) {
         { label: "For Candidates", onClick: () => set("apply") },
       ],
     },
+    // F-33: "Modes" column replaces "Resources" per spec.
     {
-      title: "Resources",
+      title: "Modes",
       links: [
-        { label: "Documentation", href: "#" },
-        { label: "Help Center", href: "#" },
-        { label: "API Reference", href: "#" },
+        { label: "Prep Mode", onClick: () => set("dashboard") },
+        { label: "Hiring Mode", onClick: () => set("admin-dashboard") },
+        { label: "Super Admin", onClick: () => set("superadmin-dashboard") },
       ],
     },
     {

@@ -13,6 +13,7 @@ import {
   Download,
   FileText,
   Info,
+  Loader2,
   Lock,
   RefreshCw,
   TrendingUp,
@@ -298,6 +299,25 @@ export function StudentDashboard() {
                 <Video className="h-4 w-4 text-violet-500 dark:text-violet-400" />
               </div>
               <ul className="mt-3 space-y-2">
+                {/* F-09: Report-generating ghost card */}
+                <li className="flex items-center justify-between rounded-lg border border-violet-400/20 bg-violet-500/[0.04] px-3 py-2.5">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="inline-flex h-8 w-8 shrink-0 place-items-center rounded-lg border border-violet-400/30 bg-violet-500/10 text-violet-600 dark:text-violet-300">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-muted-foreground">
+                        Report generating…
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Usually ~60s. Available soon.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="rounded-full border border-violet-400/30 bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-medium text-violet-600 dark:text-violet-300">
+                    Pending
+                  </span>
+                </li>
                 {RECENT.map((r, i) => (
                   <li
                     key={i}

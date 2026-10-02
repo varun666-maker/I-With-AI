@@ -61,13 +61,14 @@ import {
 import { useNav } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
+// F-08: 6-row score table matching the radar chart dimensions.
 const SCORES = [
   { dim: "Technical", score: 82, color: "bg-violet-400" },
   { dim: "Communication", score: 74, color: "bg-fuchsia-400" },
   { dim: "Behavioral", score: 68, color: "bg-sky-400" },
-  { dim: "Body Language", score: 71, color: "bg-emerald-400" },
-  { dim: "Confidence", score: 79, color: "bg-amber-400" },
-  { dim: "Problem Solving", score: 85, color: "bg-rose-400" },
+  { dim: "Problem Solving", score: 85, color: "bg-emerald-400" },
+  { dim: "Culture Fit", score: 76, color: "bg-amber-400" },
+  { dim: "Role Readiness", score: 79, color: "bg-rose-400" },
 ];
 
 const EMOTION_TIMELINE = [
@@ -275,7 +276,7 @@ export function InterviewReport() {
             </div>
           </SectionCard>
 
-          {/* 4. Hiring Recommendation */}
+          {/* 4. Hiring Recommendation — GR-4 badge colours */}
           <SectionCard n={4} title="Hiring Recommendation" icon={Trophy}>
             <div className="rounded-lg border border-sky-400/30 bg-sky-500/10 p-6 text-center">
               <Badge className="mx-auto border-sky-400/40 bg-sky-500/20 text-sky-700 dark:text-sky-100">
@@ -285,11 +286,12 @@ export function InterviewReport() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Based on overall score (78), technical accuracy (82), and behavioral signals. Priya shows strong potential for the Backend Developer role. Suggest a follow-up system design round to confirm seniority band.
               </p>
-              <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
-                <span className="rounded-full border border-black/10 px-2 py-0.5 text-rose-600 dark:border-white/10 dark:text-rose-300">Not Recommended &lt; 50</span>
-                <span className="rounded-full border border-black/10 px-2 py-0.5 text-amber-600 dark:border-white/10 dark:text-amber-300">Conditional 50-65</span>
-                <span className="rounded-full border border-sky-400/40 bg-sky-500/20 px-2 py-0.5 text-sky-700 dark:text-sky-100">Recommend 65-85</span>
-                <span className="rounded-full border border-black/10 px-2 py-0.5 text-emerald-600 dark:border-white/10 dark:text-emerald-300">Strong ≥ 85</span>
+              {/* GR-4: 4 recommendation badges with correct colour semantics */}
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[11px] text-muted-foreground">
+                <span className="rounded-full border border-rose-400/40 bg-rose-500/10 px-2.5 py-0.5 font-medium text-rose-600 dark:text-rose-300">Not Recommend &lt; 70</span>
+                <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-0.5 font-medium text-amber-600 dark:text-amber-300">Conditionally Recommend 70-79</span>
+                <span className="rounded-full border border-sky-400/40 bg-sky-500/20 px-2.5 py-0.5 font-medium text-sky-700 dark:text-sky-100">Recommend 80-89</span>
+                <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-2.5 py-0.5 font-medium text-emerald-600 dark:text-emerald-300">Strongly Recommend 90+</span>
               </div>
             </div>
           </SectionCard>
