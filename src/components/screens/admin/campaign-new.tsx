@@ -129,6 +129,11 @@ export function CampaignCreate() {
   });
   const [minAptitude, setMinAptitude] = useState("50");
   const [minCodingSolved, setMinCodingSolved] = useState("2");
+  const [minCodingAttempted, setMinCodingAttempted] = useState("2");
+  // Customizable round sizes — admin can set how many questions/problems
+  // each round should have. Not fixed at 25 aptitude / 3 coding anymore.
+  const [aptitudeCount, setAptitudeCount] = useState("25");
+  const [codingCount, setCodingCount] = useState("3");
   const [interviewType, setInterviewType] = useState<InterviewType>("full");
 
   // ── Proctoring state ──────────────────────────────────────────────────────
@@ -295,7 +300,7 @@ export function CampaignCreate() {
                       <RoundToggle
                         icon={<Brain className="h-4 w-4" />}
                         label="Aptitude"
-                        desc="25 MCQs · 30 min"
+                        desc={`${aptitudeCount} MCQs · 30 min`}
                         checked={rounds.aptitude}
                         onToggle={() =>
                           setRounds({ ...rounds, aptitude: !rounds.aptitude })
@@ -304,7 +309,7 @@ export function CampaignCreate() {
                       <RoundToggle
                         icon={<Code2 className="h-4 w-4" />}
                         label="Coding"
-                        desc="3 problems · 60 min"
+                        desc={`${codingCount} problems · 60 min`}
                         checked={rounds.coding}
                         onToggle={() =>
                           setRounds({ ...rounds, coding: !rounds.coding })
@@ -320,6 +325,57 @@ export function CampaignCreate() {
                         }
                       />
                     </div>
+
+                    {/* Round configuration — customizable question counts */}
+                    {(rounds.aptitude || rounds.coding) && (
+                      <div className="mt-6 border-t border-black/5 pt-5 dark:border-white/5">
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                          Round Configuration
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Set how many questions each round should have. Not
+                          fixed — customize per campaign.
+                        </p>
+                        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                          {rounds.aptitude && (
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">
+                                Aptitude Question Count
+                              </Label>
+                              <Input
+                                type="number"
+                                min={5}
+                                max={100}
+                                value={aptitudeCount}
+                                onChange={(e) => setAptitudeCount(e.target.value)}
+                                className="h-10"
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Total MCQs in the aptitude round (5–100).
+                              </p>
+                            </div>
+                          )}
+                          {rounds.coding && (
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">
+                                Coding Problem Count
+                              </Label>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={10}
+                                value={codingCount}
+                                onChange={(e) => setCodingCount(e.target.value)}
+                                className="h-10"
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Total problems in the coding round (1–10).
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Score weights */}
                     {(
@@ -445,19 +501,37 @@ export function CampaignCreate() {
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">
+                          Min Coding Questions to Attempt
+                        </Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={Number(codingCount) || 3}
+                          value={minCodingAttempted}
+                          onChange={(e) => setMinCodingAttempted(e.target.value)}
+                          className="h-10"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Candidate must attempt at least this many problems.
+                          Fewer attempts = Interview round locked.
+                        </p>
+                      </div>
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <Label className="text-xs text-muted-foreground">
                           Min Coding Questions to Solve Correctly
                         </Label>
                         <Input
                           type="number"
                           min={0}
-                          max={3}
+                          max={Number(codingCount) || 3}
                           value={minCodingSolved}
                           onChange={(e) => setMinCodingSolved(e.target.value)}
                           className="h-10"
                         />
                         <p className="text-xs text-muted-foreground">
-                          Fewer solved = Interview round locked.
-                          Attempts alone do not qualify.
+                          Candidate must solve at least this many correctly.
+                          Attempts alone do not qualify — the candidate must
+                          pass test cases.
                         </p>
                       </div>
                     </div>
@@ -796,13 +870,29 @@ export function CampaignCreate() {
                           }
                         />
                       )}
+                      {rounds.aptitude && (
+                        <SummaryRow
+                          label="Aptitude questions"
+                          value={aptitudeCount}
+                        />
+                      )}
+                      {rounds.coding && (
+                        <SummaryRow
+                          label="Coding problems"
+                          value={codingCount}
+                        />
+                      )}
                       <SummaryRow
                         label="Min aptitude"
                         value={`${minAptitude}%`}
                       />
                       <SummaryRow
+                        label="Min coding attempted"
+                        value={`${minCodingAttempted} of ${codingCount}`}
+                      />
+                      <SummaryRow
                         label="Min coding solved"
-                        value={`${minCodingSolved} of 3`}
+                        value={`${minCodingSolved} of ${codingCount}`}
                       />
                       <SummaryRow label="Strictness" value={strictness} />
                       <SummaryRow
@@ -889,8 +979,20 @@ export function CampaignCreate() {
                     }
                   />
                   <Detail
+                    label="Aptitude questions"
+                    value={aptitudeCount}
+                  />
+                  <Detail
+                    label="Coding problems"
+                    value={codingCount}
+                  />
+                  <Detail
+                    label="Min coding attempted"
+                    value={`${minCodingAttempted} of ${codingCount}`}
+                  />
+                  <Detail
                     label="Min coding solved"
-                    value={`${minCodingSolved} of 3`}
+                    value={`${minCodingSolved} of ${codingCount}`}
                   />
                   <Detail label="Strictness" value={strictness} />
                 </div>
