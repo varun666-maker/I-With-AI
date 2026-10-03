@@ -6,6 +6,7 @@ import { TopNav } from "@/components/shared/top-nav";
 import { FlowNav } from "@/components/shared/flow-nav";
 import { SiteChrome } from "@/components/shared/site-chrome";
 import { SmartFooter } from "@/components/shared/footer";
+import { WebcamPiP } from "@/components/shared/webcam-pip";
 import { LandingPage } from "@/components/screens/prep/landing";
 
 // Prep Mode
@@ -104,6 +105,7 @@ const SCREENS: Record<ScreenId, React.ComponentType> = {
 
 export default function Home() {
   const { current } = useNav();
+  const navigationLocked = useNav((s) => s.navigationLocked);
   const Active = SCREENS[current] ?? LandingPage;
 
   return (
@@ -111,6 +113,8 @@ export default function Home() {
       <TopNav />
       <FlowNav />
       <SiteChrome />
+      {/* Webcam PiP — shows during proctored screens (when navigationLocked) */}
+      <WebcamPiP enabled={navigationLocked} />
       <AnimatePresence mode="wait">
         <motion.div
           key={current}
