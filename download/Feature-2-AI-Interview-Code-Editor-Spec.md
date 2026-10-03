@@ -14,6 +14,10 @@
 4. [Dynamic Question Generation](#4-dynamic-question-generation)
 5. [UI Layout: 70/30 Split](#5-ui-layout-7030-split)
 6. [Candidate Interaction Paths](#6-candidate-interaction-paths)
+   - Path 1: Code It (coding questions)
+   - Path 2: Skip (any question)
+   - Path 3: Explain Logic (coding questions — can't code, explain verbally)
+   - Path 4: Whiteboard (system design / math / puzzle — draw + explain)
 7. [Hint System](#7-hint-system)
 8. [Skip + Explain Logic](#8-skip--explain-logic)
 9. [End Interview States](#9-end-interview-states)
@@ -278,31 +282,82 @@ async function generateQuestion(type, difficulty, topic, role) {
               70% (code + problem)              30% (AI + chat + controls)
 ```
 
-### During Non-Coding Questions (Behavioral / System Design)
+### During Non-Coding Questions (Behavioral / HR / System Design / Math / Puzzles)
+
+Non-coding questions have **2 modes** depending on the question type:
+
+**Mode A: Chat-only (behavioral / HR questions)**
+No visual canvas needed — candidate speaks or types their answer.
+
+**Mode B: Chat + Whiteboard (system design / math / puzzles / architecture)**
+A whiteboard canvas appears so the candidate can draw diagrams, write
+equations, sketch architecture, or work through a puzzle visually. The AI
+evaluates BOTH the verbal explanation AND the whiteboard content.
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                                                              │
-│  ┌──────────┐    🤖 AI: "Tell me about a time you faced     │
-│  │ 📹 PiP   │    a conflict at work. How did you handle     │
-│  └──────────┘    it?"                                        │
-│                                                              │
-│  👤 You: "At my last job, I disagreed with the senior       │
-│    dev about the API design. I scheduled a 1-on-1..."       │
-│                                                              │
-│  🤖 AI: "How did you resolve it? What was the outcome?"     │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │ 🎤 (speak your answer — mic is live)                   │  │
-│  └────────────────────────────────────────────────────────┘  │
-│                                                              │
-│  ⏱ Question: 1:30 / 3 min recommended                       │
-│                                                              │
-│  [🎤 Mic Toggle]                    [End Interview 🔒]       │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
-              100% (full width, no code editor)
+┌──────────────────────────────────────────┬──────────────────────┐
+│                                          │  🤖 AI Avatar        │
+│  🤖 AI: "Design a URL shortener.        │  (animated)          │
+│        Sketch the architecture."         │                      │
+│                                          │  ┌────────────────┐  │
+│  ┌──────────────────────────────────────┐│  │ 📹 Webcam PiP  │  │
+│  │  ✏️ Whiteboard                       ││  │ (movable)      │  │
+│  │                                      ││  └────────────────┘  │
+│  │   ┌───┐    ┌───┐    ┌───┐           ││                      │
+│  │   │ C │───→│ W │───→│DB │           ││  Live Transcript:     │
+│  │   └───┘    └───┘    └───┘           ││  🤖 "Design a URL..."│
+│  │     │        │                      ││  👤 "I'll use a..."  │
+│  │     ▼        ▼                      ││  🤖 "Good, what..."  │
+│  │   ┌───┐    ┌─────┐                  ││                      │
+│  │   │ L │    │ CDN │                  ││                      │
+│  │   └───┘    └─────┘                  ││                      │
+│  │                                      ││                      │
+│  │  "user → cache → worker → DB"       ││                      │
+│  │  "CDN for hot links"                ││                      │
+│  │                                      ││                      │
+│  └──────────────────────────────────────┘│  [🎤 Mic Toggle]     │
+│                                          │                      │
+│  [✏️ Pen] [🔲 Shapes] [📝 Text] [🧽 Erase]│  [End Interview 🔒] │
+│  [↶ Undo] [↷ Redo] [🧹 Clear] [Submit]   │                      │
+│                                          │                      │
+│  ⏱ Question: 4:30 / 10 min recommended  │                      │
+│                                          │                      │
+└──────────────────────────────────────────┴──────────────────────┘
+        70% (whiteboard + tools)         30% (AI + chat + controls)
 ```
+
+**When the whiteboard appears:**
+
+| Question Type | Whiteboard? | Why |
+|---|---|---|
+| Behavioral ("Tell me about a conflict") | ❌ No | Verbal answer only |
+| HR ("Why do you want this role?") | ❌ No | Verbal answer only |
+| System Design ("Design a URL shortener") | ✅ Yes | Architecture diagrams |
+| Math ("If 5 machines process 1000 jobs...") | ✅ Yes | Equations + calculations |
+| Puzzle ("You have 8 balls, 1 is heavier...") | ✅ Yes | Visual problem-solving |
+| Estimation ("How many golf balls fit in a bus?") | ✅ Yes | Breakdown + math |
+| Architecture ("How would you scale Twitter?") | ✅ Yes | System diagram |
+| Follow-up ("Add caching to your design") | ✅ Yes | Inherits parent's whiteboard |
+
+**Whiteboard tools:**
+- **Pen** — freehand drawing (mouse/touch/stylus)
+- **Shapes** — rectangle, circle, arrow, line (for clean architecture diagrams)
+- **Text** — type labels/annotations on the canvas
+- **Eraser** — remove specific strokes
+- **Undo / Redo** — history navigation
+- **Clear** — wipe the canvas
+- **Submit** — send snapshot to AI for evaluation
+
+**AI evaluation of whiteboard:**
+When the candidate clicks "Submit", the whiteboard is:
+1. Captured as a PNG snapshot (canvas → `toDataURL()`)
+2. Sent to Gemini as an image (multimodal vision API)
+3. AI evaluates the visual content:
+   - System design: Is the architecture correct? Are components labeled? Are data flows shown? Are edge cases considered (failure, scaling)?
+   - Math: Is the approach correct? Are calculations right? Is the reasoning clear?
+   - Puzzle: Is the visual representation accurate? Is the solution logical?
+4. AI gives feedback: "Your architecture looks solid — cache + worker + DB is the right pattern. However, you're missing a load balancer in front of the workers, and you haven't shown how the CDN invalidates stale links."
+5. Score is recorded combining verbal explanation + whiteboard quality
 
 ### Right Panel (30%) — Persistent Elements
 
@@ -321,9 +376,9 @@ The 70% left area changes based on question type:
 | Question Type | Left Area Content |
 |---|---|
 | Coding | Problem statement + code editor + run/submit/hint/skip/explain buttons + test results |
-| Behavioral | Expanded transcript + mic input (no code editor) |
-| System Design | Expanded transcript + sketch area (future: whiteboard) |
-| Follow-up | Inherits parent question's layout |
+| Behavioral / HR | Expanded transcript + mic input (no code editor, no whiteboard) |
+| System Design / Math / Puzzle | Whiteboard canvas + drawing tools + submit button |
+| Follow-up | Inherits parent question's layout (code editor OR whiteboard) |
 
 ---
 
@@ -417,6 +472,68 @@ Candidate clicks "Explain Logic"
    → Score: recorded as "Logic Only" — weighted lower
       (max 60% of full score)
 ```
+
+### Path 4: Whiteboard (system design / math / puzzle questions)
+
+For non-coding questions that benefit from visual problem-solving, the
+candidate gets a whiteboard canvas instead of a code editor.
+
+```
+Step 1: AI asks a system design / math / puzzle question
+   → "Design a URL shortener. Sketch the architecture."
+   → Whiteboard canvas appears (70% left), AI panel stays (30% right)
+
+Step 2: Candidate draws + explains verbally
+   → Uses pen/shapes/text tools to sketch architecture
+   → Speaks explanation simultaneously (mic is live)
+   → Transcript captures both the AI question + verbal explanation
+
+Step 3: Candidate clicks "Submit"
+   → Whiteboard captured as PNG snapshot (canvas.toDataURL())
+   → Snapshot + verbal transcript sent to Gemini Vision API
+   → AI evaluates BOTH:
+     - Visual content (architecture correctness, component labeling, data flow)
+     - Verbal explanation (reasoning, trade-offs, edge cases)
+   → Spinner: "AI is reviewing your design..." (3-5s)
+
+Step 4: AI gives feedback
+   → "Your architecture is solid — cache + worker + DB is the right pattern.
+      However, you're missing a load balancer, and you haven't shown how
+      the CDN invalidates stale links. Can you add those?"
+   → Feedback appears as chat bubble in the right panel
+
+Step 5: Follow-up (optional)
+   → AI: "Now add a rate limiter to your design."
+   → Whiteboard persists (candidate can modify the existing drawing)
+   → Candidate adds the rate limiter → submit → feedback
+
+Step 6: AI moves to next question
+   → "Great. Let's switch to a coding problem."
+   → Whiteboard slides out, code editor slides in (or chat-only if behavioral)
+```
+
+**Whiteboard vs Code Editor vs Chat — when each appears:**
+
+| Question Type | Code Editor | Whiteboard | Chat Only |
+|---|---|---|---|
+| Coding (DSA) | ✅ | ❌ | ❌ |
+| Behavioral | ❌ | ❌ | ✅ |
+| HR | ❌ | ❌ | ✅ |
+| System Design | ❌ | ✅ | ❌ |
+| Math | ❌ | ✅ | ❌ |
+| Puzzle | ❌ | ✅ | ❌ |
+| Estimation | ❌ | ✅ | ❌ |
+| Architecture | ❌ | ✅ | ❌ |
+
+**Whiteboard AI evaluation criteria (by question type):**
+
+| Question Type | What AI evaluates |
+|---|---|
+| System Design | Architecture correctness, component labeling, data flow direction, failure handling, scaling strategy, trade-off awareness |
+| Math | Approach correctness, calculation accuracy, step-by-step reasoning, final answer |
+| Puzzle | Visual representation accuracy, logical deduction, solution efficiency |
+| Estimation | Breakdown structure, assumption reasonableness, math accuracy, final estimate |
+| Architecture | Component completeness, connection correctness, redundancy, bottlenecks identified |
 
 ---
 
@@ -1050,6 +1167,37 @@ Problem 3: LRU Cache (Hard)
 └── AI feedback: "Solid approach. Practice coding it up."
 ```
 
+### System Design / Whiteboard Analysis (new report section or expanded section 8/9)
+
+```
+System Design Question 1: Design a URL Shortener
+├── Mode: Whiteboard (drew + explained verbally)
+├── Time: 9m 12s
+├── AI score: 74/100
+├── Whiteboard snapshot: [embedded PNG image of the candidate's drawing]
+├── Components identified: Client, Cache, Worker, Database, CDN ✓
+├── Missing components: Load Balancer ✗, Rate Limiter ✗
+├── Data flow: Correct (Client → Cache → Worker → DB) ✓
+├── Failure handling: Not addressed ✗
+├── Scaling strategy: Mentioned CDN for hot links ✓, no sharding ✗
+├── Trade-offs discussed: Cache vs DB trade-off ✓
+├── AI feedback: "Solid foundation — cache + worker + DB is the right
+│   pattern. Add a load balancer and rate limiter. Show how the CDN
+│   invalidates stale links. Consider DB sharding for write scaling."
+├── Verbal explanation score: 78/100
+├── Whiteboard visual score: 70/100
+└── Combined score: 74/100 (50% verbal + 50% visual)
+
+System Design Question 2: Add Rate Limiting to your design
+├── Mode: Whiteboard (follow-up, modified existing drawing)
+├── Time: 4m 30s
+├── AI score: 82/100
+├── Whiteboard snapshot: [embedded PNG]
+├── AI feedback: "Good — token bucket rate limiter is the right choice.
+│   Placed correctly between the load balancer and workers."
+└── No follow-up (time constraint)
+```
+
 ---
 
 ## 15. Prep vs Candidate Mode Differences
@@ -1063,6 +1211,7 @@ The same interview engine powers both modes, with different rules:
 | Hints | Unlimited, no penalty | 3 max, -10% each |
 | Skip | Yes, no penalty | Yes, score = 0 |
 | Explain Logic | Yes | Yes |
+| Whiteboard (system design / math / puzzle) | Yes | Yes |
 | End Early | Always allowed | Only after AI finishes, or emergency exit |
 | Proctoring | Informational only | Strict (3-strike) |
 | Code execution | Mock or real (Piston) | Real (Piston) |
@@ -1157,20 +1306,22 @@ src/
 | File | Purpose |
 |---|---|
 | `src/components/shared/webcam-pip.tsx` | Draggable webcam PiP component |
+| `src/components/shared/whiteboard.tsx` | Drawing canvas (pen, shapes, text, eraser, undo/redo) for system design / math / puzzle questions |
 | `src/lib/interview-engine.ts` | AI orchestrator (question selection, pacing, follow-ups) |
 | `src/lib/code-evaluator.ts` | Gemini code evaluation pipeline |
 | `src/lib/code-executor.ts` | Piston API integration for code execution |
+| `src/lib/whiteboard-evaluator.ts` | Gemini Vision API evaluation of whiteboard snapshots |
 | `src/lib/interview-questions.ts` | Question bank + AI question generation |
 
 ### Files to update
 
 | File | Changes |
 |---|---|
-| `src/components/screens/prep/interview.tsx` | Add 70/30 split, code editor, hint system, skip, explain-logic, 3-state End |
+| `src/components/screens/prep/interview.tsx` | Add 70/30 split, code editor, whiteboard, hint system, skip, explain-logic, 3-state End |
 | `src/components/screens/candidate/interview-test.tsx` | Same changes as prep version |
 | `src/app/page.tsx` | Mount `<WebcamPiP>` globally |
-| `src/components/screens/admin/campaign-new.tsx` | Add interview duration, hint/skip/explain toggles to Step 5 |
-| `src/components/screens/prep/report.tsx` | Expand Coding Analysis section with per-problem detail |
+| `src/components/screens/admin/campaign-new.tsx` | Add interview duration, hint/skip/explain/whiteboard toggles to Step 5 |
+| `src/components/screens/prep/report.tsx` | Expand Coding Analysis + add System Design Analysis sections |
 
 ---
 
