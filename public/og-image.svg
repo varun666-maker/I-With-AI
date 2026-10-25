@@ -1,0 +1,77 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0f"/>
+      <stop offset="50%" stop-color="#12101e"/>
+      <stop offset="100%" stop-color="#050508"/>
+    </linearGradient>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="50%" stop-color="#d946ef"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle grid -->
+  <g opacity="0.08" stroke="#ffffff" stroke-width="1">
+    <path d="M0 70H1200M0 140H1200M0 210H1200M0 280H1200M0 350H1200M0 420H1200M0 490H1200M0 560H1200"/>
+    <path d="M100 0V630M200 0V630M300 0V630M400 0V630M500 0V630M600 0V630M700 0V630M800 0V630M900 0V630M1000 0V630M1100 0V630"/>
+  </g>
+
+  <!-- Radial glow accents -->
+  <circle cx="200" cy="180" r="280" fill="url(#glow)"/>
+  <circle cx="1020" cy="460" r="240" fill="url(#glow)"/>
+
+  <!-- Logo Icon -->
+  <rect x="100" y="90" width="64" height="64" rx="18" fill="#8b5cf6"/>
+  <text x="132" y="132" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="26" fill="#ffffff" text-anchor="middle">AI</text>
+
+  <!-- Brand Name -->
+  <text x="180" y="132" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="30" fill="#ffffff" letter-spacing="-0.5">InterviewAI</text>
+
+  <!-- Badge -->
+  <rect x="860" y="100" width="240" height="42" rx="21" fill="#1e1b2e" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="980" y="126" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="14" fill="#c084fc" text-anchor="middle">Dual-Mode AI SaaS</text>
+
+  <!-- Main Headline -->
+  <text x="100" y="270" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="64" fill="#ffffff" letter-spacing="-1.5">
+    Master Every Interview
+  </text>
+  <text x="100" y="345" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="64" fill="url(#brandGrad)" letter-spacing="-1.5">
+    with Real-Time AI.
+  </text>
+
+  <!-- Subtitle -->
+  <text x="100" y="420" font-family="system-ui, -apple-system, sans-serif" font-weight="400" font-size="22" fill="#94a3b8">
+    Mock AI interviews with voice &amp; video telemetry for jobseekers.
+  </text>
+  <text x="100" y="455" font-family="system-ui, -apple-system, sans-serif" font-weight="400" font-size="22" fill="#94a3b8">
+    Proctored assessments and auto-ranked hiring pipelines for recruiters.
+  </text>
+
+  <!-- Feature Pills -->
+  <g transform="translate(100, 515)">
+    <!-- Pill 1 -->
+    <rect x="0" y="0" width="210" height="44" rx="12" fill="#181824" stroke="#2d2b45"/>
+    <text x="105" y="27" font-family="system-ui, -apple-system, sans-serif" font-weight="500" font-size="14" fill="#e2e8f0" text-anchor="middle">🎯 17-Section Reports</text>
+
+    <!-- Pill 2 -->
+    <rect x="225" y="0" width="220" height="44" rx="12" fill="#181824" stroke="#2d2b45"/>
+    <text x="335" y="27" font-family="system-ui, -apple-system, sans-serif" font-weight="500" font-size="14" fill="#e2e8f0" text-anchor="middle">⚡ Real-time Code Editor</text>
+
+    <!-- Pill 3 -->
+    <rect x="460" y="0" width="210" height="44" rx="12" fill="#181824" stroke="#2d2b45"/>
+    <text x="565" y="27" font-family="system-ui, -apple-system, sans-serif" font-weight="500" font-size="14" fill="#e2e8f0" text-anchor="middle">🛡️ Zero-Cheating Proctor</text>
+
+    <!-- Pill 4 -->
+    <rect x="685" y="0" width="180" height="44" rx="12" fill="#181824" stroke="#2d2b45"/>
+    <text x="775" y="27" font-family="system-ui, -apple-system, sans-serif" font-weight="500" font-size="14" fill="#e2e8f0" text-anchor="middle">🚀 Next.js 16 Ready</text>
+  </g>
+</svg>

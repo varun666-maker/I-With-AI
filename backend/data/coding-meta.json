@@ -1,0 +1,140 @@
+{
+  "total": 600,
+  "topics": [
+    "Arrays",
+    "Backtracking",
+    "Binary Search",
+    "Bit Manipulation",
+    "DP",
+    "Design",
+    "Graphs",
+    "Greedy",
+    "Heap",
+    "Intervals",
+    "Linked List",
+    "Math",
+    "Recursion",
+    "Sliding Window",
+    "Sorting",
+    "Stack",
+    "Strings",
+    "Trees",
+    "Tries",
+    "Two Pointers"
+  ],
+  "companies": [
+    {
+      "name": "amazon",
+      "count": 600
+    },
+    {
+      "name": "google",
+      "count": 477
+    },
+    {
+      "name": "facebook",
+      "count": 394
+    },
+    {
+      "name": "microsoft",
+      "count": 393
+    },
+    {
+      "name": "apple",
+      "count": 309
+    },
+    {
+      "name": "bloomberg",
+      "count": 284
+    },
+    {
+      "name": "uber",
+      "count": 253
+    },
+    {
+      "name": "adobe",
+      "count": 196
+    },
+    {
+      "name": "oracle",
+      "count": 195
+    },
+    {
+      "name": "linkedin",
+      "count": 113
+    },
+    {
+      "name": "ebay",
+      "count": 111
+    },
+    {
+      "name": "goldman-sachs",
+      "count": 94
+    },
+    {
+      "name": "vmware",
+      "count": 94
+    },
+    {
+      "name": "snapchat",
+      "count": 82
+    },
+    {
+      "name": "salesforce",
+      "count": 64
+    },
+    {
+      "name": "twitter",
+      "count": 62
+    },
+    {
+      "name": "cisco",
+      "count": 62
+    },
+    {
+      "name": "paypal",
+      "count": 53
+    },
+    {
+      "name": "atlassian",
+      "count": 45
+    },
+    {
+      "name": "airbnb",
+      "count": 43
+    },
+    {
+      "name": "pinterest",
+      "count": 35
+    },
+    {
+      "name": "sap",
+      "count": 32
+    },
+    {
+      "name": "yelp",
+      "count": 31
+    },
+    {
+      "name": "intuit",
+      "count": 23
+    },
+    {
+      "name": "dropbox",
+      "count": 15
+    },
+    {
+      "name": "ibm",
+      "count": 9
+    },
+    {
+      "name": "netflix",
+      "count": 8
+    }
+  ],
+  "difficulties": [
+    "Easy",
+    "Medium",
+    "Hard"
+  ]
+}

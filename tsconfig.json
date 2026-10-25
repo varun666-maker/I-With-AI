@@ -25,7 +25,53 @@
     ],
     "paths": {
       "@/*": [
-        "./src/*"
+        "./*"
+      ],
+      "@/frontend/*": [
+        "./frontend/*"
+      ],
+      "@/backend/*": [
+        "./backend/*"
+      ],
+      "@/shared/*": [
+        "./shared/*"
+      ],
+      "@/components/screens/*": [
+        "./frontend/screens/*"
+      ],
+      "@/components/*": [
+        "./frontend/components/*"
+      ],
+      "@/hooks/*": [
+        "./frontend/hooks/*"
+      ],
+      "@/lib/store": [
+        "./frontend/stores/nav-store"
+      ],
+      "@/lib/flows": [
+        "./frontend/config/flows"
+      ],
+      "@/lib/fullscreen": [
+        "./frontend/hooks/use-fullscreen"
+      ],
+      "@/lib/proctoring": [
+        "./frontend/services/proctoring"
+      ],
+      "@/lib/utm": [
+        "./frontend/utils/utm"
+      ],
+      "@/lib/utils": [
+        "./shared/utils/cn"
+      ],
+      "@/lib/db": [
+        "./backend/db/client"
+      ],
+      "@/lib/server/*": [
+        "./backend/services/*"
+      ],
+      "@/lib/*": [
+        "./backend/runners/*",
+        "./backend/data/*"
       ]
     }
   },
@@ -37,6 +83,8 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "examples",
+    "trash"
   ]
 }
